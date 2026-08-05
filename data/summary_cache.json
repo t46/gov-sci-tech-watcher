@@ -1,1 +1,22 @@
-{}
+{
+  "https://www8.cao.go.jp/cstp/kaisaiannai/2026/20260807brige_wg.html": {
+    "content_hash": "7c7164e6ec939fd0488c976ab5acc380a6aac19d2a43ae7d1047c0a0f9c8315f",
+    "result": {
+      "summary": "BRIDGE制度の運用成果と課題を検討し、改善と制度設計に役立てるワーキンググループを開催。",
+      "points": [
+        "BRIDGE制度の運用成果と課題を検討。",
+        "改善と制度設計に役立てる。",
+        "ワーキンググループを開催。"
+      ],
+      "why_it_matters": "制度運用の改善と制度設計に役立つため、より効果的な科学技術政策を実現。",
+      "signals": [
+        "令和8年8月7日",
+        "10:00",
+        "11:00",
+        "内閣府会議室とWeb会議システム（Microsoft Teams）",
+        "原則オンライン形式"
+      ]
+    },
+    "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
+  }
+}
