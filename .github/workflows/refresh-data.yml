@@ -47,7 +47,7 @@ jobs:
             echo "llama-cli was not found in the downloaded archive."
           fi
       - name: Generate cached local summaries
-        run: uv run python scripts/summarize_updates.py --max-items 5 --timeout 600
+        run: uv run python scripts/summarize_updates.py --max-items 1 --timeout 600
       - name: Commit refreshed data
         run: |
           git config user.name "gov-sci-tech-watcher[bot]"
