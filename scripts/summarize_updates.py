@@ -115,6 +115,7 @@ def run_model(item: dict[str, Any], model_repo: str, timeout: int) -> dict[str, 
         "--single-turn",
         "--simple-io",
         "--no-display-prompt",
+        "--log-disable",
         "--prompt",
         build_prompt(item),
     ]
