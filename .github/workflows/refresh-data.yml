@@ -47,7 +47,7 @@ jobs:
             echo "llama-cli was not found in the downloaded archive."
           fi
       - name: Generate cached local summaries
-        run: uv run python scripts/summarize_updates.py
+        run: uv run python scripts/summarize_updates.py --max-items 5 --timeout 600
       - name: Commit refreshed data
         run: |
           git config user.name "gov-sci-tech-watcher[bot]"
@@ -55,3 +55,18 @@ jobs:
           git add data/updates.json data/summary_cache.json
           git diff --cached --quiet || git commit -m "chore: refresh government updates"
           git push
+      - name: Deploy updated site to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare secrets are not configured; keeping the existing deployment."
+            exit 0
+          fi
+          npm ci
+          publish_dir="$RUNNER_TEMP/science-signal-site"
+          mkdir -p "$publish_dir/data"
+          cp index.html app.js styles.css "$publish_dir/"
+          cp data/updates.json "$publish_dir/data/updates.json"
+          npx wrangler pages deploy "$publish_dir" --project-name science-signal --branch main --commit-message "refresh government updates"

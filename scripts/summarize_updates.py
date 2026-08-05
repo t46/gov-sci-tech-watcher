@@ -117,9 +117,16 @@ def run_model(item: dict[str, Any], model_repo: str, timeout: int) -> dict[str, 
     ]
     try:
         completed = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
-    except (OSError, subprocess.TimeoutExpired):
+    except subprocess.TimeoutExpired:
+        print(f"Local model timed out after {timeout}s; keeping rule-based summaries.", file=sys.stderr)
+        return None
+    except OSError as exc:
+        print(f"Could not execute llama-cli: {exc}", file=sys.stderr)
         return None
     if completed.returncode != 0:
+        detail = completed.stderr.strip()[-2000:]
+        if detail:
+            print(f"llama-cli failed:\n{detail}", file=sys.stderr)
         return None
     return normalize_result(parse_json_object(completed.stdout)) if completed.stdout else None
 
@@ -138,8 +145,8 @@ def main() -> int:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--model-repo", default=DEFAULT_MODEL)
-    parser.add_argument("--max-items", type=int, default=20, help="Maximum new items per refresh")
-    parser.add_argument("--timeout", type=int, default=150)
+    parser.add_argument("--max-items", type=int, default=5, help="Maximum new items per refresh")
+    parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args()
 
     payload = read_json(args.input, {})
