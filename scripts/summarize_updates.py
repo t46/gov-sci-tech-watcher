@@ -119,7 +119,15 @@ def run_model(item: dict[str, Any], model_repo: str, timeout: int) -> dict[str, 
         build_prompt(item),
     ]
     try:
-        completed = subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
+        completed = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            check=False,
+        )
     except subprocess.TimeoutExpired:
         print(f"Local model timed out after {timeout}s; keeping rule-based summaries.", file=sys.stderr)
         return None
