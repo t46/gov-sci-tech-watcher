@@ -64,7 +64,9 @@ def parse_json_object(output: str) -> dict[str, Any] | None:
     return None
 
 
-def normalize_result(raw: dict[str, Any]) -> dict[str, Any] | None:
+def normalize_result(raw: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
     summary = clean_text(raw.get("summary"), 280)
     impact = clean_text(raw.get("why_it_matters"), 360)
     points = raw.get("points", [])
@@ -140,7 +142,11 @@ def run_model(item: dict[str, Any], model_repo: str, timeout: int) -> dict[str, 
         if detail:
             print(f"llama-cli failed:\n{detail}", file=sys.stderr)
         return None
-    return normalize_result(parse_json_object(completed.stdout)) if completed.stdout else None
+    parsed = parse_json_object(completed.stdout) if completed.stdout else None
+    if parsed is None:
+        print("llama-cli returned no readable JSON; keeping rule-based summary.", file=sys.stderr)
+        return None
+    return normalize_result(parsed)
 
 
 def apply_result(item: dict[str, Any], result: dict[str, Any], model_repo: str) -> None:
