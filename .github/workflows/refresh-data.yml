@@ -1,0 +1,57 @@
+name: Refresh government updates
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: latest
+      - name: Fetch official feeds
+        run: uv run python scripts/fetch_feeds.py
+      - name: Cache local model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/llama.cpp
+          key: llama-model-llm-jp-3-1-1-8b-q4
+      - name: Install llama.cpp
+        continue-on-error: true
+        run: |
+          set -e
+          release_json="$(curl -fsSL https://api.github.com/repos/ggml-org/llama.cpp/releases/latest)"
+          asset_url="$(printf '%s' "$release_json" | jq -r '.assets[] | select(.name | test("ubuntu-x64\\.tar\\.gz$")) | .browser_download_url' | head -n 1)"
+          if [ -z "$asset_url" ] || [ "$asset_url" = "null" ]; then
+            echo "Could not find a CPU binary for llama.cpp; the refresh will keep fallback summaries."
+            exit 0
+          fi
+          llama_dir="$RUNNER_TEMP/llama"
+          mkdir -p "$llama_dir"
+          curl -fL "$asset_url" -o "$RUNNER_TEMP/llama.tar.gz"
+          tar -xzf "$RUNNER_TEMP/llama.tar.gz" -C "$llama_dir"
+          llama_bin="$(find "$llama_dir" -type f -name llama-cli -print -quit)"
+          if [ -n "$llama_bin" ]; then
+            chmod +x "$llama_bin"
+            dirname "$llama_bin" >> "$GITHUB_PATH"
+          else
+            echo "llama-cli was not found in the downloaded archive."
+          fi
+      - name: Generate cached local summaries
+        run: uv run python scripts/summarize_updates.py
+      - name: Commit refreshed data
+        run: |
+          git config user.name "gov-sci-tech-watcher[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/updates.json data/summary_cache.json
+          git diff --cached --quiet || git commit -m "chore: refresh government updates"
+          git push
