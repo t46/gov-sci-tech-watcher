@@ -29,7 +29,7 @@ jobs:
         continue-on-error: true
         run: |
           set -e
-          release_json="$(curl -fsSL https://api.github.com/repos/ggml-org/llama.cpp/releases/latest)"
+          release_json="$(curl --retry 3 --retry-delay 2 -fsSL -H 'User-Agent: gov-sci-tech-watcher/1.0' https://api.github.com/repos/ggml-org/llama.cpp/releases/latest)"
           asset_url="$(printf '%s' "$release_json" | jq -r '.assets[] | select(.name | test("ubuntu-x64\\.tar\\.gz$")) | .browser_download_url' | head -n 1)"
           if [ -z "$asset_url" ] || [ "$asset_url" = "null" ]; then
             echo "Could not find a CPU binary for llama.cpp; the refresh will keep fallback summaries."
@@ -37,7 +37,7 @@ jobs:
           fi
           llama_dir="$RUNNER_TEMP/llama"
           mkdir -p "$llama_dir"
-          curl -fL "$asset_url" -o "$RUNNER_TEMP/llama.tar.gz"
+          curl --retry 3 --retry-delay 2 -fL -H 'User-Agent: gov-sci-tech-watcher/1.0' "$asset_url" -o "$RUNNER_TEMP/llama.tar.gz"
           tar -xzf "$RUNNER_TEMP/llama.tar.gz" -C "$llama_dir"
           llama_bin="$(find "$llama_dir" -type f -name llama-cli -print -quit)"
           if [ -n "$llama_bin" ]; then
