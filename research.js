@@ -1,0 +1,30 @@
+const $ = (selector) => document.querySelector(selector);
+const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+const formatNumber = (value) => Number(value || 0).toLocaleString("ja-JP");
+const yenOku = (value) => Number(value || 0) / 100;
+
+function renderScatter(rows) {
+  const element = $("#actor-scatter"); if (!element || !rows?.length) return;
+  const width = 620; const height = 330; const left = 65; const right = 24; const top = 20; const bottom = 50; const plotW = width - left - right; const plotH = height - top - bottom;
+  const xMax = Math.max(...rows.map((row) => Number(row.internal_research_expenditure_million_yen || 0)), 1); const yMax = Math.max(...rows.map((row) => Number(row.recruitment_and_transfer || 0)), 1); const maxOrg = Math.max(...rows.map((row) => Number(row.organizations || 0)), 1);
+  const x = (value) => left + (Number(value || 0) / xMax) * plotW; const y = (value) => top + plotH - (Number(value || 0) / yMax) * plotH; const radius = (value) => 8 + Math.sqrt(Number(value || 0) / maxOrg) * 22;
+  const grid = [0, .25, .5, .75, 1].map((ratio) => `<line class="scatter-grid" x1="${left}" x2="${left + plotW}" y1="${top + plotH * (1 - ratio)}" y2="${top + plotH * (1 - ratio)}" />`).join("");
+  const points = rows.map((row) => `<circle class="scatter-point" cx="${x(row.internal_research_expenditure_million_yen)}" cy="${y(row.recruitment_and_transfer)}" r="${radius(row.organizations)}" aria-label="${escapeHtml(row.name)}: 研究費${formatNumber(Math.round(yenOku(row.internal_research_expenditure_million_yen)))}億円、採用・転入${formatNumber(row.recruitment_and_transfer)}人"><title>${escapeHtml(row.name)} / ${formatNumber(Math.round(yenOku(row.internal_research_expenditure_million_yen)))}億円 / ${formatNumber(row.recruitment_and_transfer)}人</title></circle><text class="scatter-value" x="${x(row.internal_research_expenditure_million_yen) + radius(row.organizations) + 5}" y="${y(row.recruitment_and_transfer) + 4}">${escapeHtml(row.name)}</text>`).join("");
+  element.innerHTML = `<svg class="scatter-svg" viewBox="0 0 ${width} ${height}" aria-hidden="true"><g>${grid}</g><line class="scatter-axis" x1="${left}" x2="${left}" y1="${top}" y2="${top + plotH}" /><line class="scatter-axis" x1="${left}" x2="${left + plotW}" y1="${top + plotH}" y2="${top + plotH}" /><text class="scatter-label" x="${left}" y="${height - 13}">内部使用研究費 →</text><text class="scatter-label" transform="translate(15 ${top + plotH / 2}) rotate(-90)">採用・転入 →</text>${points}</svg>`;
+}
+
+function renderBars(rows) {
+  const element = $("#actor-bars"); if (!element) return; const max = Math.max(...rows.map((row) => Number(row.internal_research_expenditure_million_yen || 0)), 1);
+  element.innerHTML = (rows || []).slice().sort((a, b) => Number(b.internal_research_expenditure_million_yen || 0) - Number(a.internal_research_expenditure_million_yen || 0)).map((row) => `<div class="actor-bar-row"><div class="actor-bar-head"><strong>${escapeHtml(row.name)}</strong><span>${formatNumber(Math.round(yenOku(row.internal_research_expenditure_million_yen)))}億円</span></div><div class="actor-bar-track"><i style="width:${Math.max(1, Number(row.internal_research_expenditure_million_yen || 0) / max * 100)}%"></i></div></div>`).join("");
+}
+
+function renderMovement(rows) {
+  const element = $("#movement-list"); if (!element) return; const max = Math.max(...rows.flatMap((row) => [Number(row.recruitment_and_transfer || 0), Number(row.outgoing_researchers || 0)]), 1);
+  element.innerHTML = (rows || []).map((row) => `<div class="movement-row"><strong class="movement-name">${escapeHtml(row.name)}</strong><div class="movement-bars"><div class="movement-line"><span>採用・転入</span><div class="movement-track"><i style="width:${Number(row.recruitment_and_transfer || 0) / max * 100}%"></i></div><b>${formatNumber(row.recruitment_and_transfer)}人</b></div><div class="movement-line"><span>転出</span><div class="movement-track"><i class="orange" style="width:${Number(row.outgoing_researchers || 0) / max * 100}%"></i></div><b>${formatNumber(row.outgoing_researchers)}人</b></div></div></div>`).join("");
+}
+
+async function load() {
+  try { const response = await fetch("data/analytics.json", { cache: "no-store" }); if (!response.ok) throw new Error(`HTTP ${response.status}`); const payload = await response.json(); const reality = payload.reality || {}; const rows = reality.people?.rows || []; const moneyRows = reality.money?.rows || []; const totalResearchers = rows.reduce((sum, row) => sum + Number(row.recruitment_and_transfer || 0), 0); const totalMoney = moneyRows.reduce((sum, row) => sum + yenOku(row.internal_research_expenditure_million_yen), 0); const top = [...moneyRows].sort((a, b) => Number(b.internal_research_expenditure_million_yen || 0) - Number(a.internal_research_expenditure_million_yen || 0))[0]; $("#hero-researchers").textContent = `${formatNumber(totalResearchers)}人`; $("#hero-year").textContent = `${reality.survey_year || "—"}年`; $("#total-researchers").textContent = formatNumber(totalResearchers); $("#total-money").textContent = formatNumber(Math.round(totalMoney)); $("#top-actor").textContent = top?.name || "—"; $("#top-actor-note").textContent = top ? `${formatNumber(Math.round(yenOku(top.internal_research_expenditure_million_yen)))}億円` : "主体"; const generated = payload.generated_at ? new Date(payload.generated_at) : null; $("#hero-meta").textContent = generated && !Number.isNaN(generated.getTime()) ? `最終生成 ${new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", dateStyle: "medium", timeStyle: "short" }).format(generated)} / JST` : "生成日時不明"; $("#header-status").textContent = `${rows.length}主体 / 資金と人材を観測`; renderScatter(moneyRows.map((row) => ({ ...row, ...(rows.find((people) => people.name === row.name) || {}) }))); renderBars(moneyRows); renderMovement(rows); } catch (error) { console.error(error); $("#header-status").textContent = "研究力データを取得できません"; }
+  $("#footer-year").textContent = String(new Date().getFullYear());
+}
+load();

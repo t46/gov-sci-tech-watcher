@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="日本の科学技術を、研究開発費と研究者の動きから見る研究力ページ。" />
+    <meta name="theme-color" content="#102335" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23102335'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%2327d9be'/%3E%3C/svg%3E" />
+    <title>RESEARCH CAPACITY — SCIENCE SIGNAL</title>
+    <link rel="stylesheet" href="analytics.css" />
+    <link rel="stylesheet" href="section-pages.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <div class="site-shell section-page-shell">
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span><strong>SCIENCE</strong><em>SIGNAL</em></span></a>
+        <nav class="header-nav" aria-label="メインナビゲーション"><a href="./">新着更新</a><a href="analytics.html">観測</a><a href="budget.html">予算を見る</a><a class="active" href="research.html">研究力</a><a href="sources.html">情報源</a></nav>
+        <div class="header-status"><span class="status-dot"></span><span id="header-status">研究力データを読み込んでいます</span></div>
+      </header>
+      <main id="main" class="section-page-main">
+        <section class="page-hero" aria-labelledby="page-title">
+          <div class="page-hero-copy"><p class="eyebrow"><span class="eyebrow-line"></span>CAPACITY / JAPAN SCIENCE</p><h1 id="page-title">研究力を、<br /><span>資金と人材の接点で見る。</span></h1><p class="page-hero-lede">研究開発費の規模だけでも、研究者数だけでも、研究力の全体は見えません。まずは官民学の資金規模と人の動きを同じ画面で照らし合わせます。</p><div class="page-hero-meta"><span class="live-pulse"></span><span id="hero-meta">静的データを読み込んでいます</span></div></div>
+          <div class="page-hero-aside"><div class="hero-aside-panel accent"><span>RESEARCHERS</span><strong id="hero-researchers">—</strong><small>採用・転入を含む全国の研究者</small></div><div class="hero-aside-panel"><span>OBSERVATION YEAR</span><strong id="hero-year">—</strong><small>e-Stat 科学技術研究調査</small></div></div>
+        </section>
+        <section class="page-intro"><span class="section-kicker">HOW TO READ</span><p><strong>研究力</strong>は単一の点数ではありません。このページでは、主体別の研究費と研究者の移動を、比較可能な公式統計として表示します。論文・特許・大学発スタートアップは、原典を接続した段階で別レイヤーとして追加します。</p></section>
+        <section class="page-section" aria-labelledby="map-title">
+          <div class="page-section-heading"><div><span class="section-kicker">01 / CAPACITY MAP</span><h2 id="map-title">資金と人材の分布</h2></div><p class="page-section-description">横軸は内部使用研究費、縦軸は採用・転入。円の大きさは組織数です。</p></div>
+          <div class="page-metrics"><div class="page-metric"><span>研究者・採用転入</span><strong id="total-researchers">—</strong><small>人</small></div><div class="page-metric"><span>内部使用研究費</span><strong id="total-money">—</strong><small>億円</small></div><div class="page-metric"><span>最大の研究費主体</span><strong id="top-actor">—</strong><small id="top-actor-note">主体</small></div></div>
+          <div class="page-grid"><article class="page-panel"><div class="page-panel-header"><div><span class="page-panel-kicker">ACTOR PLOT</span><h3>主体ごとの研究力プロファイル</h3></div><span class="page-panel-unit">対数ではない実数軸</span></div><div id="actor-scatter" class="scatter-wrap" role="img" aria-label="主体別の研究費と研究者の散布図"></div><p class="panel-note">相関や因果関係を示す図ではありません。数値の大きさと配置を読み、主体を選択して確認してください。</p></article><article class="page-panel"><div class="page-panel-header"><div><span class="page-panel-kicker">FUNDING SCALE</span><h3>内部使用研究費の比較</h3></div><span class="page-panel-unit">億円</span></div><div id="actor-bars" class="actor-bars"></div><p class="panel-note">研究開発費の内訳は、研究主体が自ら使用した費用です。</p></article></div>
+        </section>
+        <section class="page-section" aria-labelledby="people-title"><div class="page-section-heading"><div><span class="section-kicker">02 / PEOPLE MOVEMENT</span><h2 id="people-title">人は、どこからどこへ動くか</h2></div><p class="page-section-description">採用・転入と転出を並べ、研究人材の入口と出口を比較します。</p></div><div class="page-panel"><div id="movement-list" class="movement-list"></div><p class="panel-note">組織間の転入元・転入先は、観測ページのSankey図でさらに掘り下げられます。</p></div></section>
+        <p class="page-footer-note">このページの数値はe-Stat「科学技術研究調査」に基づく全国値です。研究力の総合評価や順位付けではなく、現時点で接続されている統計レイヤーを可視化しています。</p>
+      </main>
+      <footer class="site-footer"><span>SCIENCE SIGNAL / RESEARCH CAPACITY</span><span>PUBLIC DATA. CLEARER CONTEXT.</span><span id="footer-year">2026</span></footer>
+    </div>
+    <script src="research.js" defer></script>
+  </body>
+</html>

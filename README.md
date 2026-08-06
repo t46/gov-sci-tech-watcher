@@ -8,7 +8,7 @@
 2. 科学・研究・AI・量子・予算などのキーワードで対象を絞り、タイトル・日時・分類・公式URLと、公式ページ/PDFから抽出した本文を `data/updates.json` に保存します。
    HTML本文とPDFは無料の `pypdf` / 標準ライブラリで抽出し、本文は原文を改変せず読みやすいブロックに分けます。
 3. `llama.cpp` と日本語対応の小型GGUFモデルをGitHub Actions上で実行し、新着・本文が変わった記事を1回1件だけ要約します。結果はURLと本文ハッシュをキーに `data/summary_cache.json` へ保存し、モデルが利用できない場合はルールベースの整理へフォールバックします。要約は補助機能であり、本文の取得・公開はモデルの成否に依存しません。
-4. `scripts/build_analytics.py` が、更新データから「政策の動き」を集計し、e-Statの科学技術研究調査から「研究費の流れ」「研究者の移動」を取得して `data/analytics.json` に保存します。観測ページでは、組織間の研究者移動をサンキー図、文書構成をドーナツ図、規模比較を棒グラフで表示します。
+4. `scripts/build_analytics.py` が、更新データから「政策の動き」を集計し、e-Statの科学技術研究調査から「研究費の流れ」「研究者の移動」を取得して `data/analytics.json` に保存します。観測ページでは、組織間の研究者移動をサンキー図、文書構成をドーナツ図、規模比較を棒グラフで表示します。`budget.html` は予算関連の公式更新と研究開発費を分けて表示し、`research.html` は資金と人材の散布図・比較図、`sources.html` は取得元と統計表の台帳を表示します。
 5. GitHub Actions が3時間おきに取得・要約・統計更新・コミットします。
 6. Cloudflare Pages が静的サイトを配信します。`CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` をGitHub ActionsのSecretsに設定すると、更新後にCloudflare Pagesへ自動デプロイします。
 
@@ -22,7 +22,7 @@ uv run python scripts/build_analytics.py
 uv run python -m http.server 4173
 ```
 
-ブラウザで <http://127.0.0.1:4173/> または <http://127.0.0.1:4173/analytics.html> を開きます。
+ブラウザで <http://127.0.0.1:4173/>、<http://127.0.0.1:4173/analytics.html>、<http://127.0.0.1:4173/budget.html>、<http://127.0.0.1:4173/research.html>、<http://127.0.0.1:4173/sources.html> を開きます。
 
 ## Cloudflare Pagesで公開
 
