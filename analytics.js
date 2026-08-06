@@ -24,14 +24,49 @@ function rankList(selector, rows, empty = "データがありません") {
 function renderMonthly(rows) {
   const element = $("#monthly-chart");
   if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">月別データがありません</p>`; return; }
-  const visible = rows.slice(-18);
-  const width = 920; const height = 250; const left = 36; const right = 18; const top = 18; const bottom = 38; const plotWidth = width - left - right; const plotHeight = height - top - bottom; const max = Math.max(...visible.map((row) => Number(row.count || 0)), 1);
-  const points = visible.map((row, index) => { const x = left + (index / Math.max(1, visible.length - 1)) * plotWidth; const y = top + plotHeight - (Number(row.count || 0) / max) * plotHeight; return { ...row, x, y }; });
-  const line = points.map((point) => `${point.x},${point.y}`).join(" "); const area = `${left},${top + plotHeight} ${line} ${left + plotWidth},${top + plotHeight}`;
-  const grid = [0, .25, .5, .75, 1].map((ratio) => { const y = top + plotHeight * (1 - ratio); return `<line class="pulse-grid" x1="${left}" x2="${left + plotWidth}" y1="${y}" y2="${y}" /><text class="pulse-axis-label" x="4" y="${y + 4}">${Math.round(max * ratio)}</text>`; }).join("");
-  const labels = points.map((point, index) => index % Math.max(1, Math.ceil(points.length / 8)) === 0 || index === points.length - 1 ? `<text class="pulse-month" x="${point.x}" y="${height - 10}" text-anchor="middle">${escapeHtml(point.month.slice(2).replace("-", "/"))}</text>` : "").join("");
-  const marks = points.map((point) => `<circle class="pulse-point" cx="${point.x}" cy="${point.y}" r="4"><title>${escapeHtml(point.month)} / ${formatNumber(point.count)}件</title></circle>`).join("");
-  element.innerHTML = `<svg class="pulse-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="月別の公式更新件数"><g>${grid}</g><polygon class="pulse-area" points="${area}" /><polyline class="pulse-line" points="${line}" />${marks}${labels}</svg>`;
+  const visible = rows.slice(-18).map((row) => ({ ...row, count: Number(row.count || 0) }));
+  const width = 920; const height = 310; const margin = { top: 22, right: 18, bottom: 45, left: 38 }; const max = Math.max(...visible.map((row) => row.count), 1);
+  if (!window.d3) {
+    const plotWidth = width - margin.left - margin.right; const plotHeight = height - margin.top - margin.bottom;
+    const points = visible.map((row, index) => { const x = margin.left + (index / Math.max(1, visible.length - 1)) * plotWidth; const y = margin.top + plotHeight - (row.count / max) * plotHeight; return { ...row, x, y }; });
+    const line = points.map((point) => `${point.x},${point.y}`).join(" "); const area = `${margin.left},${margin.top + plotHeight} ${line} ${margin.left + plotWidth},${margin.top + plotHeight}`;
+    const grid = [0, .25, .5, .75, 1].map((ratio) => { const y = margin.top + plotHeight * (1 - ratio); return `<line class="pulse-grid" x1="${margin.left}" x2="${margin.left + plotWidth}" y1="${y}" y2="${y}" /><text class="pulse-axis-label" x="4" y="${y + 4}">${Math.round(max * ratio)}</text>`; }).join("");
+    const labels = points.map((point, index) => index % Math.max(1, Math.ceil(points.length / 8)) === 0 || index === points.length - 1 ? `<text class="pulse-month" x="${point.x}" y="${height - 10}" text-anchor="middle">${escapeHtml(point.month.slice(2).replace("-", "/"))}</text>` : "").join("");
+    const marks = points.map((point) => `<circle class="pulse-point" cx="${point.x}" cy="${point.y}" r="4"><title>${escapeHtml(point.month)} / ${formatNumber(point.count)}件</title></circle>`).join("");
+    element.innerHTML = `<svg class="pulse-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="月別の公式更新件数"><g>${grid}</g><polygon class="pulse-area" points="${area}" /><polyline class="pulse-line" points="${line}" />${marks}${labels}</svg>`;
+    return;
+  }
+  const d3 = window.d3;
+  const svg = d3.select(element).html("").append("svg").attr("class", "pulse-svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "月別の公式更新件数");
+  const x = d3.scalePoint().domain(visible.map((row) => row.month)).range([margin.left, width - margin.right]).padding(.15);
+  const y = d3.scaleLinear().domain([0, max]).nice().range([height - margin.bottom, margin.top]);
+  const yTicks = y.ticks(4);
+  svg.append("g").selectAll("line").data(yTicks).join("line").attr("class", "pulse-grid").attr("x1", margin.left).attr("x2", width - margin.right).attr("y1", (value) => y(value)).attr("y2", (value) => y(value));
+  svg.append("g").selectAll("text").data(yTicks).join("text").attr("class", "pulse-axis-label").attr("x", 4).attr("y", (value) => y(value) + 4).text((value) => value);
+  const area = d3.area().x((row) => x(row.month)).y0(y(0)).y1((row) => y(row.count)).curve(d3.curveCatmullRom.alpha(.65));
+  const line = d3.line().x((row) => x(row.month)).y((row) => y(row.count)).curve(d3.curveCatmullRom.alpha(.65));
+  svg.append("path").datum(visible).attr("class", "pulse-area").attr("d", area);
+  svg.append("path").datum(visible).attr("class", "pulse-line").attr("d", line);
+  const hoverLine = svg.append("line").attr("class", "pulse-hover-line").attr("y1", margin.top).attr("y2", height - margin.bottom).style("display", "none");
+  const tooltip = svg.append("text").attr("class", "pulse-tooltip").attr("text-anchor", "middle").style("display", "none");
+  svg.append("g").selectAll("circle").data(visible).join("circle").attr("class", "pulse-point").attr("cx", (row) => x(row.month)).attr("cy", (row) => y(row.count)).attr("r", 4).append("title").text((row) => `${row.month} / ${formatNumber(row.count)}件`);
+  svg.selectAll(".pulse-point").on("mouseenter", function(event, row) { const pointX = x(row.month); d3.select(this).classed("is-active", true); hoverLine.attr("x1", pointX).attr("x2", pointX).style("display", null); tooltip.attr("x", pointX).attr("y", Math.max(margin.top + 15, y(row.count) - 14)).text(`${row.month}  ${formatNumber(row.count)}件`).style("display", null); }).on("mouseleave", function() { d3.select(this).classed("is-active", false); hoverLine.style("display", "none"); tooltip.style("display", "none"); });
+  const labelStep = Math.max(1, Math.ceil(visible.length / 8));
+  svg.append("g").selectAll("text").data(visible.filter((row, index) => index % labelStep === 0 || index === visible.length - 1)).join("text").attr("class", "pulse-month").attr("x", (row) => x(row.month)).attr("y", height - 10).attr("text-anchor", "middle").text((row) => row.month.slice(2).replace("-", "/"));
+}
+
+function renderCategoryList(rows) {
+  const element = $("#category-list");
+  if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">政策領域データがありません</p>`; return; }
+  const max = Math.max(...rows.map((row) => Number(row.count || 0)), 1);
+  element.innerHTML = rows.map((row) => `<div class="category-row"><div class="category-head"><span>${escapeHtml(row.label)}</span><b>${formatNumber(row.count)}</b></div><div class="category-track"><i style="width:${width(row.count, max)}"></i></div></div>`).join("");
+}
+
+function renderDocumentList(rows) {
+  const element = $("#document-list");
+  if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">文書の役割データがありません</p>`; return; }
+  const max = Math.max(...rows.map((row) => Number(row.count || 0)), 1);
+  element.innerHTML = rows.map((row) => `<div class="document-row"><span>${escapeHtml(row.label)}</span><span class="document-track"><i style="width:${width(row.count, max)}"></i></span><b>${formatNumber(row.count)}</b></div>`).join("");
 }
 
 function renderThemes(rows) {
@@ -39,6 +74,13 @@ function renderThemes(rows) {
   if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">テーマデータがありません</p>`; return; }
   const max = Math.max(...rows.map((row) => row.count), 1);
   element.innerHTML = rows.map((row) => `<div class="theme-chip"><span>${escapeHtml(row.label)}</span><b>${formatNumber(row.count)}</b><i style="width:${width(row.count, max)}"></i></div>`).join("");
+}
+
+function renderMobilityBalance(rows) {
+  const element = $("#mobility-balance");
+  if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">人の移動データがありません</p>`; return; }
+  const max = Math.max(...rows.flatMap((row) => [Number(row.incoming_researchers || 0), Number(row.outgoing_researchers || 0)]), 1);
+  element.innerHTML = rows.map((row) => `<div class="mobility-row"><div class="mobility-head"><strong>${escapeHtml(row.name)}</strong><small>転入 / 転出</small><b>${formatNumber(row.incoming_researchers)} / ${formatNumber(row.outgoing_researchers)}</b></div><div class="mobility-bars"><i style="width:${width(row.incoming_researchers, max)}"></i><i style="width:${width(row.outgoing_researchers, max)}"></i></div><div class="mobility-labels"><span>転入</span><span>転出</span></div></div>`).join("");
 }
 
 function renderMoney(rows, unit) {
@@ -165,6 +207,23 @@ function renderSources(sources) {
   element.innerHTML = (sources || []).map((source) => `<a class="source-card" href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer"><span class="source-card-id">${escapeHtml(source.id || "OFFICIAL")}</span><strong>${escapeHtml(source.title)}</strong><small>e-Stat / 2025年 / ${source.status === "ok" ? "取得済み" : "未取得"} ↗</small></a>`).join("");
 }
 
+function initSectionRail() {
+  const links = [...document.querySelectorAll("[data-section-link]")];
+  const sections = links.map((link) => document.getElementById(link.dataset.sectionLink)).filter(Boolean);
+  const progress = $("#rail-progress-bar");
+  if (!links.length || !sections.length) return;
+  const setCurrent = (id) => links.forEach((link) => link.classList.toggle("is-current", link.dataset.sectionLink === id));
+  const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) setCurrent(entry.target.id); }), { rootMargin: "-28% 0px -58% 0px", threshold: 0 });
+  sections.forEach((section) => observer.observe(section));
+  const updateProgress = () => {
+    if (!progress) return;
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.width = `${scrollable > 0 ? Math.min(100, Math.max(0, window.scrollY / scrollable * 100)) : 0}%`;
+  };
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+}
+
 function render(payload) {
   const policy = payload.policy || {};
   const reality = payload.reality || {};
@@ -182,11 +241,13 @@ function render(payload) {
   setText("#hero-meta", generatedAt && !Number.isNaN(generatedAt.getTime()) ? `最終生成 ${new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", dateStyle: "medium", timeStyle: "short" }).format(generatedAt)} / JST` : "生成日時不明");
   setText("#header-status", `${money.status === "ok" && people.status === "ok" ? "統計2表 / " : ""}${formatNumber(policy.item_count)}件を観測`);
   renderMonthly(policy.monthly_activity);
-  rankList("#document-type-list", policy.document_type_counts);
+  renderCategoryList(policy.category_counts);
+  renderDocumentList(policy.document_type_counts);
   rankList("#source-list", policy.source_counts);
   renderThemes(policy.theme_counts);
   renderMoney(money.rows, money.unit);
   renderPeople(people.rows);
+  renderMobilityBalance(people.rows);
   renderSankey(people.links, people.rows);
   renderDonut(policy.document_type_counts);
   renderActorScatter(money.rows, people.rows);
@@ -208,3 +269,4 @@ async function load() {
 }
 
 load();
+initSectionRail();

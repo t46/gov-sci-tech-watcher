@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学技術政策、研究開発費、人材の流れを公式データで可視化する観測ダッシュボード。" />
-    <meta name="theme-color" content="#081724" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23081724'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%2335e6c2'/%3E%3C/svg%3E" />
+    <meta name="description" content="日本の科学技術を、政策・研究開発費・研究者の移動という3つの断面から公式データで観測するサイト。" />
+    <meta name="theme-color" content="#09141f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2309141f'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%23f4cf70'/%3E%3C/svg%3E" />
     <title>OBSERVATORY — SCIENCE SIGNAL</title>
     <link rel="stylesheet" href="analytics.css" />
   </head>
@@ -14,37 +14,71 @@
     <div class="dashboard-shell">
       <header class="dashboard-header">
         <a class="dashboard-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span><strong>SCIENCE</strong><em>SIGNAL</em></span></a>
-        <nav class="dashboard-nav" aria-label="メインナビゲーション"><a href="./">新着更新</a><a class="active" href="analytics.html">観測</a><a href="analytics.html#budget-lens">予算を見る</a><a href="sources.html">情報源</a></nav>
+        <nav class="dashboard-nav" aria-label="メインナビゲーション"><a href="./">新着更新</a><a class="active" href="analytics.html">観測</a><a href="analytics.html#capital-lens">予算を見る</a><a href="sources.html">情報源</a></nav>
         <div class="dashboard-status"><span class="status-dot"></span><span id="header-status">観測データを読み込んでいます</span></div>
       </header>
 
       <main id="main">
-        <section class="dashboard-hero" aria-labelledby="page-title">
-          <div><p class="dashboard-kicker">SCIENCE SIGNAL / OBSERVATORY</p><h1 id="page-title">JAPAN<br /><span>SCIENCE &amp; TECHNOLOGY</span></h1><div class="dashboard-meta"><span id="hero-meta">静的データを読み込んでいます</span><span class="meta-divider">/</span><span>OFFICIAL DATA</span></div></div>
-          <div class="hero-readout"><span class="readout-label">POLICY UPDATES</span><strong id="hero-count">—</strong><span class="readout-unit">件</span><div class="readout-rule"><i></i></div><span class="readout-note">公開された公式更新</span></div>
+        <section class="observatory-cover" aria-labelledby="page-title">
+          <div class="cover-copy">
+            <p class="dashboard-kicker">SCIENCE SIGNAL / OBSERVATORY</p>
+            <h1 id="page-title">JAPAN<br /><span>SCIENCE &amp; TECHNOLOGY</span></h1>
+            <p class="cover-deck">政策、資金、人の移動。日本の科学技術を、3つの断面で読む。</p>
+            <div class="dashboard-meta"><span id="hero-meta">静的データを読み込んでいます</span><span class="meta-divider">/</span><span>OFFICIAL DATA</span></div>
+          </div>
+          <div class="cover-orbit" aria-hidden="true"><span class="orbit orbit-outer"></span><span class="orbit orbit-mid"></span><span class="orbit orbit-inner"></span><span class="orbit-node node-policy">POLICY</span><span class="orbit-node node-capital">CAPITAL</span><span class="orbit-node node-people">PEOPLE</span></div>
+          <div class="cover-index"><span class="index-label">READ THE SYSTEM</span><a href="#policy-lens"><b>01</b><span>政策の方向</span><i>↘</i></a><a href="#capital-lens"><b>02</b><span>資金の配置</span><i>↘</i></a><a href="#people-lens"><b>03</b><span>人の移動</span><i>↘</i></a></div>
         </section>
 
-        <section class="metric-strip" aria-label="主要指標"><article class="metric-cell"><span>POLICY UPDATES</span><strong id="metric-updates">—</strong><small>公式更新 / 件</small></article><article class="metric-cell metric-cyan"><span>R&amp;D EXPENDITURE</span><strong id="metric-spend">—</strong><small>内部使用研究費 / 億円</small></article><article class="metric-cell metric-violet"><span>PEOPLE MOVEMENT</span><strong id="metric-researchers">—</strong><small>採用・転入 / 人</small></article><article class="metric-cell metric-orange"><span>DATA SOURCES</span><strong id="metric-feeds">—</strong><small>公式フィード / 機関</small></article></section>
+        <nav class="section-rail" aria-label="観測ページ内の章"><span class="rail-title">OBSERVATORY / 2025</span><a class="is-current" href="#overview-lens" data-section-link="overview-lens">全体像</a><a href="#policy-lens" data-section-link="policy-lens">政策</a><a href="#capital-lens" data-section-link="capital-lens">資金</a><a href="#people-lens" data-section-link="people-lens">人</a><a href="#sources-lens" data-section-link="sources-lens">取得元</a><span class="rail-progress"><i id="rail-progress-bar"></i></span></nav>
 
-        <section class="viz-grid dashboard-grid" aria-label="科学技術データの可視化">
-          <article class="viz-panel viz-panel-wide policy-pulse-panel"><header class="viz-header"><div><span class="viz-label">01 / POLICY PULSE</span><h2>政策更新のリズム</h2></div><span class="viz-unit">月別 / 件</span></header><div id="monthly-chart" class="monthly-chart" role="img" aria-label="月別の公式更新件数"></div><footer class="viz-footer"><span>公開日ベース</span><span id="policy-period">—</span></footer></article>
-
-          <article class="viz-panel document-panel"><header class="viz-header"><div><span class="viz-label">02 / POLICY MIX</span><h2>文書の役割</h2></div><span class="viz-unit">公式更新</span></header><div id="document-donut" class="document-donut" role="img" aria-label="政策文書タイプの割合"></div><div id="donut-detail" class="viz-selection" aria-live="polite"></div></article>
-
-          <article class="viz-panel viz-panel-wide money-panel" id="budget-lens"><header class="viz-header"><div><span class="viz-label">03 / CAPITAL FLOWS</span><h2>研究開発費の分布</h2></div><span class="viz-unit">e-Stat / 2025 / 億円</span></header><div class="chart-legend"><span><i class="series-cyan"></i>内部使用</span><span><i class="series-violet"></i>受入</span><span><i class="series-orange"></i>外部支出</span></div><div id="money-chart" class="flow-chart" aria-label="主体別の研究開発費"></div><footer class="viz-footer"><span>企業・非営利団体・公的機関・大学等</span><span>3指標は重複し得ます</span></footer></article>
-
-          <article class="viz-panel theme-panel"><header class="viz-header"><div><span class="viz-label">04 / THEMES</span><h2>現れているテーマ</h2></div><span class="viz-unit">重複あり</span></header><div id="theme-list" class="theme-grid"></div></article>
-
-          <article class="viz-panel viz-panel-full people-panel"><header class="viz-header"><div><span class="viz-label">05 / PEOPLE FLOWS</span><h2>研究者は、どこからどこへ動くか</h2></div><div class="viz-actions"><button class="map-reset" id="sankey-reset" type="button">RESET</button><span class="viz-unit">人</span></div></header><div class="chart-legend"><span><i class="series-cyan"></i>転入元</span><span><i class="series-muted"></i>転入先</span><span id="sankey-hover">線を選択</span></div><div id="people-sankey" class="sankey-stage" role="img" aria-label="組織間の研究者転入フロー図"></div><div class="sankey-columns"><span>ORIGIN</span><span>DESTINATION</span></div><div class="sankey-selection" id="sankey-detail" aria-live="polite"></div></article>
-
-          <article class="viz-panel actor-panel"><header class="viz-header"><div><span class="viz-label">06 / ACTOR PLOT</span><h2>資金と人の配置</h2></div><span class="viz-unit">実数軸</span></header><div id="actor-scatter" class="actor-scatter" role="img" aria-label="主体別の研究費と採用・転入の散布図"></div><footer class="viz-footer"><span>x: 内部使用研究費</span><span>y: 採用・転入</span></footer></article>
-
-          <article class="viz-panel source-panel"><header class="viz-header"><div><span class="viz-label">07 / ORIGIN</span><h2>更新の取得元</h2></div><a class="panel-link" href="sources.html">台帳 ↗</a></header><div id="source-list" class="rank-list"></div></article>
+        <section class="system-overview story-section" id="overview-lens" aria-labelledby="overview-title">
+          <header class="section-intro overview-intro"><div><span class="section-number">00 / OVERVIEW</span><h2 id="overview-title">日本の科学技術を<br /><em>3つの断面</em>から読む</h2></div><p>同じ制度を、政策の更新、研究開発費、研究者の移動から観測します。グラフ同士を因果関係として結ばず、それぞれの統計が何を測っているかを明示します。</p></header>
+          <div class="overview-map" aria-label="観測する3つの断面">
+            <a class="overview-node overview-policy" href="#policy-lens"><span class="node-index">01</span><strong>POLICY</strong><b>政策の方向</b><small>何が議題になり、どの役割の文書として公開されたか</small></a>
+            <span class="overview-connector" aria-hidden="true">＋</span>
+            <a class="overview-node overview-capital" href="#capital-lens"><span class="node-index">02</span><strong>CAPITAL</strong><b>資金の配置</b><small>企業・大学・公的機関に研究費がどう分布しているか</small></a>
+            <span class="overview-connector" aria-hidden="true">＋</span>
+            <a class="overview-node overview-people" href="#people-lens"><span class="node-index">03</span><strong>PEOPLE</strong><b>人の移動</b><small>研究者がどの主体からどの主体へ移っているか</small></a>
+          </div>
+          <div class="overview-metrics" aria-label="観測データの概要"><div><span>POLICY UPDATES</span><strong id="metric-updates">—</strong><small>公式更新 / 件</small></div><div><span>R&amp;D EXPENDITURE</span><strong id="metric-spend">—</strong><small>内部使用研究費 / 億円</small></div><div><span>PEOPLE MOVEMENT</span><strong id="metric-researchers">—</strong><small>採用・転入 / 人</small></div><div class="overview-source"><span>DATA SOURCES</span><strong id="metric-feeds">—</strong><small>公式フィード / 機関</small></div></div>
         </section>
 
-        <footer class="dashboard-footnote"><span>DATA / DEFINITIONS</span><span>数値は取得時点の公式データ。定義・期間・原典は<a href="sources.html">情報源台帳</a>で確認できます。</span><span id="footer-year">2026</span></footer>
+        <section class="story-section policy-section" id="policy-lens" aria-labelledby="policy-title">
+          <header class="section-intro"><div><span class="section-number">01 / POLICY</span><h2 id="policy-title">政策は、<em>何を決めているか</em></h2></div><p>公式更新を、公開時期・政策領域・文書の役割に分解。ニュースの量ではなく、政策形成のどの場面が記録されているかを見ます。</p></header>
+          <div class="policy-layout">
+            <article class="viz-panel chart-primary"><header class="viz-header"><div><span class="viz-label">POLICY PULSE</span><h3>更新のリズム</h3></div><span class="viz-unit">公開月 / 件</span></header><div id="monthly-chart" class="monthly-chart" role="img" aria-label="月別の公式更新件数"></div><footer class="viz-footer"><span>公開日ベース</span><span id="policy-period">—</span></footer></article>
+            <article class="viz-panel policy-focus-panel"><header class="viz-header"><div><span class="viz-label">POLICY FOCUS</span><h3>政策領域の内訳</h3></div><span class="viz-unit">重複なし</span></header><div id="category-list" class="category-list"></div><div class="panel-note">分類は更新データのカテゴリに基づく</div></article>
+            <article class="viz-panel policy-role-panel"><header class="viz-header"><div><span class="viz-label">DOCUMENT ROLE</span><h3>文書の役割</h3></div><span class="viz-unit">公式更新</span></header><div id="document-list" class="document-list"></div><div id="donut-detail" class="viz-selection" aria-live="polite"></div></article>
+            <article class="viz-panel policy-theme-panel"><header class="viz-header"><div><span class="viz-label">SIGNALS</span><h3>タイトルに現れるテーマ</h3></div><span class="viz-unit">重複あり</span></header><div id="theme-list" class="theme-grid"></div><div class="panel-note">タイトル・概要・分類語から集計。影響度や因果関係ではありません。</div></article>
+          </div>
+        </section>
+
+        <section class="story-section capital-section" id="capital-lens" aria-labelledby="capital-title">
+          <header class="section-intro"><div><span class="section-number">02 / CAPITAL</span><h2 id="capital-title">資金は、<em>どこにあるか</em></h2></div><p>科学技術研究調査の2025年値。内部使用・受入・外部支出を同じ目盛りで比べ、主体ごとの資金構造を見ます。</p></header>
+          <div class="capital-layout">
+            <article class="viz-panel capital-chart-panel"><header class="viz-header"><div><span class="viz-label">R&amp;D EXPENDITURE</span><h3>主体別の研究開発費</h3></div><span class="viz-unit">e-Stat / 2025 / 億円</span></header><div class="chart-legend"><span><i class="series-cyan"></i>内部使用</span><span><i class="series-violet"></i>受入</span><span><i class="series-orange"></i>外部支出</span></div><div id="money-chart" class="flow-chart" aria-label="主体別の研究開発費"></div><footer class="viz-footer"><span>企業・非営利団体・公的機関・大学等</span><span>単位：億円</span></footer></article>
+            <article class="viz-panel allocation-panel"><header class="viz-header"><div><span class="viz-label">ALLOCATION MAP</span><h3>資金と採用の配置</h3></div><span class="viz-unit">実数軸</span></header><div id="actor-scatter" class="actor-scatter" role="img" aria-label="主体別の研究費と採用・転入の散布図"></div><div class="panel-note">円の大きさは組織数。相関や優劣を示すものではありません。</div></article>
+          </div>
+        </section>
+
+        <section class="story-section people-section" id="people-lens" aria-labelledby="people-title">
+          <header class="section-intro"><div><span class="section-number">03 / PEOPLE</span><h2 id="people-title">人は、<em>どこからどこへ動くか</em></h2></div><p>採用・転入の転入元と転入先を、組織間の流れとして表示。線を選ぶと、その経路だけを強調します。</p></header>
+          <div class="people-layout">
+            <article class="viz-panel people-flow-panel"><header class="viz-header"><div><span class="viz-label">PEOPLE FLOWS</span><h3>研究者の移動経路</h3></div><div class="viz-actions"><button class="map-reset" id="sankey-reset" type="button">RESET</button><span class="viz-unit">人</span></div></header><div class="chart-legend"><span><i class="series-cyan"></i>転入元</span><span><i class="series-muted"></i>転入先</span><span id="sankey-hover">線を選択</span></div><div id="people-sankey" class="sankey-stage" role="img" aria-label="組織間の研究者転入フロー図"></div><div class="sankey-columns"><span>ORIGIN / 転入元</span><span>DESTINATION / 転入先</span></div><div class="sankey-selection" id="sankey-detail" aria-live="polite"><span class="selection-empty">線またはノードを選択すると詳細が表示されます</span></div></article>
+            <article class="viz-panel mobility-panel"><header class="viz-header"><div><span class="viz-label">MOBILITY BALANCE</span><h3>転入と転出</h3></div><span class="viz-unit">人 / 2025</span></header><div id="mobility-balance" class="mobility-balance"></div><div class="panel-note">採用・転入と転出は別集計です。差し引きの評価ではありません。</div></article>
+          </div>
+        </section>
+
+        <section class="story-section sources-section" id="sources-lens" aria-labelledby="sources-title">
+          <header class="section-intro"><div><span class="section-number">04 / ORIGIN</span><h2 id="sources-title">観測は、<em>どこから来たか</em></h2></div><p>政策更新の取得元と統計表を分けて確認できます。数字の定義や原典へは、情報源台帳から戻れます。</p></header>
+          <div class="sources-layout"><article class="viz-panel source-panel"><header class="viz-header"><div><span class="viz-label">UPDATE ORIGIN</span><h3>政策更新の取得元</h3></div><a class="panel-link" href="sources.html">台帳 ↗</a></header><div id="source-list" class="rank-list"></div></article><aside class="source-cta"><span class="viz-label">SOURCE LEDGER</span><strong>定義・期間・原典を確認する</strong><a href="sources.html">情報源台帳へ <span>↗</span></a></aside></div>
+        </section>
+
+        <footer class="dashboard-footnote"><span>DATA / DEFINITIONS</span><span>数値は取得時点の公式データ。政策更新はRSS・公式ページ、統計はe-Statから取得しています。</span><span id="footer-year">2026</span></footer>
       </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="analytics.js" defer></script>
   </body>
 </html>
