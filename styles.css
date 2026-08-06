@@ -41,6 +41,7 @@ button,a,input,select{touch-action:manipulation}
 .feed-item:hover{transform:translateX(6px) translateY(-2px);background:var(--white);border-color:rgba(8,121,110,.42);box-shadow:0 16px 32px rgba(37,57,51,.09)}
 .feed-item:focus-visible{outline:2px solid var(--cyan-dark);outline-offset:5px}
 .feed-item.is-high{border-left-color:rgba(255,132,109,.58)}
+.document-type{color:var(--cyan-dark);background:#e5f7f3}
 .timeline-marker{position:absolute;left:-58px;top:31px;width:15px;height:15px;border:4px solid var(--paper);border-radius:50%;background:var(--cyan-dark);box-shadow:0 0 0 1px var(--cyan-dark),0 0 0 7px rgba(24,203,178,.08);transition:transform .45s cubic-bezier(.32,.72,0,1),background .45s cubic-bezier(.32,.72,0,1)}
 .feed-item:hover .timeline-marker{transform:scale(1.24);background:var(--cyan)}
 .feed-item.is-high .timeline-marker{background:var(--orange);box-shadow:0 0 0 1px var(--orange),0 0 0 7px rgba(255,132,109,.1)}

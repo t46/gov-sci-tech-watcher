@@ -9,7 +9,7 @@ const formatDate = (iso, withTime = false) => {
 };
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-const safeUrl = (value = "") => /^https:\/\/(www\.)?(cao\.go\.jp|www8\.cao\.go\.jp|mext\.go\.jp|www\.mext\.go\.jp)\//.test(value) ? value : "#";
+const safeUrl = (value = "") => /^https:\/\/(www\.)?(cao\.go\.jp|www8\.cao\.go\.jp|mext\.go\.jp|www\.mext\.go\.jp|fsc\.go\.jp)\//.test(value) ? value : "#";
 
 const asList = (preferred, fallback) => Array.isArray(preferred) && preferred.length ? preferred : (Array.isArray(fallback) ? fallback : []);
 const itemUrl = (item) => safeUrl(item?.url);
@@ -39,7 +39,7 @@ function renderFeed() {
   list.innerHTML = items.length ? items.map((item) => {
     const sourceHref = itemUrl(item);
     const contentState = item.content_status === "extracted" ? "本文取得済み" : "原典で確認";
-    return `<div class="feed-item-shell"><a class="feed-item ${item.importance === "high" ? "is-high" : ""}" href="${escapeHtml(sourceHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(item.title)}。公式ページまたはPDFを開く"><div class="timeline-marker" aria-hidden="true"></div><div class="feed-main"><div class="feed-topline"><span class="item-source">${escapeHtml(item.source)}</span><span class="item-type">${escapeHtml(item.category || "科学技術政策")}</span>${item.importance === "high" ? '<span class="item-type item-priority">重要</span>' : ""}</div><h3 class="item-title">${escapeHtml(item.title)}</h3><div class="feed-signal-row"><span class="content-state">${contentState}</span><span class="item-hint">クリックで原典を開く ↗</span></div></div><div class="feed-side"><time class="item-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time></div></a><button class="feed-preview" type="button" data-preview-id="${escapeHtml(item.id)}">抜粋を見る</button></div>`;
+    return `<div class="feed-item-shell"><a class="feed-item" href="${escapeHtml(sourceHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(item.title)}。公式ページまたはPDFを開く"><div class="timeline-marker" aria-hidden="true"></div><div class="feed-main"><div class="feed-topline"><span class="item-source">${escapeHtml(item.source)}</span><span class="item-type">${escapeHtml(item.category || "科学技術政策")}</span><span class="item-type document-type">${escapeHtml(item.document_type || "公式更新")}</span></div><h3 class="item-title">${escapeHtml(item.title)}</h3><div class="feed-signal-row"><span class="content-state">${contentState}</span><span class="item-hint">クリックで原典を開く ↗</span></div></div><div class="feed-side"><time class="item-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time></div></a><button class="feed-preview" type="button" data-preview-id="${escapeHtml(item.id)}">抜粋を見る</button></div>`;
   }).join("") : "";
   list.querySelectorAll(".feed-preview").forEach((button) => {
     button.addEventListener("click", (event) => { event.stopPropagation(); openDetail(button.dataset.previewId); });
@@ -70,7 +70,7 @@ function openDetail(itemId, { updateUrl = true } = {}) {
   if (!item) return;
   setText("#dialog-source", `${item.source} / ${item.category || "科学技術政策"}`);
   setText("#dialog-title", item.title);
-  setText("#dialog-meta", `${formatDate(item.published_at, true)} 公開　·　公式更新`);
+  setText("#dialog-meta", `${formatDate(item.published_at, true)} 公開　·　${item.document_type || "公式更新"}　·　${item.document_role || "公式の事実や進捗を伝える"}`);
   const body = asList(item.body_blocks, []);
   $("#dialog-body").innerHTML = body.length ? body.map((block) => `<p>${escapeHtml(block)}</p>`).join("") : `<p class="dialog-muted">本文を取得できませんでした。公式ページで内容をご確認ください。</p>`;
   setText("#dialog-content-note", item.content_status === "extracted" ? "サイト内表示は取得した本文の抜粋です。正確な内容は原典をご確認ください。" : "本文を取得できませんでした。公式ページで内容をご確認ください。");

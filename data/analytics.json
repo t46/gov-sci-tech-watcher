@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-06T06:30:58.261658Z",
+  "policy": {
+    "item_count": 30,
+    "period": {
+      "from": "2021-03-01",
+      "to": "2026-08-06"
+    },
+    "category_counts": [
+      {
+        "label": "科学技術政策",
+        "count": 18
+      },
+      {
+        "label": "予算・投資",
+        "count": 7
+      },
+      {
+        "label": "AI・デジタル",
+        "count": 2
+      },
+      {
+        "label": "生命・健康",
+        "count": 1
+      },
+      {
+        "label": "量子・半導体",
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
+        "count": 1
+      }
+    ],
+    "document_type_counts": [
+      {
+        "label": "会議・審議",
+        "count": 10
+      },
+      {
+        "label": "予算資料",
+        "count": 7
+      },
+      {
+        "label": "発表・報告",
+        "count": 6
+      },
+      {
+        "label": "基本計画",
+        "count": 2
+      },
+      {
+        "label": "公募・支援",
+        "count": 2
+      },
+      {
+        "label": "評価・検証",
+        "count": 2
+      },
+      {
+        "label": "統計・白書",
+        "count": 1
+      }
+    ],
+    "source_counts": [
+      {
+        "label": "内閣府 科学技術・イノベーション",
+        "count": 15
+      },
+      {
+        "label": "文部科学省",
+        "count": 8
+      },
+      {
+        "label": "内閣府 科学技術関係予算",
+        "count": 6
+      },
+      {
+        "label": "内閣府",
+        "count": 1
+      }
+    ],
+    "theme_counts": [
+      {
+        "label": "予算・資金",
+        "count": 7
+      },
+      {
+        "label": "AI・デジタル",
+        "count": 2
+      },
+      {
+        "label": "生命・健康",
+        "count": 1
+      },
+      {
+        "label": "量子・半導体",
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
+        "count": 1
+      }
+    ],
+    "monthly_activity": [
+      {
+        "month": "2021-03",
+        "count": 1
+      },
+      {
+        "month": "2025-09",
+        "count": 1
+      },
+      {
+        "month": "2025-12",
+        "count": 1
+      },
+      {
+        "month": "2026-01",
+        "count": 3
+      },
+      {
+        "month": "2026-02",
+        "count": 4
+      },
+      {
+        "month": "2026-03",
+        "count": 2
+      },
+      {
+        "month": "2026-06",
+        "count": 2
+      },
+      {
+        "month": "2026-07",
+        "count": 7
+      },
+      {
+        "month": "2026-08",
+        "count": 4
+      }
+    ],
+    "insights": [
+      "掲載中の公式更新は30件。文書の役割では「会議・審議」が最多です。",
+      "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
+    ]
+  },
+  "reality": {
+    "survey_year": 2025,
+    "money": {
+      "status": "ok",
+      "unit": "百万円",
+      "rows": [
+        {
+          "name": "企業",
+          "organizations": 16916,
+          "internal_research_expenditure_million_yen": 17430337,
+          "incoming_research_funds_million_yen": 1107732,
+          "external_research_expenditure_million_yen": 3208037
+        },
+        {
+          "name": "非営利団体",
+          "organizations": 404,
+          "internal_research_expenditure_million_yen": 264134,
+          "incoming_research_funds_million_yen": 194004,
+          "external_research_expenditure_million_yen": 27702
+        },
+        {
+          "name": "公的機関",
+          "organizations": 511,
+          "internal_research_expenditure_million_yen": 2048496,
+          "incoming_research_funds_million_yen": 4098549,
+          "external_research_expenditure_million_yen": 2145678
+        },
+        {
+          "name": "大学等",
+          "organizations": 4022,
+          "internal_research_expenditure_million_yen": 4049554,
+          "incoming_research_funds_million_yen": 943372,
+          "external_research_expenditure_million_yen": 31897
+        }
+      ]
+    },
+    "people": {
+      "status": "ok",
+      "unit": "人",
+      "rows": [
+        {
+          "name": "企業",
+          "recruitment_and_transfer": 47237,
+          "incoming_researchers": 19207,
+          "outgoing_researchers": 26877
+        },
+        {
+          "name": "非営利団体",
+          "recruitment_and_transfer": 1027,
+          "incoming_researchers": 738,
+          "outgoing_researchers": 758
+        },
+        {
+          "name": "公的機関",
+          "recruitment_and_transfer": 4013,
+          "incoming_researchers": 3038,
+          "outgoing_researchers": 3614
+        },
+        {
+          "name": "大学等",
+          "recruitment_and_transfer": 28551,
+          "incoming_researchers": 21941,
+          "outgoing_researchers": 28021
+        }
+      ]
+    },
+    "sources": [
+      {
+        "id": "research-money",
+        "title": "科学技術研究調査 総括表第2表",
+        "url": "https://www.e-stat.go.jp/stat-search/files?kikan=00200&layout=dataset&stat_infid=000040377600&toukei=00200543",
+        "status": "ok"
+      },
+      {
+        "id": "research-people",
+        "title": "科学技術研究調査 総括表第5表",
+        "url": "https://www.e-stat.go.jp/stat-search/files?cycle=0&layout=datalist&lid=000001471830&month=0&page=1&stat_infid=000040377603&tclass1=000001234102&tclass2val=0&toukei=00200543&tstat=000001032090&year=20250",
+        "status": "ok"
+      }
+    ]
+  }
+}

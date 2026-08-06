@@ -290,7 +290,7 @@ def japanese_date(value: str, fallback_year: int | None = None) -> str | None:
     return f"{fallback_year:04d}-01-01T00:00:00Z" if fallback_year else None
 
 
-def classify(title: str, description: str) -> tuple[str, str, list[str]]:
+def classify(title: str, description: str) -> tuple[str, str, str, list[str]]:
     text = f"{title} {description}"
     tags: list[str] = []
     categories = (
@@ -309,13 +309,27 @@ def classify(title: str, description: str) -> tuple[str, str, list[str]]:
     for term in ("政策", "予算", "研究", "公募", "会議", "戦略"):
         if term in text:
             tags.append(term)
-    importance = "high" if any(term in text for term in ("予算", "戦略", "基本計画", "閣議", "法律", "基金")) else "normal"
-    return category, importance, tags[:4]
+
+    document_rules = (
+        ("予算資料", "資金の配分や使い道を示す", ("予算", "概算要求", "補正", "基金", "財源", "交付")),
+        ("基本計画", "政策の方向と目標を定める", ("基本計画", "基本方針", "答申素案")),
+        ("統計・白書", "現状を数字と調査結果で測る", ("統計", "白書", "指標", "調査結果")),
+        ("公募・支援", "研究や事業への参加機会を示す", ("公募", "募集", "採択", "助成", "支援")),
+        ("会議・審議", "論点と意思決定の過程を記録する", ("会議", "委員会", "審議会", "開催", "ワーキンググループ")),
+        ("評価・検証", "施策の結果と課題を点検する", ("評価", "検証", "結果", "決定", "認定")),
+        ("政策・戦略", "政策の選択肢や実施方針を示す", ("戦略", "制度", "方針", "計画")),
+    )
+    document_type, document_role = "発表・報告", "公式の事実や進捗を伝える"
+    for candidate, role, terms in document_rules:
+        if any(term in text for term in terms):
+            document_type, document_role = candidate, role
+            break
+    return category, document_type, document_role, tags[:4]
 
 
 def base_item(source: dict[str, object], title: str, url: str, date: str | None, summary: str = "") -> dict[str, object]:
-    category, importance, tags = classify(title, summary)
-    return {"id": f"{source['id']}:{url}", "title": title, "summary": summary[:280], "url": url, "source": source["name"], "source_id": source["id"], "category": category, "importance": importance, "tags": tags, "published_at": date}
+    category, document_type, document_role, tags = classify(title, summary)
+    return {"id": f"{source['id']}:{url}", "title": title, "summary": summary[:280], "url": url, "source": source["name"], "source_id": source["id"], "category": category, "document_type": document_type, "document_role": document_role, "tags": tags, "published_at": date}
 
 
 def parse_cstp_page(source: dict[str, object]) -> tuple[list[dict[str, object]], dict[str, object]]:
@@ -374,7 +388,7 @@ def parse_budget_page(source: dict[str, object]) -> tuple[list[dict[str, object]
             date = japanese_date(title)
             absolute_url = urljoin(str(source["url"]), html.unescape(raw_url))
             item = base_item(source, title, absolute_url, date, "令和8年度の科学技術関係予算に関する内閣府の公式資料")
-            item["category"], item["importance"], item["tags"] = "予算・投資", "high", ["予算", "令和8年度"]
+            item["category"], item["document_type"], item["document_role"], item["tags"] = "予算・投資", "予算資料", "資金の配分や使い道を示す", ["予算", "令和8年度"]
             items.append(item)
     return items, {"id": source["id"], "name": source["name"], "url": source["url"], "page": source["page"], "kind": source["kind"], "status": "ok", "items": len(items), "checked_at": checked_at}
 
