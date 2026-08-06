@@ -12,6 +12,7 @@ const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (char) => (
 const safeUrl = (value = "") => /^https:\/\/(www\.)?(cao\.go\.jp|www8\.cao\.go\.jp|mext\.go\.jp|www\.mext\.go\.jp)\//.test(value) ? value : "#";
 
 const asList = (preferred, fallback) => Array.isArray(preferred) && preferred.length ? preferred : (Array.isArray(fallback) ? fallback : []);
+const itemUrl = (item) => safeUrl(item?.url);
 
 function setText(selector, value) { const element = $(selector); if (element) element.textContent = value; }
 
@@ -36,12 +37,12 @@ function renderFeed() {
   setText("#result-count", `${items.length}件`);
   $("#empty-state").hidden = items.length !== 0;
   list.innerHTML = items.length ? items.map((item) => {
-    const summary = item.ai_summary || item.article_summary || item.summary;
-    return `<article class="feed-item ${item.importance === "high" ? "is-high" : ""}" tabindex="0" role="button" data-item-id="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.title)}の詳細を開く"><div><div class="feed-topline"><span class="item-source">${escapeHtml(item.source)}</span><span class="item-type">${escapeHtml(item.category || "科学技術政策")}</span>${item.importance === "high" ? '<span class="item-type item-priority">重要</span>' : ""}</div><h3 class="item-title">${escapeHtml(item.title)}</h3>${summary ? `<p class="item-summary">${escapeHtml(summary)}</p>` : ""}</div><div class="item-date">${formatDate(item.published_at)}<span class="item-chevron" aria-hidden="true">↗</span></div></article>`;
+    const sourceHref = itemUrl(item);
+    const contentState = item.content_status === "extracted" ? "本文取得済み" : "原典で確認";
+    return `<div class="feed-item-shell"><a class="feed-item ${item.importance === "high" ? "is-high" : ""}" href="${escapeHtml(sourceHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(item.title)}。公式ページまたはPDFを開く"><div class="timeline-marker" aria-hidden="true"></div><div class="feed-main"><div class="feed-topline"><span class="item-source">${escapeHtml(item.source)}</span><span class="item-type">${escapeHtml(item.category || "科学技術政策")}</span>${item.importance === "high" ? '<span class="item-type item-priority">重要</span>' : ""}</div><h3 class="item-title">${escapeHtml(item.title)}</h3><div class="feed-signal-row"><span class="content-state">${contentState}</span><span class="item-hint">クリックで原典を開く ↗</span></div></div><div class="feed-side"><time class="item-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time></div></a><button class="feed-preview" type="button" data-preview-id="${escapeHtml(item.id)}">抜粋を見る</button></div>`;
   }).join("") : "";
-  list.querySelectorAll(".feed-item").forEach((card) => {
-    card.addEventListener("click", () => openDetail(card.dataset.itemId));
-    card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openDetail(card.dataset.itemId); } });
+  list.querySelectorAll(".feed-preview").forEach((button) => {
+    button.addEventListener("click", (event) => { event.stopPropagation(); openDetail(button.dataset.previewId); });
   });
 }
 
@@ -57,26 +58,28 @@ function renderSources() {
   $("#source-list").innerHTML = state.sources.length ? state.sources.map((source) => `<div class="source-row"><div><div class="source-name">${escapeHtml(source.name)}</div><div class="source-kind">${escapeHtml(source.kind || "公式配信")}${source.items !== undefined ? ` / ${sourceItems[source.id] || 0}件掲載` : ""}</div></div><span class="source-status ${source.status === "error" ? "error" : ""}">${source.status === "error" ? "取得エラー" : "稼働中"}</span></div>`).join("") : `<p class="side-note">情報源の状態を取得できませんでした。</p>`;
 }
 
-function openDetail(itemId) {
+function updateItemQuery(itemId) {
+  const url = new URL(window.location.href);
+  if (itemId) url.searchParams.set("item", itemId);
+  else url.searchParams.delete("item");
+  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function openDetail(itemId, { updateUrl = true } = {}) {
   const item = state.items.find((candidate) => candidate.id === itemId);
   if (!item) return;
   setText("#dialog-source", `${item.source} / ${item.category || "科学技術政策"}`);
   setText("#dialog-title", item.title);
   setText("#dialog-meta", `${formatDate(item.published_at, true)} 公開　·　公式更新`);
-  const hasAiSummary = Boolean(item.ai_summary);
-  setText("#dialog-summary", item.ai_summary || item.article_summary || item.summary || "この更新には概要文がありません。公式ページで内容をご確認ください。");
-  setText("#dialog-summary-type", hasAiSummary ? "ローカルモデル要約" : "ルールベース整理");
-  const points = asList(item.ai_points, item.key_points);
-  const highlights = asList(item.ai_signals, item.highlights);
-  $("#dialog-points").innerHTML = points.length ? points.map((point) => `<li>${escapeHtml(point)}</li>`).join("") : `<li>本文からキーポイントを抽出できませんでした。</li>`;
-  $("#dialog-highlights").innerHTML = highlights.length ? highlights.map((highlight) => `<span class="highlight-chip">${escapeHtml(highlight)}</span>`).join("") : `<span class="dialog-muted">該当する数字・期限なし</span>`;
-  setText("#dialog-why", item.ai_why_it_matters || "公式本文の記載をもとに、キーポイントと数字を整理しています。詳しい意味は原典をご確認ください。");
   const body = asList(item.body_blocks, []);
   $("#dialog-body").innerHTML = body.length ? body.map((block) => `<p>${escapeHtml(block)}</p>`).join("") : `<p class="dialog-muted">本文を取得できませんでした。公式ページで内容をご確認ください。</p>`;
-  setText("#dialog-content-note", item.ai_status === "generated" ? `本文をローカルモデルで要約 / ${item.content_note || "公式本文を抽出"}` : (item.content_note || "本文の自動整理結果"));
+  setText("#dialog-content-note", item.content_status === "extracted" ? "サイト内表示は取得した本文の抜粋です。正確な内容は原典をご確認ください。" : "本文を取得できませんでした。公式ページで内容をご確認ください。");
   $("#dialog-content-note").classList.toggle("is-error", item.content_status === "unavailable");
   $("#dialog-tags").innerHTML = (item.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join("");
-  const link = $("#dialog-link"); link.href = safeUrl(item.url); link.setAttribute("aria-label", `${item.source}の公式ページを開く`);
+  const link = $("#dialog-link"); link.href = itemUrl(item); link.setAttribute("aria-label", `${item.source}の公式ページを開く`);
+  $("#dialog-copy").textContent = "共有リンクをコピー";
+  $("#dialog-copy").dataset.itemId = item.id;
+  if (updateUrl) updateItemQuery(item.id);
   const dialog = $("#detail-dialog"); if (typeof dialog.showModal === "function") dialog.showModal(); else window.open(safeUrl(item.url), "_blank", "noopener");
 }
 
@@ -86,7 +89,19 @@ function bindInteractions() {
   $("#source-filter").addEventListener("change", (event) => { state.filters.source = event.target.value; renderFeed(); });
   $("#reset-filters").addEventListener("click", () => { state.filters = { search: "", category: "all", source: "all" }; $("#search").value = ""; $("#category-filter").value = "all"; $("#source-filter").value = "all"; renderFeed(); });
   $("#dialog-close").addEventListener("click", () => $("#detail-dialog").close());
+  $("#dialog-copy").addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    const shareUrl = new URL(window.location.href);
+    shareUrl.searchParams.set("item", button.dataset.itemId || "");
+    try {
+      await navigator.clipboard.writeText(shareUrl.toString());
+      button.textContent = "リンクをコピーしました";
+    } catch {
+      button.textContent = "URLを選択して共有してください";
+    }
+  });
   $("#detail-dialog").addEventListener("click", (event) => { if (event.target === event.currentTarget) event.currentTarget.close(); });
+  $("#detail-dialog").addEventListener("close", () => updateItemQuery(null));
 }
 
 async function loadData() {
@@ -102,6 +117,8 @@ async function loadData() {
     setText("#hero-count", String(state.items.length).padStart(2, "0")); setText("#stat-total", state.items.length.toLocaleString("ja-JP")); setText("#stat-sources", state.sources.length.toString().padStart(2, "0"));
     const generatedAt = payload.generated_at ? formatDate(payload.generated_at, true) : "未取得";
     setText("#hero-meta", `最終取得 ${generatedAt} / JST`); setText("#stat-updated", generatedAt.includes(" ") ? generatedAt.split(" ").at(-1) : generatedAt); setText("#footer-year", String(new Date().getFullYear()));
+    const requestedItem = new URLSearchParams(window.location.search).get("item");
+    if (requestedItem) openDetail(requestedItem, { updateUrl: false });
   } catch (error) {
     console.error(error); setText("#header-status", "データを取得できません"); setText("#hero-meta", "データファイルを取得できませんでした"); $("#feed-list").innerHTML = `<div class="empty-state"><span class="empty-mark" aria-hidden="true">!</span><h3>データを読み込めませんでした</h3><p>GitHub Actionsの取得処理、または data/updates.json を確認してください。</p></div>`;
   } finally { $("#feed-list").setAttribute("aria-busy", "false"); }

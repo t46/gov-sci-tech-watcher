@@ -32,8 +32,8 @@
           <div class="hero-grid" aria-hidden="true"></div>
           <div class="hero-copy">
             <p class="eyebrow"><span class="eyebrow-line"></span>GOVERNMENT SCIENCE / JAPAN</p>
-            <h1 id="page-title">政策の変化を、<br /><span>見逃さない。</span></h1>
-            <p class="hero-lede">内閣府・文部科学省など、政府公式サイトの更新を定期取得。科学技術政策と予算の動きを、出典つきで読み解けます。</p>
+            <h1 id="page-title">原典まで、<br /><span>最短距離で。</span></h1>
+            <p class="hero-lede">内閣府・文部科学省など、政府公式サイトの更新を定期取得。科学技術政策と予算の動きを、余計な解釈を足さずに見つけ、原典へ移動できます。</p>
             <div class="hero-meta"><span class="live-pulse"></span><span id="hero-meta">最新データを読み込んでいます</span></div>
           </div>
           <div class="hero-signal" aria-label="更新データの概要">
@@ -55,7 +55,7 @@
         <div class="content-layout">
           <section class="feed-section" id="updates" aria-labelledby="feed-title">
             <div class="section-heading">
-              <div><span class="section-kicker">LIVE FEED</span><h2 id="feed-title">新着シグナル</h2></div>
+              <div><span class="section-kicker">LIVE FEED / SOURCE FIRST</span><h2 id="feed-title">新着シグナル</h2></div>
               <span class="result-count" id="result-count">—件</span>
             </div>
             <div class="filters" aria-label="更新を絞り込む">
@@ -85,9 +85,9 @@
         </div>
 
         <section class="sources-detail" id="sources-detail" aria-labelledby="sources-detail-title">
-          <div><span class="section-kicker">HOW IT WORKS</span><h2 id="sources-detail-title">出典と更新について</h2></div>
-          <div class="detail-copy"><p>このサイトは、各省庁が公開する公式RSSと公式ページをGitHub Actionsで3時間おきに確認し、科学技術・研究・予算に関係する更新だけを抽出して静的JSONへ反映します。</p><p>本文の転載は行わず、タイトル・公開日時・出典URLのみを掲載しています。詳しい内容は必ず原典をご確認ください。</p></div>
-          <div class="detail-badge"><span>NO OPINION</span><strong>一次情報へ。</strong></div>
+          <div><span class="section-kicker">HOW IT WORKS</span><h2 id="sources-detail-title">原典へ向かうための画面</h2></div>
+          <div class="detail-copy"><p>このサイトは、各省庁が公開する公式RSSと公式ページをGitHub Actionsで3時間おきに確認し、科学技術・研究・予算に関係する更新だけを抽出して静的JSONへ反映します。</p><p>カードをクリックすると公式ページまたはPDFを開きます。サイト内の抜粋表示は、取得できた本文の所在を確認するための補助です。重要な判断や引用は、必ず原典をご確認ください。</p></div>
+          <div class="detail-badge"><span>SOURCE FIRST</span><strong>一次情報へ。</strong></div>
         </section>
       </main>
 
@@ -95,7 +95,7 @@
     </div>
 
     <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="dialog-title">
-      <div class="dialog-inner"><button class="dialog-close" id="dialog-close" type="button" aria-label="詳細を閉じる">×</button><span class="section-kicker" id="dialog-source">SOURCE</span><h2 id="dialog-title">更新の詳細</h2><div class="dialog-meta" id="dialog-meta"></div><div class="dialog-section"><div class="dialog-label">一言でいうと <span id="dialog-summary-type">自動整理</span></div><p id="dialog-summary" class="dialog-summary"></p></div><div class="dialog-insight-grid"><div><div class="dialog-label">キーポイント</div><ul id="dialog-points" class="dialog-points"></ul></div><div><div class="dialog-label">数字・期限</div><div id="dialog-highlights" class="dialog-highlights"></div></div></div><div class="dialog-section dialog-why"><div class="dialog-label">なぜ見るか <span>読み解き</span></div><p id="dialog-why" class="dialog-why-copy"></p></div><div class="dialog-source-body"><div class="dialog-label">本文 <span>公式ページ / PDFから抽出</span></div><div id="dialog-body" class="article-body"></div></div><div id="dialog-content-note" class="dialog-content-note"></div><div id="dialog-tags" class="tag-row"></div><a id="dialog-link" class="dialog-link" href="#" target="_blank" rel="noopener noreferrer">公式ページを開く <span aria-hidden="true">↗</span></a></div>
+      <div class="dialog-inner"><button class="dialog-close" id="dialog-close" type="button" aria-label="詳細を閉じる">×</button><span class="section-kicker" id="dialog-source">SOURCE</span><h2 id="dialog-title">更新の抜粋</h2><div class="dialog-meta" id="dialog-meta"></div><div class="dialog-source-body"><div class="dialog-label">取得した本文の抜粋 <span>原文は公式ページ</span></div><div id="dialog-body" class="article-body"></div></div><div id="dialog-content-note" class="dialog-content-note"></div><div id="dialog-tags" class="tag-row"></div><div class="dialog-actions"><a id="dialog-link" class="dialog-link" href="#" target="_blank" rel="noopener noreferrer">原典を開く <span aria-hidden="true">↗</span></a><button id="dialog-copy" class="dialog-copy" type="button">共有リンクをコピー</button></div></div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="app.js" defer></script>
