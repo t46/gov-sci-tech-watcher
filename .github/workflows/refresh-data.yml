@@ -1,9 +1,18 @@
 name: Refresh government updates
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "data/**"
   schedule:
     - cron: "17 */3 * * *"
   workflow_dispatch:
+
+concurrency:
+  group: refresh-main
+  cancel-in-progress: false
 
 permissions:
   contents: write
