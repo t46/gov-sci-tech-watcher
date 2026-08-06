@@ -25,8 +25,13 @@ function renderMonthly(rows) {
   const element = $("#monthly-chart");
   if (!element || !rows?.length) { if (element) element.innerHTML = `<p class="data-empty">月別データがありません</p>`; return; }
   const visible = rows.slice(-18);
-  const max = Math.max(...visible.map((row) => row.count), 1);
-  element.innerHTML = visible.map((row) => `<div class="month-column"><span class="month-value">${row.count}</span><div class="month-track"><i style="height:${Math.max(4, Math.round((row.count / max) * 100))}%"></i></div><span class="month-label">${escapeHtml(row.month.slice(2).replace("-", "/"))}</span></div>`).join("");
+  const width = 920; const height = 250; const left = 36; const right = 18; const top = 18; const bottom = 38; const plotWidth = width - left - right; const plotHeight = height - top - bottom; const max = Math.max(...visible.map((row) => Number(row.count || 0)), 1);
+  const points = visible.map((row, index) => { const x = left + (index / Math.max(1, visible.length - 1)) * plotWidth; const y = top + plotHeight - (Number(row.count || 0) / max) * plotHeight; return { ...row, x, y }; });
+  const line = points.map((point) => `${point.x},${point.y}`).join(" "); const area = `${left},${top + plotHeight} ${line} ${left + plotWidth},${top + plotHeight}`;
+  const grid = [0, .25, .5, .75, 1].map((ratio) => { const y = top + plotHeight * (1 - ratio); return `<line class="pulse-grid" x1="${left}" x2="${left + plotWidth}" y1="${y}" y2="${y}" /><text class="pulse-axis-label" x="4" y="${y + 4}">${Math.round(max * ratio)}</text>`; }).join("");
+  const labels = points.map((point, index) => index % Math.max(1, Math.ceil(points.length / 8)) === 0 || index === points.length - 1 ? `<text class="pulse-month" x="${point.x}" y="${height - 10}" text-anchor="middle">${escapeHtml(point.month.slice(2).replace("-", "/"))}</text>` : "").join("");
+  const marks = points.map((point) => `<circle class="pulse-point" cx="${point.x}" cy="${point.y}" r="4"><title>${escapeHtml(point.month)} / ${formatNumber(point.count)}件</title></circle>`).join("");
+  element.innerHTML = `<svg class="pulse-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="月別の公式更新件数"><g>${grid}</g><polygon class="pulse-area" points="${area}" /><polyline class="pulse-line" points="${line}" />${marks}${labels}</svg>`;
 }
 
 function renderThemes(rows) {
@@ -103,10 +108,10 @@ function renderSankey(links, rows) {
   };
   const emphasize = (kind, name) => {
     element.querySelectorAll(".sankey-link").forEach((path) => { path.classList.toggle("is-dim", !(path.dataset.source === name || path.dataset.target === name)); });
-    element.querySelectorAll(".sankey-node").forEach((node) => { node.classList.toggle("is-dim", !(node.dataset.kind === kind && node.dataset.name === name)); });
+    element.querySelectorAll(".sankey-node").forEach((node) => { node.classList.toggle("is-dim", kind === "link" ? node.dataset.name !== name : !(node.dataset.kind === kind && node.dataset.name === name)); });
     setText("#sankey-hover", `${name}の流れを表示中`);
   };
-  const clear = () => { if (selected) return; element.querySelectorAll(".is-dim").forEach((item) => item.classList.remove("is-dim")); setText("#sankey-hover", "線にカーソルを合わせると流れを強調"); };
+  const clear = () => { if (selected) return; element.querySelectorAll(".is-dim").forEach((item) => item.classList.remove("is-dim")); setText("#sankey-hover", "線を選択"); };
   element.querySelectorAll(".sankey-link").forEach((path) => {
     path.addEventListener("mouseenter", () => { if (!selected) emphasize("link", path.dataset.source); });
     path.addEventListener("mouseleave", clear);
@@ -117,7 +122,7 @@ function renderSankey(links, rows) {
     node.addEventListener("mouseleave", clear);
     node.addEventListener("click", () => { selected = { kind: node.dataset.kind, name: node.dataset.name }; updateDetail(selected.kind, selected.name); emphasize(selected.kind, selected.name); });
   });
-  $("#sankey-reset")?.addEventListener("click", () => { selected = null; clear(); detail.innerHTML = `<span class="detail-prompt">SELECT A NODE</span><strong>組織を選択すると、流入の内訳がここに表示されます。</strong>`; });
+  $("#sankey-reset")?.addEventListener("click", () => { selected = null; clear(); detail.innerHTML = `<span class="selection-empty">—</span>`; });
 }
 
 function renderDonut(rows) {
@@ -139,6 +144,19 @@ function renderDonut(rows) {
   };
   element.querySelectorAll(".donut-segment, .donut-legend").forEach((item) => { item.addEventListener("mouseenter", () => select(Number(item.dataset.index))); });
   element.querySelectorAll(".donut-legend").forEach((button) => button.addEventListener("click", () => select(Number(button.dataset.index))));
+  select(0);
+}
+
+function renderActorScatter(moneyRows, peopleRows) {
+  const element = $("#actor-scatter");
+  if (!element || !moneyRows?.length) { if (element) element.innerHTML = `<p class="data-empty">主体データがありません</p>`; return; }
+  const rows = moneyRows.map((money) => ({ ...money, ...(peopleRows?.find((people) => people.name === money.name) || {}) }));
+  const width = 620; const height = 300; const left = 46; const right = 28; const top = 16; const bottom = 38; const plotWidth = width - left - right; const plotHeight = height - top - bottom;
+  const xMax = Math.max(...rows.map((row) => Number(row.internal_research_expenditure_million_yen || 0)), 1); const yMax = Math.max(...rows.map((row) => Number(row.recruitment_and_transfer || 0)), 1); const maxOrganizations = Math.max(...rows.map((row) => Number(row.organizations || 0)), 1);
+  const x = (value) => left + (Number(value || 0) / xMax) * plotWidth; const y = (value) => top + plotHeight - (Number(value || 0) / yMax) * plotHeight; const r = (value) => 7 + Math.sqrt(Number(value || 0) / maxOrganizations) * 20;
+  const grid = [0, .25, .5, .75, 1].map((ratio) => { const yPos = top + plotHeight * (1 - ratio); return `<line class="scatter-grid" x1="${left}" x2="${left + plotWidth}" y1="${yPos}" y2="${yPos}" />`; }).join("");
+  const points = rows.map((row) => `<circle class="scatter-point" cx="${x(row.internal_research_expenditure_million_yen)}" cy="${y(row.recruitment_and_transfer)}" r="${r(row.organizations)}" aria-label="${escapeHtml(row.name)}"><title>${escapeHtml(row.name)} / ${formatYen(row.internal_research_expenditure_million_yen)} / ${formatNumber(row.recruitment_and_transfer)}人</title></circle><text class="scatter-label" x="${x(row.internal_research_expenditure_million_yen) + r(row.organizations) + 5}" y="${y(row.recruitment_and_transfer) + 4}">${escapeHtml(row.name)}</text>`).join("");
+  element.innerHTML = `<svg class="scatter-svg" viewBox="0 0 ${width} ${height}" aria-label="主体別の研究費と採用・転入の散布図"><g>${grid}</g><line class="scatter-axis" x1="${left}" x2="${left}" y1="${top}" y2="${top + plotHeight}" /><line class="scatter-axis" x1="${left}" x2="${left + plotWidth}" y1="${top + plotHeight}" y2="${top + plotHeight}" />${points}<text class="scatter-caption" x="${left + plotWidth}" y="${height - 10}" text-anchor="end">内部使用研究費 →</text><text class="scatter-caption" transform="translate(13 ${top + plotHeight / 2}) rotate(-90)">採用・転入 →</text></svg>`;
 }
 
 function renderSources(sources) {
@@ -152,10 +170,14 @@ function render(payload) {
   const reality = payload.reality || {};
   const money = reality.money || {};
   const people = reality.people || {};
-  setText("#policy-count", formatNumber(policy.item_count));
-  setText("#policy-top-type", policy.document_type_counts?.[0]?.label || "—");
+  const totalInternal = (money.rows || []).reduce((sum, row) => sum + Number(row.internal_research_expenditure_million_yen || 0), 0);
+  const totalResearchers = (people.rows || []).reduce((sum, row) => sum + Number(row.recruitment_and_transfer || 0), 0);
+  setText("#hero-count", formatNumber(policy.item_count));
+  setText("#metric-updates", formatNumber(policy.item_count));
+  setText("#metric-spend", formatNumber(Math.round(totalInternal / 100)));
+  setText("#metric-researchers", formatNumber(totalResearchers));
+  setText("#metric-feeds", formatNumber(policy.source_counts?.length || 0));
   setText("#policy-period", policy.period?.from && policy.period?.to ? `${policy.period.from.slice(0, 7)} — ${policy.period.to.slice(0, 7)}` : "—");
-  setText("#survey-year", `${reality.survey_year || 2025}年`);
   const generatedAt = payload.generated_at ? new Date(payload.generated_at) : null;
   setText("#hero-meta", generatedAt && !Number.isNaN(generatedAt.getTime()) ? `最終生成 ${new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", dateStyle: "medium", timeStyle: "short" }).format(generatedAt)} / JST` : "生成日時不明");
   setText("#header-status", `${money.status === "ok" && people.status === "ok" ? "統計2表 / " : ""}${formatNumber(policy.item_count)}件を観測`);
@@ -167,6 +189,7 @@ function render(payload) {
   renderPeople(people.rows);
   renderSankey(people.links, people.rows);
   renderDonut(policy.document_type_counts);
+  renderActorScatter(money.rows, people.rows);
   renderSources(reality.sources);
 }
 

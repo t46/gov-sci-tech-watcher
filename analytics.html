@@ -3,69 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学技術政策の動きと、官民学の研究費・研究者の流れを公式データで見る観測ページ。" />
-    <meta name="theme-color" content="#102335" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23102335'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%2327d9be'/%3E%3C/svg%3E" />
+    <meta name="description" content="日本の科学技術政策、研究開発費、人材の流れを公式データで可視化する観測ダッシュボード。" />
+    <meta name="theme-color" content="#081724" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23081724'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%2335e6c2'/%3E%3C/svg%3E" />
     <title>OBSERVATORY — SCIENCE SIGNAL</title>
     <link rel="stylesheet" href="analytics.css" />
   </head>
-  <body>
-    <div class="site-shell observatory-shell">
-      <header class="site-header">
-        <a class="brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span><strong>SCIENCE</strong><em>SIGNAL</em></span></a>
-        <nav class="header-nav" aria-label="メインナビゲーション"><a href="./">新着更新</a><a class="active" href="analytics.html">観測</a><a href="budget.html">予算を見る</a><a href="research.html">研究力</a><a href="sources.html">情報源</a></nav>
-        <div class="header-status"><span class="status-dot"></span><span id="header-status">観測データを読み込んでいます</span></div>
+  <body class="dashboard-body">
+    <a class="skip-link" href="#main">本文へ移動</a>
+    <div class="dashboard-shell">
+      <header class="dashboard-header">
+        <a class="dashboard-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span><strong>SCIENCE</strong><em>SIGNAL</em></span></a>
+        <nav class="dashboard-nav" aria-label="メインナビゲーション"><a href="./">新着更新</a><a class="active" href="analytics.html">観測</a><a href="analytics.html#budget-lens">予算を見る</a><a href="sources.html">情報源</a></nav>
+        <div class="dashboard-status"><span class="status-dot"></span><span id="header-status">観測データを読み込んでいます</span></div>
       </header>
 
-      <main>
-        <section class="observation-hero" aria-labelledby="page-title">
-          <div class="hero-grid" aria-hidden="true"></div>
-          <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-line"></span>OBSERVATORY / JAPAN SCIENCE</p>
-            <h1 id="page-title">動きと、実態を<br /><span>一枚の地図に。</span></h1>
-            <p class="hero-lede">政策文書の更新を追うだけでなく、公式統計から研究費と研究者の流れも重ねて見る。日本の科学技術を、二つのレンズで読み解きます。</p>
-            <div class="hero-meta"><span class="live-pulse"></span><span id="hero-meta">静的データを読み込んでいます</span></div>
-          </div>
-          <div class="lens-index" aria-label="観測レンズ">
-            <a href="#policy-lens" class="lens-index-card"><span>01 / POLICY</span><strong>政策の動き</strong><small>公式更新の頻度・分野・役割</small><i>↘</i></a>
-            <a href="#reality-lens" class="lens-index-card accent"><span>02 / REALITY</span><strong>科学技術の実態</strong><small>官民学の研究費・人の流れ</small><i>↘</i></a>
-          </div>
+      <main id="main">
+        <section class="dashboard-hero" aria-labelledby="page-title">
+          <div><p class="dashboard-kicker">SCIENCE SIGNAL / OBSERVATORY</p><h1 id="page-title">JAPAN<br /><span>SCIENCE &amp; TECHNOLOGY</span></h1><div class="dashboard-meta"><span id="hero-meta">静的データを読み込んでいます</span><span class="meta-divider">/</span><span>OFFICIAL DATA</span></div></div>
+          <div class="hero-readout"><span class="readout-label">POLICY UPDATES</span><strong id="hero-count">—</strong><span class="readout-unit">件</span><div class="readout-rule"><i></i></div><span class="readout-note">公開された公式更新</span></div>
         </section>
 
-        <section class="observation-note"><span class="section-kicker">HOW TO READ</span><p><b>政策の動き</b>はこのサイトが取得した公式更新の集合、<b>科学技術の実態</b>はe-Stat「科学技術研究調査」の全国値です。別の種類のデータを、同じ画面で比較できるように分けて表示しています。</p></section>
+        <section class="metric-strip" aria-label="主要指標"><article class="metric-cell"><span>POLICY UPDATES</span><strong id="metric-updates">—</strong><small>公式更新 / 件</small></article><article class="metric-cell metric-cyan"><span>R&amp;D EXPENDITURE</span><strong id="metric-spend">—</strong><small>内部使用研究費 / 億円</small></article><article class="metric-cell metric-violet"><span>PEOPLE MOVEMENT</span><strong id="metric-researchers">—</strong><small>採用・転入 / 人</small></article><article class="metric-cell metric-orange"><span>DATA SOURCES</span><strong id="metric-feeds">—</strong><small>公式フィード / 機関</small></article></section>
 
-        <section class="system-section" id="science-system" aria-labelledby="system-title">
-          <div class="section-heading"><div><span class="section-kicker">03 / SCIENCE SYSTEM MAP</span><h2 id="system-title">日本の科学技術を、関係で見る</h2></div><p class="section-description">組織の境界を越えて移動する研究者。クリックとホバーで、流れの中身をたどる。</p></div>
-          <div class="system-grid">
-            <article class="system-map-shell"><div class="system-map-header"><div><span class="card-kicker">PEOPLE SANKEY</span><h3>研究者は、どこからどこへ動くか</h3></div><button class="map-reset" id="sankey-reset" type="button">全体を見る ↺</button></div><div class="sankey-legend"><span><i class="legend-source"></i>転入元</span><span><i class="legend-target"></i>転入先</span><span class="sankey-hint" id="sankey-hover">線にカーソルを合わせると流れを強調</span></div><div id="people-sankey" class="sankey-stage" role="img" aria-label="組織間の研究者転入フロー図"></div><div class="sankey-columns"><span>転入元</span><span>転入先</span></div></article>
-            <article class="donut-shell"><div class="system-map-header"><div><span class="card-kicker">POLICY SHAPE</span><h3>政策文書の構成</h3></div><span class="card-unit">30件</span></div><div id="document-donut" class="document-donut" role="img" aria-label="政策文書タイプの割合"></div><div id="donut-detail" class="donut-detail">文書タイプを選ぶと、役割と件数が表示されます。</div></article>
-          </div>
-          <div class="system-detail" id="sankey-detail" aria-live="polite"><span class="detail-prompt">SELECT A NODE</span><strong>組織を選択すると、流入の内訳がここに表示されます。</strong></div>
+        <section class="viz-grid dashboard-grid" aria-label="科学技術データの可視化">
+          <article class="viz-panel viz-panel-wide policy-pulse-panel"><header class="viz-header"><div><span class="viz-label">01 / POLICY PULSE</span><h2>政策更新のリズム</h2></div><span class="viz-unit">月別 / 件</span></header><div id="monthly-chart" class="monthly-chart" role="img" aria-label="月別の公式更新件数"></div><footer class="viz-footer"><span>公開日ベース</span><span id="policy-period">—</span></footer></article>
+
+          <article class="viz-panel document-panel"><header class="viz-header"><div><span class="viz-label">02 / POLICY MIX</span><h2>文書の役割</h2></div><span class="viz-unit">公式更新</span></header><div id="document-donut" class="document-donut" role="img" aria-label="政策文書タイプの割合"></div><div id="donut-detail" class="viz-selection" aria-live="polite"></div></article>
+
+          <article class="viz-panel viz-panel-wide money-panel" id="budget-lens"><header class="viz-header"><div><span class="viz-label">03 / CAPITAL FLOWS</span><h2>研究開発費の分布</h2></div><span class="viz-unit">e-Stat / 2025 / 億円</span></header><div class="chart-legend"><span><i class="series-cyan"></i>内部使用</span><span><i class="series-violet"></i>受入</span><span><i class="series-orange"></i>外部支出</span></div><div id="money-chart" class="flow-chart" aria-label="主体別の研究開発費"></div><footer class="viz-footer"><span>企業・非営利団体・公的機関・大学等</span><span>3指標は重複し得ます</span></footer></article>
+
+          <article class="viz-panel theme-panel"><header class="viz-header"><div><span class="viz-label">04 / THEMES</span><h2>現れているテーマ</h2></div><span class="viz-unit">重複あり</span></header><div id="theme-list" class="theme-grid"></div></article>
+
+          <article class="viz-panel viz-panel-full people-panel"><header class="viz-header"><div><span class="viz-label">05 / PEOPLE FLOWS</span><h2>研究者は、どこからどこへ動くか</h2></div><div class="viz-actions"><button class="map-reset" id="sankey-reset" type="button">RESET</button><span class="viz-unit">人</span></div></header><div class="chart-legend"><span><i class="series-cyan"></i>転入元</span><span><i class="series-muted"></i>転入先</span><span id="sankey-hover">線を選択</span></div><div id="people-sankey" class="sankey-stage" role="img" aria-label="組織間の研究者転入フロー図"></div><div class="sankey-columns"><span>ORIGIN</span><span>DESTINATION</span></div><div class="sankey-selection" id="sankey-detail" aria-live="polite"></div></article>
+
+          <article class="viz-panel actor-panel"><header class="viz-header"><div><span class="viz-label">06 / ACTOR PLOT</span><h2>資金と人の配置</h2></div><span class="viz-unit">実数軸</span></header><div id="actor-scatter" class="actor-scatter" role="img" aria-label="主体別の研究費と採用・転入の散布図"></div><footer class="viz-footer"><span>x: 内部使用研究費</span><span>y: 採用・転入</span></footer></article>
+
+          <article class="viz-panel source-panel"><header class="viz-header"><div><span class="viz-label">07 / ORIGIN</span><h2>更新の取得元</h2></div><a class="panel-link" href="sources.html">台帳 ↗</a></header><div id="source-list" class="rank-list"></div></article>
         </section>
 
-        <section class="lens-section" id="policy-lens" aria-labelledby="policy-title">
-          <div class="section-heading"><div><span class="section-kicker">01 / POLICY MOVEMENT</span><h2 id="policy-title">政策の動き</h2></div><p class="section-description">政府公式サイトに現れた更新を、文書の役割とテーマから見る。</p></div>
-          <div class="metric-grid policy-metrics"><div class="metric-card"><span>掲載中の公式更新</span><strong id="policy-count">—</strong><small>件</small></div><div class="metric-card"><span>最多の文書タイプ</span><strong id="policy-top-type">—</strong><small>役割</small></div><div class="metric-card"><span>観測期間</span><strong id="policy-period">—</strong><small>公開日ベース</small></div></div>
-          <div class="policy-grid">
-            <article class="chart-card activity-card"><div class="card-heading"><div><span class="card-kicker">CADENCE</span><h3>更新のリズム</h3></div><span class="card-unit">月別 / 件</span></div><div id="monthly-chart" class="monthly-chart" aria-label="月別の公式更新件数"></div><p class="chart-note">取得できた更新を月ごとに集計。件数は影響度ではなく、公開・掲載された数です。</p></article>
-            <article class="chart-card"><div class="card-heading"><div><span class="card-kicker">DOCUMENT ROLE</span><h3>文書は何をするか</h3></div><span class="card-unit">役割別</span></div><div id="document-type-list" class="rank-list"></div><p class="chart-note">一語の評価ではなく、文書が担う仕事を表示しています。</p></article>
-          </div>
-          <div class="policy-grid lower-grid"><article class="chart-card"><div class="card-heading"><div><span class="card-kicker">THEME MAP</span><h3>どのテーマが現れているか</h3></div><span class="card-unit">重複あり</span></div><div id="theme-list" class="theme-grid"></div></article><article class="chart-card"><div class="card-heading"><div><span class="card-kicker">ORIGIN</span><h3>どこから来た更新か</h3></div><span class="card-unit">機関別</span></div><div id="source-list" class="rank-list"></div></article></div>
-        </section>
-
-        <section class="lens-section reality-section" id="reality-lens" aria-labelledby="reality-title">
-          <div class="section-heading"><div><span class="section-kicker">02 / SCIENCE &amp; TECHNOLOGY REALITY</span><h2 id="reality-title">科学技術の実態</h2></div><p class="section-description">研究を担う組織の資金と人の流れを、同じ統計表から読む。</p></div>
-          <div class="reality-ribbon"><div><span>OFFICIAL SNAPSHOT</span><strong id="survey-year">2025年</strong></div><p>科学技術研究調査<br />全国 / 組織別</p><a href="#sources-method">定義と出典 ↘</a></div>
-          <div class="reality-grid">
-            <article class="chart-card large-card"><div class="card-heading"><div><span class="card-kicker">MONEY FLOW</span><h3>研究費の流れ</h3></div><span class="card-unit">百万円 → 億円</span></div><div class="legend"><span><i class="legend-internal"></i>内部使用研究費</span><span><i class="legend-incoming"></i>受入研究費</span><span><i class="legend-outgoing"></i>外部支出研究費</span></div><div id="money-chart" class="flow-chart"></div><p class="chart-note">研究主体が自ら使う費用、外部から受け入れる研究費、外部へ支出する研究費を分けて表示。</p></article>
-            <article class="chart-card large-card"><div class="card-heading"><div><span class="card-kicker">PEOPLE FLOW</span><h3>研究者の移動</h3></div><span class="card-unit">人</span></div><div class="legend"><span><i class="legend-internal"></i>採用・転入</span><span><i class="legend-outgoing"></i>転出</span></div><div id="people-chart" class="people-chart"></div><p class="chart-note">採用・転入と転出を、企業・非営利団体・公的機関・大学等で比較。</p></article>
-          </div>
-          <div class="reality-callout"><span class="callout-mark">↗</span><div><span class="card-kicker">NEXT READING</span><h3>官・民・学の関係を、流れとして見る</h3><p>研究費の規模だけではなく、どこから資金が入り、どこへ人が移るのかを並べると、制度と実態の接点が見えてきます。今後は競争的資金、大学発スタートアップ、研究設備などの系列も追加します。</p></div></div>
-        </section>
-
-        <section class="sources-method" id="sources-method" aria-labelledby="method-title"><div><span class="section-kicker">DATA / DEFINITION</span><h2 id="method-title">数字の読み方</h2></div><div id="source-cards" class="source-cards"></div><p class="method-note">このページの統計値は、取得時点で公式に公開されているデータを静的JSONへ保存したものです。集計・表示は読み解きの補助であり、定義の変更や更新遅延があり得るため、判断や引用の際は各出典ページをご確認ください。</p></section>
+        <footer class="dashboard-footnote"><span>DATA / DEFINITIONS</span><span>数値は取得時点の公式データ。定義・期間・原典は<a href="sources.html">情報源台帳</a>で確認できます。</span><span id="footer-year">2026</span></footer>
       </main>
-      <footer class="site-footer"><span>SCIENCE SIGNAL / OBSERVATORY</span><span>PUBLIC DATA. CLEARER CONTEXT.</span><span id="footer-year">2026</span></footer>
     </div>
     <script src="analytics.js" defer></script>
   </body>
