@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-06T06:30:58.177490Z",
+  "generated_at": "2026-08-06T06:32:02.187482Z",
   "item_count": 30,
   "sources": [
     {
@@ -9,7 +9,7 @@
       "page": "https://www8.cao.go.jp/cstp/stmain.html",
       "status": "ok",
       "items": 1,
-      "checked_at": "2026-08-06T06:30:37.704447Z"
+      "checked_at": "2026-08-06T06:31:30.031218Z"
     },
     {
       "id": "mext-science",
@@ -19,7 +19,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 8,
-      "checked_at": "2026-08-06T06:30:37.940275Z"
+      "checked_at": "2026-08-06T06:31:31.519094Z"
     },
     {
       "id": "cstp",
@@ -29,7 +29,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 15,
-      "checked_at": "2026-08-06T06:30:38.412158Z"
+      "checked_at": "2026-08-06T06:31:32.686405Z"
     },
     {
       "id": "cstp-budget",
@@ -39,7 +39,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 6,
-      "checked_at": "2026-08-06T06:30:38.521349Z"
+      "checked_at": "2026-08-06T06:31:33.455659Z"
     }
   ],
   "items": [
@@ -72,7 +72,23 @@
         "令和8年８月７日（金）10：00～11：00 開催方法 内閣府会議室とWeb会議システム（Micr"
       ],
       "content_status": "extracted",
-      "content_note": "公式ページ/PDFから本文を自動整理"
+      "content_note": "公式ページ/PDFから本文を自動整理",
+      "ai_summary": "BRIDGE制度の運用成果と課題を検討し、改善と制度設計に役立てるワーキンググループを開催。",
+      "ai_points": [
+        "BRIDGE制度の運用成果と課題を検討。",
+        "改善と制度設計に役立てる。",
+        "ワーキンググループを開催。"
+      ],
+      "ai_why_it_matters": "制度運用の改善と制度設計に役立つため、より効果的な科学技術政策を実現。",
+      "ai_signals": [
+        "令和8年8月7日",
+        "10:00",
+        "11:00",
+        "内閣府会議室とWeb会議システム（Microsoft Teams）",
+        "原則オンライン形式"
+      ],
+      "ai_status": "generated",
+      "ai_model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
     },
     {
       "id": "cao:https://www.fsc.go.jp/senmon/sonota/annai/wg_gijutsukikaku_annai_38.html",
@@ -104,7 +120,21 @@
         "令和8年8月17日（月） 14:00〜17:00（予定） ２．開催場所：食品安全委員会 第二会議室"
       ],
       "content_status": "extracted",
-      "content_note": "公式ページ/PDFから本文を自動整理"
+      "content_note": "公式ページ/PDFから本文を自動整理",
+      "ai_summary": "評価技術企画ワーキンググループ（第38回）が8月17日に開催される。",
+      "ai_points": [
+        "評価技術企画ワーキンググループ（第38回）の開催",
+        "開催日時は令和8年8月17日（月）14:00〜17:00",
+        "開催場所は食品安全委員会第二会議室（Web会議システム併用）"
+      ],
+      "ai_why_it_matters": "食品安全委員会の活動の一環として、食品安全情報の発信やリスク評価の推進に向けた議論を行う。",
+      "ai_signals": [
+        "令和8年度食品安全委員会運営計画",
+        "食品健康影響評価におけるリードアクロスの活用",
+        "その他"
+      ],
+      "ai_status": "generated",
+      "ai_model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
     },
     {
       "id": "mext-science:https://www.mext.go.jp/b_menu/daijin/detail/mext_00718.html",
@@ -985,5 +1015,11 @@
       "content_status": "extracted",
       "content_note": "公式ページ/PDFから本文を自動整理"
     }
-  ]
+  ],
+  "ai_summary": {
+    "status": "generated",
+    "generated": 1,
+    "cached": 2,
+    "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
+  }
 }
