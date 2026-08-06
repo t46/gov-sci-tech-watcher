@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-06T08:01:35.305388Z",
+  "generated_at": "2026-08-06T09:00:48.252685Z",
   "policy": {
     "item_count": 30,
     "period": {
@@ -139,6 +139,250 @@
       {
         "month": "2026-08",
         "count": 4
+      }
+    ],
+    "activity_grid": [
+      {
+        "year": "2021",
+        "month": "01",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "02",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "03",
+        "count": 1
+      },
+      {
+        "year": "2021",
+        "month": "04",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "05",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "06",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "07",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "08",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "09",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "10",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "11",
+        "count": 0
+      },
+      {
+        "year": "2021",
+        "month": "12",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "01",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "02",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "03",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "04",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "05",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "06",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "07",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "08",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "09",
+        "count": 1
+      },
+      {
+        "year": "2025",
+        "month": "10",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "11",
+        "count": 0
+      },
+      {
+        "year": "2025",
+        "month": "12",
+        "count": 1
+      },
+      {
+        "year": "2026",
+        "month": "01",
+        "count": 3
+      },
+      {
+        "year": "2026",
+        "month": "02",
+        "count": 4
+      },
+      {
+        "year": "2026",
+        "month": "03",
+        "count": 2
+      },
+      {
+        "year": "2026",
+        "month": "04",
+        "count": 0
+      },
+      {
+        "year": "2026",
+        "month": "05",
+        "count": 0
+      },
+      {
+        "year": "2026",
+        "month": "06",
+        "count": 2
+      },
+      {
+        "year": "2026",
+        "month": "07",
+        "count": 7
+      },
+      {
+        "year": "2026",
+        "month": "08",
+        "count": 4
+      },
+      {
+        "year": "2026",
+        "month": "09",
+        "count": 0
+      },
+      {
+        "year": "2026",
+        "month": "10",
+        "count": 0
+      },
+      {
+        "year": "2026",
+        "month": "11",
+        "count": 0
+      },
+      {
+        "year": "2026",
+        "month": "12",
+        "count": 0
+      }
+    ],
+    "category_document_matrix": [
+      {
+        "category": "科学技術政策",
+        "document_type": "会議・審議",
+        "count": 9
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "発表・報告",
+        "count": 4
+      },
+      {
+        "category": "生命・健康",
+        "document_type": "発表・報告",
+        "count": 1
+      },
+      {
+        "category": "AI・デジタル",
+        "document_type": "基本計画",
+        "count": 1
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "公募・支援",
+        "count": 2
+      },
+      {
+        "category": "予算・投資",
+        "document_type": "予算資料",
+        "count": 7
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "統計・白書",
+        "count": 1
+      },
+      {
+        "category": "AI・デジタル",
+        "document_type": "会議・審議",
+        "count": 1
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "評価・検証",
+        "count": 1
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "基本計画",
+        "count": 1
+      },
+      {
+        "category": "量子・半導体",
+        "document_type": "発表・報告",
+        "count": 1
+      },
+      {
+        "category": "研究基盤・人材",
+        "document_type": "評価・検証",
+        "count": 1
       }
     ],
     "insights": [

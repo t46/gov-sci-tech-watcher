@@ -143,6 +143,8 @@ def count_by(items: list[dict[str, object]], key: str) -> list[dict[str, object]
 def build_policy_layer(payload: dict[str, object]) -> dict[str, object]:
     items = [item for item in payload.get("items", []) if isinstance(item, dict)]
     monthly = Counter()
+    monthly_by_year = Counter()
+    category_document_matrix = Counter()
     themes = {
         "AI・デジタル": ("AI", "人工知能", "生成AI", "デジタル", "情報通信"),
         "量子・半導体": ("量子", "半導体", "ポスト5G", "ポスト５G"),
@@ -158,15 +160,28 @@ def build_policy_layer(payload: dict[str, object]) -> dict[str, object]:
         match = re.match(r"(\d{4}-\d{2})", date)
         if match:
             monthly[match.group(1)] += 1
+            monthly_by_year[(match.group(1)[:4], match.group(1)[5:])] += 1
             dates.append(date[:10])
+        category_document_matrix[(str(item.get("category") or "未分類"), str(item.get("document_type") or "未分類"))] += 1
         searchable = " ".join(str(item.get(field) or "") for field in ("title", "summary", "category", "document_type", "tags"))
         for theme, terms in themes.items():
             if any(term.lower() in searchable.lower() for term in terms):
                 theme_counts[theme] += 1
 
     monthly_activity = [{"month": month, "count": monthly[month]} for month in sorted(monthly)]
+    years = sorted({year for year, _month in monthly_by_year})
+    months = [f"{month:02d}" for month in range(1, 13)]
+    activity_grid = [
+        {"year": year, "month": month, "count": monthly_by_year.get((year, month), 0)}
+        for year in years
+        for month in months
+    ]
     type_counts = count_by(items, "document_type")
     top_type = type_counts[0]["label"] if type_counts else "公式更新"
+    category_document = [
+        {"category": category, "document_type": document_type, "count": count}
+        for (category, document_type), count in category_document_matrix.items()
+    ]
     return {
         "item_count": len(items),
         "period": {"from": min(dates) if dates else None, "to": max(dates) if dates else None},
@@ -175,6 +190,8 @@ def build_policy_layer(payload: dict[str, object]) -> dict[str, object]:
         "source_counts": count_by(items, "source"),
         "theme_counts": [{"label": label, "count": count} for label, count in theme_counts.most_common()],
         "monthly_activity": monthly_activity,
+        "activity_grid": activity_grid,
+        "category_document_matrix": category_document,
         "insights": [
             f"掲載中の公式更新は{len(items):,}件。文書の役割では「{top_type}」が最多です。",
             "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。",
