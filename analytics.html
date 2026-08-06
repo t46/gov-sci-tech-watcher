@@ -34,6 +34,15 @@
 
         <section class="observation-note"><span class="section-kicker">HOW TO READ</span><p><b>政策の動き</b>はこのサイトが取得した公式更新の集合、<b>科学技術の実態</b>はe-Stat「科学技術研究調査」の全国値です。別の種類のデータを、同じ画面で比較できるように分けて表示しています。</p></section>
 
+        <section class="system-section" id="science-system" aria-labelledby="system-title">
+          <div class="section-heading"><div><span class="section-kicker">03 / SCIENCE SYSTEM MAP</span><h2 id="system-title">日本の科学技術を、関係で見る</h2></div><p class="section-description">組織の境界を越えて移動する研究者。クリックとホバーで、流れの中身をたどる。</p></div>
+          <div class="system-grid">
+            <article class="system-map-shell"><div class="system-map-header"><div><span class="card-kicker">PEOPLE SANKEY</span><h3>研究者は、どこからどこへ動くか</h3></div><button class="map-reset" id="sankey-reset" type="button">全体を見る ↺</button></div><div class="sankey-legend"><span><i class="legend-source"></i>転入元</span><span><i class="legend-target"></i>転入先</span><span class="sankey-hint" id="sankey-hover">線にカーソルを合わせると流れを強調</span></div><div id="people-sankey" class="sankey-stage" role="img" aria-label="組織間の研究者転入フロー図"></div><div class="sankey-columns"><span>転入元</span><span>転入先</span></div></article>
+            <article class="donut-shell"><div class="system-map-header"><div><span class="card-kicker">POLICY SHAPE</span><h3>政策文書の構成</h3></div><span class="card-unit">30件</span></div><div id="document-donut" class="document-donut" role="img" aria-label="政策文書タイプの割合"></div><div id="donut-detail" class="donut-detail">文書タイプを選ぶと、役割と件数が表示されます。</div></article>
+          </div>
+          <div class="system-detail" id="sankey-detail" aria-live="polite"><span class="detail-prompt">SELECT A NODE</span><strong>組織を選択すると、流入の内訳がここに表示されます。</strong></div>
+        </section>
+
         <section class="lens-section" id="policy-lens" aria-labelledby="policy-title">
           <div class="section-heading"><div><span class="section-kicker">01 / POLICY MOVEMENT</span><h2 id="policy-title">政策の動き</h2></div><p class="section-description">政府公式サイトに現れた更新を、文書の役割とテーマから見る。</p></div>
           <div class="metric-grid policy-metrics"><div class="metric-card"><span>掲載中の公式更新</span><strong id="policy-count">—</strong><small>件</small></div><div class="metric-card"><span>最多の文書タイプ</span><strong id="policy-top-type">—</strong><small>役割</small></div><div class="metric-card"><span>観測期間</span><strong id="policy-period">—</strong><small>公開日ベース</small></div></div>

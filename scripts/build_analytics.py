@@ -111,18 +111,28 @@ def money_snapshot(blob: bytes) -> list[dict[str, object]]:
     ]
 
 
-def people_snapshot(blob: bytes) -> list[dict[str, object]]:
+def people_snapshot(blob: bytes) -> dict[str, object]:
     labels = {"企業", "非営利団体", "公的機関", "大学等"}
     rows = select_rows(blob, labels)
-    return [
+    source_columns = (("企業", "AB"), ("非営利団体", "AD"), ("公的機関", "AE"), ("大学等", "AF"), ("その他", "AG"))
+    snapshot_rows = [
         {
             "name": label,
             "recruitment_and_transfer": number(row.get("O")),
             "incoming_researchers": number(row.get("Z")),
             "outgoing_researchers": number(row.get("BH")),
+            "incoming_by_source": {source: number(row.get(column)) for source, column in source_columns},
         }
         for label, row in rows.items()
     ]
+    links = [
+        {"source": source, "target": target, "value": value}
+        for target, row in rows.items()
+        for source, column in source_columns
+        for value in [number(row.get(column))]
+        if value is not None and value > 0
+    ]
+    return {"rows": snapshot_rows, "links": links}
 
 
 def count_by(items: list[dict[str, object]], key: str) -> list[dict[str, object]]:
@@ -187,7 +197,7 @@ def build_reality_layer() -> dict[str, object]:
     except Exception as exc:
         result["money"]["error"] = str(exc)[:160]  # type: ignore[index]
     try:
-        result["people"] = {"status": "ok", "unit": "人", "rows": people_snapshot(fetch_xlsx(PEOPLE_URL))}
+        result["people"] = {"status": "ok", "unit": "人", **people_snapshot(fetch_xlsx(PEOPLE_URL))}
     except Exception as exc:
         result["people"]["error"] = str(exc)[:160]  # type: ignore[index]
     for source in result["sources"]:  # type: ignore[union-attr]
