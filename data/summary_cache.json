@@ -20,7 +20,7 @@
     "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
   },
   "https://www.fsc.go.jp/senmon/sonota/annai/wg_gijutsukikaku_annai_38.html": {
-    "content_hash": "135aa794d1743d4b77bc379c9fa8f5b9ed1de39b2c3c230401a4a5cf2e6819a9",
+    "content_hash": "bbf8e59b01b8390133b1cc7633d9244809ab6c34e787b426593050c244b5703a",
     "result": {
       "summary": "評価技術企画ワーキンググループ（第38回）が8月17日に開催される。",
       "points": [
@@ -28,7 +28,7 @@
         "開催日時は令和8年8月17日（月）14:00〜17:00",
         "開催場所は食品安全委員会第二会議室（Web会議システム併用）"
       ],
-      "why_it_matters": "食品安全委員会の活動の一環として、食品安全情報の発信やリスク評価の推進に向けた議論を行う。",
+      "why_it_matters": "食品安全委員会の活動の一環として、食品安全情報の収集・分析・評価を行い、リスク管理機関と連携して食品の安全性を確保するため。",
       "signals": [
         "令和8年度食品安全委員会運営計画",
         "食品健康影響評価におけるリードアクロスの活用",
