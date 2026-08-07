@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-07T07:44:07.622953Z",
+  "generated_at": "2026-08-07T10:12:39.832952Z",
   "policy": {
     "item_count": 30,
     "period": {
@@ -10,7 +10,7 @@
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 16
+        "count": 17
       },
       {
         "label": "予算・投資",
@@ -21,15 +21,15 @@
         "count": 3
       },
       {
-        "label": "研究基盤・人材",
-        "count": 2
-      },
-      {
         "label": "生命・健康",
         "count": 1
       },
       {
         "label": "量子・半導体",
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -55,11 +55,11 @@
         "count": 2
       },
       {
-        "label": "評価・検証",
+        "label": "統計・白書",
         "count": 2
       },
       {
-        "label": "統計・白書",
+        "label": "評価・検証",
         "count": 1
       },
       {
@@ -95,15 +95,15 @@
         "count": 3
       },
       {
-        "label": "研究基盤・人材",
-        "count": 2
-      },
-      {
         "label": "生命・健康",
         "count": 1
       },
       {
         "label": "量子・半導体",
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -138,11 +138,11 @@
       },
       {
         "month": "2026-07",
-        "count": 5
+        "count": 4
       },
       {
         "month": "2026-08",
-        "count": 7
+        "count": 8
       }
     ],
     "activity_grid": [
@@ -299,12 +299,12 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 5
+        "count": 4
       },
       {
         "year": "2026",
         "month": "08",
-        "count": 7
+        "count": 8
       },
       {
         "year": "2026",
@@ -361,7 +361,7 @@
       {
         "category": "科学技術政策",
         "document_type": "統計・白書",
-        "count": 1
+        "count": 2
       },
       {
         "category": "AI・デジタル",
@@ -386,11 +386,6 @@
       {
         "category": "研究基盤・人材",
         "document_type": "政策・戦略",
-        "count": 1
-      },
-      {
-        "category": "研究基盤・人材",
-        "document_type": "評価・検証",
         "count": 1
       }
     ],
