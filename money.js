@@ -1,34 +1,10 @@
-/* SCIENCE SIGNAL / MONEY — 研究開発資金の観測ページ */
+/* SCIENCE SIGNAL / MONEY — 研究開発資金の観測ページ。obs-core.js の後に読み込む。 */
 "use strict";
 
-const d3 = window.d3;
-const gsap = window.gsap;
-if (gsap && window.ScrollTrigger) gsap.registerPlugin(window.ScrollTrigger);
-
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => Array.from(document.querySelectorAll(selector));
-const escapeHtml = (value = "") => String(value).replace(/[&<>'"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
-const safeUrl = (value = "") => (/^https?:\/\//.test(value) ? value : "#");
-const setText = (selector, text) => { const node = $(selector); if (node) node.textContent = text; };
-const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const MOBILE = window.matchMedia("(max-width: 760px)").matches;
-
-const fmtInt = (value) => Number(value ?? 0).toLocaleString("ja-JP");
-const fmtPct = (value, digits = 1) => `${Number(value).toFixed(digits)}%`;
 const choFromMillion = (v) => `${(v / 1e6).toFixed(v >= 1e6 ? 1 : 2)}兆円`;
 const okuFromMillion = (v) => `${fmtInt(Math.round(v / 100))}億円`;
 const okuFromThousand = (v) => `${fmtInt(Math.round(v / 1e5))}億円`;
 const choFromOku = (v) => `${(v / 1e4).toFixed(1)}兆円`;
-
-function fitCanvas(canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  canvas.height = Math.max(1, Math.round(rect.height * dpr));
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { ctx, width: rect.width, height: rect.height };
-}
 
 function baseAxis(g) {
   g.select(".domain").remove();
@@ -732,7 +708,7 @@ function renderInstitutes(finance) {
     return `<p class="ir-group">${escapeHtml(title)}<small>${escapeHtml(note)}</small></p>` + list.map((r) => {
       const grantShare = r.grants != null && r.revenue ? r.grants / r.revenue : null;
       return `
-    <div class="ir-row" role="listitem" data-id="i-${escapeHtml(String(r.id))}" tabindex="0" title="${escapeHtml(r.label)}（${escapeHtml(r.ministry)}・${r.year}年度） クリックで解剖ビューへ">
+    <div class="ir-row" role="listitem" data-id="i-${escapeHtml(String(r.id))}" tabindex="0" title="${escapeHtml(r.label)}（${escapeHtml(r.ministry)}・${escapeHtml(String(r.year))}年度） クリックで解剖ビューへ">
       <span class="ir-name">${escapeHtml(r.short)}${r.category === "大学共同利用機関法人" ? '<i class="ir-kyodo" title="大学共同利用機関法人">◆</i>' : ""}</span>
       <span class="ir-bar"><i class="ir-rev" style="width:${Math.max(0.6, (r.revenue / max) * 100)}%"></i>${grantShare != null ? `<i class="ir-grant" style="width:${Math.max(0.3, (r.grants / max) * 100)}%"></i>` : ""}</span>
       <span class="ir-value">${Math.round(r.revenue / 1e8).toLocaleString("ja-JP")}億<small>${grantShare != null ? `交付金${Math.round(grantShare * 100)}%` : "交付金 —"}</small></span>
@@ -1402,19 +1378,6 @@ function renderLedger(indicators, finance) {
       <span>${e.url ? `<a href="${escapeHtml(safeUrl(e.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(e.title)}</a>` : escapeHtml(e.title)}</span>
       <span class="ledger-status${e.status === "ok" ? "" : " is-na"}">${e.status === "ok" ? "接続中" : "未接続"}</span>
     </div>`).join(""));
-}
-
-function initRail() {
-  const links = $$(".chapter-rail a");
-  if (!links.length) return;
-  const observer = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        links.forEach((link) => link.classList.toggle("is-active", link.dataset.rail === entry.target.id));
-      }
-    }
-  }, { rootMargin: "-38% 0px -52% 0px" });
-  $$(".chapter").forEach((section) => observer.observe(section));
 }
 
 /* ==================================================================== boot */

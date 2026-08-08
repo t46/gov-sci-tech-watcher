@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="政府の科学技術政策・予算の最新情報。内閣府・文部科学省などの公式ページの更新を3時間ごとに取得し、文書の種類・役割つきで一覧する。" />
+    <meta name="theme-color" content="#06090f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
+    <title>最新情報 — SCIENCE SIGNAL 日本の科学技術観測室</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="analytics.css?v=20260809c" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <header class="obs-header">
+      <a class="obs-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="obs-brand-dot" aria-hidden="true"></span>SCIENCE SIGNAL</a>
+      <nav class="obs-nav" aria-label="メインナビゲーション">
+        <a href="./">観測室</a>
+        <a class="active" href="signals.html">最新情報</a>
+        <a href="people.html">人</a>
+        <a href="money.html">お金</a>
+        <a href="papers.html">論文</a>
+      </nav>
+      <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">シグナルを取得中</span></div>
+    </header>
+
+    <main id="main">
+
+      <!-- 00 · LIVE CONSOLE -->
+      <section class="chapter" id="ch-live" aria-labelledby="signals-title" style="padding-top: 120px">
+        <div class="ch-head">
+          <p class="ch-no">SCIENCE SIGNAL / SIGNALS — 政策・予算の最新情報</p>
+          <h1 id="signals-title" class="page-title">政策シグナル。</h1>
+          <p class="ch-lede" id="live-lede">内閣府・文部科学省などの政府公式ページから3時間ごとに取得した更新の一覧。行をクリックすると要点が開く。</p>
+        </div>
+        <div class="glyph-toolbar" id="signal-types" role="toolbar" aria-label="文書の種類で絞り込み"></div>
+        <div class="glyph-toolbar" id="signal-sources" role="toolbar" aria-label="提供元で絞り込み"></div>
+        <div class="glyph-toolbar">
+          <input type="search" id="signal-search" placeholder="タイトル・要約で検索" aria-label="タイトル・要約で検索" />
+        </div>
+        <div class="console">
+          <div class="console-feed" id="live-feed" aria-live="polite"></div>
+          <aside class="console-side">
+            <div class="board" id="source-board"><p class="board-title">FEED STATUS</p></div>
+          </aside>
+        </div>
+        <p class="method-note">文書は「重要度」ではなく、政策過程のどの段階にあるか（会議・審議 / 計画 / 予算資料 / 公募・支援 / 発表・報告 / 評価・検証 / 統計・白書）で分類している。要約はローカルLLMによる補助情報で、原典の確認を前提とする。</p>
+      </section>
+
+      <footer class="obs-footer">
+        <div class="ledger" id="ledger">
+          <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
+        </div>
+        <div class="obs-footer-row">
+          <span>SCIENCE SIGNAL / SIGNALS</span>
+          <span>測っていないものを、測ったようには描かない。</span>
+          <span id="footer-year">2026</span>
+        </div>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+    <script src="obs-core.js?v=20260809c" defer></script>
+    <script src="signals.js?v=20260809c" defer></script>
+  </body>
+</html>

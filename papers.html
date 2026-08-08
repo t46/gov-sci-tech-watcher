@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="日本の論文（研究成果）の観測。主要7か国の論文数・注目論文シェアの40年、分野別構成の変化、機関別の論文産出を一次データで描く。" />
+    <meta name="theme-color" content="#06090f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
+    <title>論文 — SCIENCE SIGNAL 日本の科学技術観測室</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="analytics.css?v=20260809c" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <header class="obs-header">
+      <a class="obs-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="obs-brand-dot" aria-hidden="true"></span>SCIENCE SIGNAL</a>
+      <nav class="obs-nav" aria-label="メインナビゲーション">
+        <a href="./">観測室</a>
+        <a href="signals.html">最新情報</a>
+        <a href="people.html">人</a>
+        <a href="money.html">お金</a>
+        <a class="active" href="papers.html">論文</a>
+      </nav>
+      <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">論文データを取得中</span></div>
+    </header>
+
+    <nav class="chapter-rail" aria-label="章ナビゲーション">
+      <a href="#ch-race" data-rail="ch-race"><i>00</i><span>40年の競争</span></a>
+      <a href="#ch-fields" data-rail="ch-fields"><i>01</i><span>分野の地形</span></a>
+    </nav>
+
+    <main id="main">
+
+      <!-- 00 · PAPER SHARE RACE -->
+      <section class="chapter" id="ch-race" aria-labelledby="papers-title" style="padding-top: 120px">
+        <div class="ch-head">
+          <p class="ch-no">SCIENCE SIGNAL / PAPERS — 論文（研究成果）の観測</p>
+          <h1 id="papers-title" class="page-title">論文シェア。</h1>
+          <p class="ch-lede" id="papers-lede">日本が世界の論文に占める割合の40年。論文数・注目論文・分野構成・機関。</p>
+        </div>
+        <div class="ch-head" style="margin-top: 40px">
+          <p class="ch-no">00 / WORLD SHARE 1982–2022</p>
+          <h2 id="race-title">主要7か国の論文数シェアの推移</h2>
+          <p class="ch-lede">主要7か国の論文数シェア（全分野・3年移動平均）。スクロールで40年を進める。<span id="race-lede-fact"></span></p>
+        </div>
+        <div class="race-track" id="race-track">
+          <div class="race-stage" id="race-stage">
+            <div class="race-year" id="race-year" aria-hidden="true">1982</div>
+            <canvas id="race-canvas"></canvas>
+            <svg id="race-svg" aria-hidden="true"></svg>
+            <div class="race-legend" id="race-legend" aria-hidden="true"></div>
+            <div class="race-annot" id="race-annot" aria-live="polite"></div>
+            <div class="race-metric" id="race-metric" role="tablist" aria-label="指標の切替">
+              <button class="is-active" role="tab" aria-selected="true" data-metric="share">論文数シェア</button>
+              <button role="tab" aria-selected="false" data-metric="top10_share">Top10%論文シェア</button>
+              <button role="tab" aria-selected="false" data-metric="top1_share">Top1%論文シェア</button>
+            </div>
+          </div>
+        </div>
+        <p class="method-note" id="race-source">出典を確認中</p>
+      </section>
+
+      <!-- 01 · FIELD TERRAIN -->
+      <section class="chapter" id="ch-fields" aria-labelledby="fields-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / FIELD TERRAIN 1981–2023</p>
+          <h2 id="fields-title">42年間の分野別論文数割合の推移</h2>
+          <p class="ch-lede">論文の分野別構成の40年。国を切り替えると、各国の「かたち」の違いが見える。</p>
+        </div>
+        <div class="terrain-toolbar" id="terrain-tabs" role="tablist" aria-label="国の切替"></div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="terrain"></div>
+          <div class="terrain-hover" id="terrain-hover" aria-hidden="true"></div>
+          <p class="method-note" id="terrain-source">出典を確認中</p>
+        </figure>
+        <div class="inst-block">
+          <h3 class="sub-title">機関別の論文出版数 <span id="inst-window"></span></h3>
+          <div class="fig-body" id="inst-pack"></div>
+          <p class="method-note" id="inst-source">出典を確認中</p>
+        </div>
+      </section>
+
+      <footer class="obs-footer">
+        <div class="ledger" id="ledger">
+          <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
+        </div>
+        <div class="obs-footer-row">
+          <span>SCIENCE SIGNAL / PAPERS</span>
+          <span>測っていないものを、測ったようには描かない。</span>
+          <span id="footer-year">2026</span>
+        </div>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+    <script src="obs-core.js?v=20260809c" defer></script>
+    <script src="papers.js?v=20260809c" defer></script>
+  </body>
+</html>

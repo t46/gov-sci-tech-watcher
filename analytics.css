@@ -102,6 +102,34 @@ canvas { display: block; }
 .ch-head h2 { font-family: var(--mincho); font-size: clamp(28px, 4.2vw, 46px); font-weight: 600; }
 .ch-head h2 em { font-style: normal; color: var(--jp); }
 .ch-lede { margin-top: 18px; max-width: 62ch; color: var(--dim); font-size: 14px; }
+.page-title { font-family: var(--mincho); font-size: clamp(34px, 5.4vw, 60px); font-weight: 600; }
+.page-title em { font-style: normal; color: var(--jp); }
+/* -------------------------------------------------------------- hub windows */
+.win-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+.win {
+  position: relative; display: flex; flex-direction: column; gap: 10px;
+  padding: 26px 26px 22px; border: 1px solid var(--hair); background: var(--panel);
+  color: inherit; text-decoration: none;
+  transition: border-color 0.25s, transform 0.25s, background 0.25s;
+}
+.win:hover { border-color: var(--jp); transform: translateY(-3px); background: rgba(255, 181, 69, 0.03); }
+.win-no { font: 500 11px var(--mono); letter-spacing: 0.22em; color: var(--jp); }
+.win h3 { font-family: var(--mincho); font-size: 24px; font-weight: 600; }
+.win h3 small { display: block; font: 500 9.5px var(--mono); letter-spacing: 0.22em; color: var(--faint); margin-top: 5px; }
+.win-value { font: 600 30px var(--mono); color: var(--text); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.win-note { font: 400 11px var(--mono); color: var(--dim); line-height: 1.7; }
+.win-spark { min-height: 36px; }
+.win-list { display: flex; flex-direction: column; gap: 5px; min-height: 36px; }
+.win-list p { display: grid; grid-template-columns: 40px 1fr; gap: 8px; font-size: 11.5px; color: var(--dim); overflow: hidden; }
+.win-list p span { font: 400 10px var(--mono); color: var(--faint); white-space: nowrap; }
+.win-cta { margin-top: auto; padding-top: 12px; font: 500 11px var(--mono); color: var(--jp); }
+/* --------------------------------------------------------- signals console */
+.signal-detail { display: none; margin-top: 10px; padding: 12px 14px; border-left: 2px solid var(--grid); background: rgba(255, 255, 255, 0.02); font-size: 12px; color: var(--dim); line-height: 1.8; }
+.signal-row.is-open .signal-detail { display: block; }
+.signal-row.has-detail { cursor: pointer; }
+.signal-detail b { color: var(--text); font-weight: 600; margin-right: 6px; }
+.signal-detail ul { margin: 6px 0; padding-left: 18px; }
+.signal-detail-note { font: 400 10px var(--mono); color: var(--faint); margin-top: 8px; }
 .method-note { margin-top: 14px; color: var(--faint); font: 400 11px var(--mono); line-height: 1.7; }
 .method-note a { color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
 .sub-title { font-family: var(--mincho); font-size: 21px; margin: 64px 0 20px; }
@@ -476,7 +504,9 @@ a.signal-title:hover { color: var(--jp); }
 }
 @media (max-width: 760px) {
   body { font-size: 14px; }
-  .obs-header { padding: 12px 16px; }
+  .obs-header { padding: 10px 14px; }
+  .obs-status { display: none; }
+  .obs-nav { gap: 13px; font-size: 11.5px; letter-spacing: 0.02em; }
   .chapter { padding: 84px 6vw 64px; }
   .hero { padding: 0 6vw; }
   .hero-readouts { grid-template-columns: 1fr 1fr; margin-top: 40px; }

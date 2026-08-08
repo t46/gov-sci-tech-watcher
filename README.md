@@ -12,7 +12,7 @@
 3. `llama.cpp` と日本語対応の小型GGUFモデルをGitHub Actions上で実行し、新着・本文が変わった記事を1回1件だけ要約します。結果はURLと本文ハッシュをキーに `data/summary_cache.json` へ保存し、モデルが利用できない場合はルールベースの整理へフォールバックします。要約は補助機能であり、本文の取得・公開はモデルの成否に依存しません。
 4. `scripts/build_analytics.py` が、更新データから政策領域・文書の役割・テーマ・月別の更新を集計し、e-Statの科学技術研究調査から研究開発費と研究者の移動を取得して `data/analytics.json` に保存します。
 5. `scripts/fetch_indicators.py` が、NISTEP 科学技術指標2025（Excel表）、OECD MSTI（SDMX）、OpenAlex（論文集計API）、JSPS科研費データから長期時系列を取得し、`data/indicators.json` に保存します。`ESTAT_APP_ID` を設定すると e-Stat API の国内詳細系列も接続できます。`scripts/fetch_finance.py` は、NIADの国立大学法人財務諸表Excel（91法人×6年）と、国立研究開発法人・大学共同利用機関法人の財務諸表PDF（検証済みレジストリ `data/institute_sources.json` 駆動。フォント破損年はvision抽出値で補完）を取得し、主要私立16大学の抽出済みデータ（`data/private_finance_fy2025.json`、年次更新時に再抽出）と私大連セクター系列を合わせて `data/finance.json` に保存します。`.github/workflows/refresh-indicators.yml` が週次で更新します。
-6. サイトは1ページ構成です。`index.html`（観測室）が、これらのデータを 00 観測室 → 01 40年の競争（論文シェアのスクロール・スクラブ） → 02 博士の曲線 → 03 分野の地形 → 04 資金と人の流れ → 05 最新情報（政府公式更新の全件） の6章で描き、フッターの出典台帳が全データソースの原典と接続状態を示します。Canvas粒子・D3・GSAP ScrollTriggerを使用します。`analytics.html` は旧URL向けのリダイレクトです。
+6. サイトは4分野構成です。`index.html`（観測室）はヒーローと「4つの観測窓」を持つハブで、`signals.html`（最新情報 — 政策シグナルのフィルタ付きコンソール）、`people.html`（人 — 博士の曲線と研究者の移動）、`money.html`（お金 — 資金の流れと大学・研究機関の財務9章）、`papers.html`（論文 — 40年の競争と分野の地形）に分かれます。共有ヘルパーは `obs-core.js`、ページ別の描画は `hub.js` / `signals.js` / `people.js` / `papers.js` / `money.js`。各ページのフッターの出典台帳がそのページのデータソースの原典と接続状態を示します（ハブは全分野分）。Canvas粒子・D3・GSAP ScrollTriggerを使用します。`analytics.html` は旧URL向けのリダイレクトです。
 7. GitHub Actions が3時間おきに取得・要約・統計更新・コミットします。
 6. Cloudflare Pages が静的サイトを配信します。`CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` をGitHub ActionsのSecretsに設定すると、更新後にCloudflare Pagesへ自動デプロイします。
 
