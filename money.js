@@ -816,6 +816,7 @@ const BUCKETS = [
   { key: "external", label: "外部資金（受託・共同・寄付）", color: "#5ad8a1" },
   { key: "other", label: "その他", color: "#59687f" },
 ];
+const CMP_COLORS = ["#ffb545", "#4fd8ff", "#5ad8a1", "#e0797a", "#b18cff", "#e8e2d5"];
 
 let anatomySelect = null;
 
@@ -889,7 +890,7 @@ function buildEntities(finance) {
       buckets.other = Math.max(0, e.revenue_total - buckets.public - buckets.hospital - buckets.external);
       const series = (key) => latest.years.map((y) => org.values[y]?.[key] ?? null);
       entities.push({
-        id: `i-${org.id}`, label: org.label, short: org.short,
+        id: `i-${org.id}`, label: org.label, short: org.short, funder: org.role === "funder",
         sector: org.category === "大学共同利用機関法人" ? "大学共同利用" : "研究開発法人",
         year: `${latest.year}年度`, revenue: e.revenue_total, buckets,
         revenueItems: [
@@ -907,58 +908,295 @@ function buildEntities(finance) {
   return entities;
 }
 
-function glyphSvg(entity, selected) {
-  const shares = BUCKETS.map((b) => (entity.buckets[b.key] || 0) / entity.revenue);
-  const R = Math.max(9, Math.min(31, Math.sqrt(entity.revenue / 1e9) * 2.1));
-  const size = 66;
-  const cx = size / 2, cy = size / 2;
-  const petals = BUCKETS.map((bucket, index) => {
-    const share = shares[index];
-    if (share <= 0.004) return "";
-    const radius = Math.max(2, R * Math.sqrt(share) * 1.9);
-    const a0 = (index / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 + 0.09;
-    const a1 = ((index + 1) / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 - 0.09;
-    const x0 = cx + Math.cos(a0) * radius, y0 = cy + Math.sin(a0) * radius;
-    const x1 = cx + Math.cos(a1) * radius, y1 = cy + Math.sin(a1) * radius;
-    return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${radius.toFixed(1)},${radius.toFixed(1)} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${bucket.color}" opacity="${selected ? 0.95 : 0.78}"/>`;
-  }).join("");
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="1.4" fill="#8b96ab"/>${petals}</svg>`;
+function buildAggregates(entities) {
+  const defs = [
+    { id: "agg-natl", match: (e) => e.sector === "国立", label: "国立大学法人 全体", short: "国立大 計" },
+    { id: "agg-priv", match: (e) => e.sector === "私立", label: "主要私立大学 全体", short: "私立16 計" },
+    { id: "agg-inst", match: (e) => e.sector === "研究開発法人" && !e.funder, label: "国立研究開発法人 全体（JST・NEDOを除く）", short: "研開法人 計" },
+    { id: "agg-fund", match: (e) => e.funder, label: "資金配分機関（JST＋NEDO）", short: "JST+NEDO" },
+    { id: "agg-kyodo", match: (e) => e.sector === "大学共同利用", label: "大学共同利用機関法人 全体", short: "共同利用 計" },
+  ];
+  return defs.map((def) => {
+    const members = entities.filter(def.match);
+    if (!members.length) return null;
+    const buckets = {};
+    for (const bucket of BUCKETS) buckets[bucket.key] = d3.sum(members, (e) => e.buckets[bucket.key] || 0);
+    const revenue = d3.sum(members, (e) => e.revenue);
+    if (!revenue) return null;
+    const years = [...new Set(members.map((e) => e.year).filter(Boolean))].sort();
+    return {
+      id: def.id, label: def.label, short: def.short, sector: "全体", isAgg: true, count: members.length,
+      year: years.length <= 1 ? years[0] || "" : `${years[0]}〜${years[years.length - 1]}`,
+      revenue, buckets,
+      expenseTotal: members.some((e) => e.expenseTotal == null) ? null : d3.sum(members, (e) => e.expenseTotal),
+      assets: members.some((e) => e.assets == null) ? null : d3.sum(members, (e) => e.assets),
+      net: null, trend: null,
+    };
+  }).filter(Boolean);
 }
 
 function initAnatomy(finance) {
-  const gallery = $("#glyph-gallery");
+  const mapMount = $("#glyph-map");
   const panel = $("#anatomy-panel");
-  if (!gallery || !panel) return;
+  if (!mapMount || !panel) return;
   const entities = buildEntities(finance);
-  if (!entities.length) { gallery.innerHTML = '<p class="data-empty">財務データを取得できませんでした。</p>'; return; }
+  if (!entities.length) { mapMount.innerHTML = '<p class="data-empty">財務データを取得できませんでした。</p>'; return; }
+  for (const e of entities) e.publicShare = Math.max(0, Math.min(1, (e.buckets.public || 0) / e.revenue));
+  const aggregates = buildAggregates(entities);
+  for (const a of aggregates) a.publicShare = Math.max(0, Math.min(1, (a.buckets.public || 0) / a.revenue));
+  const byId = new Map([...entities, ...aggregates].map((e) => [e.id, e]));
   let selectedId = (entities.find((e) => e.label === "東京大学") || entities[0]).id;
-  let sortKey = "revenue";
+  let filterKey = "all";
+  let query = "";
+  const tray = [];
 
   const legend = $("#glyph-legend");
   if (legend) legend.innerHTML = BUCKETS.map((b) => `<span><i style="background:${b.color}"></i>${b.label}</span>`).join("");
 
-  const sortValue = (entity) => {
-    if (sortKey === "revenue") return entity.revenue;
-    return (entity.buckets[sortKey] || 0) / entity.revenue;
-  };
+  const oku = (v) => (v == null ? "—" : `${(v / 1e8).toLocaleString("ja-JP", { maximumFractionDigits: v < 1e9 ? 1 : 0 })}億円`);
+  const okuShort = (v) => (v >= 1e12 ? `${(v / 1e12).toFixed(1)}兆` : `${Math.round(v / 1e8).toLocaleString("ja-JP")}億`);
+  const stack100 = (e) => BUCKETS.map((bucket) => {
+    const share = (e.buckets[bucket.key] || 0) / e.revenue;
+    if (share <= 0.002) return "";
+    return `<i style="width:${(share * 100).toFixed(2)}%;background:${bucket.color}" title="${escapeHtml(bucket.label)} ${fmtPct(share * 100)}">${share >= 0.085 ? `<em>${Math.round(share * 100)}</em>` : ""}</i>`;
+  }).join("");
+  const aggFor = (e) => byId.get(
+    e.sector === "国立" ? "agg-natl" : e.sector === "私立" ? "agg-priv"
+      : e.sector === "大学共同利用" ? "agg-kyodo" : e.funder ? "agg-fund" : "agg-inst");
 
-  function renderGallery() {
-    const sorted = [...entities].sort((a, b) => sortValue(b) - sortValue(a));
-    gallery.innerHTML = sorted.map((entity) => {
-      const selected = entity.id === selectedId;
-      const shortLabel = entity.short || entity.label.replace(/大学$/, "").replace("国立大学機構", "機構");
-      const pct = sortKey === "revenue" ? `${(entity.revenue / 1e8).toFixed(0)}億円` : fmtPct(((entity.buckets[sortKey] || 0) / entity.revenue) * 100);
-      return `<button class="glyph${selected ? " is-selected" : ""}" role="option" aria-selected="${selected}" data-id="${escapeHtml(String(entity.id))}" title="${escapeHtml(entity.label)}（${escapeHtml(entity.sector)}） ${pct}">${glyphSvg(entity, selected)}<small>${escapeHtml(shortLabel)}</small></button>`;
-    }).join("");
-    if (!REDUCED && gsap) {
-      gsap.from(gallery.children, { opacity: 0, scale: 0.6, duration: 0.5, stagger: 0.004, ease: "power2.out" });
+  /* ---- 構造マップ（横=公費依存度、縦=経常収益 log） ---- */
+  const hover = hoverBox("#glyph-hover");
+  const hoverHtml = (d) => `<b>${escapeHtml(d.label)}</b><br>${escapeHtml(d.sector)}・${escapeHtml(d.year)}<br>経常収益 ${okuShort(d.revenue)}円 ／ 公費 ${Math.round(d.publicShare * 100)}%`;
+  const matches = (d) => (filterKey === "all" || d.sector === filterKey)
+    && (!query || d.label.includes(query) || (d.short || "").includes(query));
+  let nodes = null;
+  let firstBuild = true;
+
+  function buildMap() {
+    const narrow = window.matchMedia("(max-width: 760px)").matches;
+    const width = Math.max(narrow ? 340 : 720, mapMount.clientWidth || 1100);
+    const height = narrow ? 520 : 660;
+    const margin = { top: 30, right: 36, bottom: 50, left: 60 };
+    const x = d3.scaleLinear().domain([0, 1]).range([margin.left, width - margin.right]);
+    const y = d3.scaleLog()
+      .domain([d3.min(entities, (e) => e.revenue) * 0.7, d3.max(entities, (e) => e.revenue) * 1.35])
+      .range([height - margin.bottom, margin.top]);
+    entities.forEach((e) => {
+      e.r = Math.max(4.6, Math.min(narrow ? 20 : 28, Math.sqrt(e.revenue / 1e9) * (narrow ? 1.2 : 1.65)));
+      e.cr = e.r * 1.12 + 2;
+      e.x = e.x0 = x(e.publicShare);
+      e.y = e.y0 = y(e.revenue);
+    });
+    const byRevenue = [...entities].sort((a, b) => b.revenue - a.revenue);
+    byRevenue.forEach((e, rank) => { e.labelDefault = rank < (narrow ? 12 : 22); });
+    const sim = d3.forceSimulation(entities)
+      .force("x", d3.forceX((d) => d.x0).strength(0.85))
+      .force("y", d3.forceY((d) => d.y0).strength(0.85))
+      .force("collide", d3.forceCollide((d) => d.cr).strength(0.95).iterations(2))
+      .stop();
+    for (let i = 0; i < 200; i++) sim.tick();
+    entities.forEach((e) => {
+      const pad = Math.max(e.cr, e.r * 1.9) + 2;
+      e.x = Math.max(margin.left + pad, Math.min(width - margin.right - pad, e.x));
+      e.y = Math.max(margin.top + pad, Math.min(height - margin.bottom - pad, e.y));
+    });
+
+    d3.select(mapMount).selectAll("svg").remove();
+    const svg = d3.select(mapMount).append("svg").attr("viewBox", `0 0 ${width} ${height}`)
+      .attr("role", "img").attr("aria-label", "財務構造マップ — 横軸が公費依存度、縦軸が経常収益");
+    baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y)
+        .tickValues([1e9, 1e10, 1e11, 1e12].filter((v) => v >= y.domain()[0] && v <= y.domain()[1]))
+        .tickFormat((v) => (v >= 1e12 ? `${v / 1e12}兆円` : `${v / 1e8}億円`))
+        .tickSize(-(width - margin.left - margin.right))));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x).tickValues(narrow ? [0, 0.5, 1] : [0, 0.2, 0.4, 0.6, 0.8, 1]).tickFormat((v) => `${Math.round(v * 100)}%`))
+      .select(".domain").attr("stroke", "#1c2839");
+    svg.append("text").attr("x", width - margin.right).attr("y", height - 8).attr("text-anchor", "end")
+      .attr("fill", "#8b96ab").attr("font-size", 10.5).attr("font-family", "IBM Plex Mono")
+      .text("→ 公費依存度（運営費交付金＋補助金 ÷ 経常収益）");
+    svg.append("text").attr("x", margin.left - 46).attr("y", margin.top - 12)
+      .attr("fill", "#8b96ab").attr("font-size", 10.5).attr("font-family", "IBM Plex Mono")
+      .text("↑ 経常収益（対数）");
+
+    nodes = svg.append("g").selectAll("g").data(byRevenue).join("g")
+      .attr("class", "map-glyph").attr("transform", (d) => `translate(${d.x.toFixed(1)},${d.y.toFixed(1)})`)
+      .attr("tabindex", 0).attr("role", "button")
+      .attr("aria-label", (d) => `${d.label}（${d.sector}） 経常収益${okuShort(d.revenue)}円、公費依存度${Math.round(d.publicShare * 100)}%`);
+    nodes.each(function (d) {
+      const g = d3.select(this);
+      BUCKETS.forEach((bucket, index) => {
+        const share = (d.buckets[bucket.key] || 0) / d.revenue;
+        if (share <= 0.004) return;
+        const radius = Math.max(2, d.r * Math.sqrt(share) * 1.9);
+        const a0 = (index / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 + 0.09;
+        const a1 = ((index + 1) / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 - 0.09;
+        g.append("path")
+          .attr("d", `M0,0 L${(Math.cos(a0) * radius).toFixed(1)},${(Math.sin(a0) * radius).toFixed(1)} A${radius.toFixed(1)},${radius.toFixed(1)} 0 0 1 ${(Math.cos(a1) * radius).toFixed(1)},${(Math.sin(a1) * radius).toFixed(1)} Z`)
+          .attr("fill", bucket.color).attr("opacity", 0.8);
+      });
+      g.append("circle").attr("r", 1.3).attr("fill", "#8b96ab");
+      g.append("circle").attr("class", "mg-ring").attr("r", d.cr).attr("fill", "none").attr("stroke", "transparent").attr("stroke-width", 1.6);
+      g.append("circle").attr("class", "mg-hit").attr("r", d.cr + 2).attr("fill", "transparent");
+      g.append("text").attr("class", "mg-label").attr("y", d.cr + 10).attr("text-anchor", "middle")
+        .text(d.short || d.label.replace(/大学$/, ""));
+    });
+    nodes
+      .on("pointerenter", function (event, d) { d3.select(this).raise(); hover.show(hoverHtml(d), event, mapMount); })
+      .on("pointermove", (event, d) => hover.show(hoverHtml(d), event, mapMount))
+      .on("pointerleave", () => hover.hide())
+      .on("click", (event, d) => select(d.id))
+      .on("keydown", (event, d) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); select(d.id); } });
+    refreshMap();
+    if (firstBuild && !REDUCED && gsap) {
+      firstBuild = false;
+      gsap.from(nodes.nodes(), {
+        opacity: 0, duration: 0.6, stagger: 0.004, ease: "power2.out", clearProps: "opacity",
+        scrollTrigger: { trigger: mapMount, start: "top 78%" },
+      });
     }
+  }
+
+  function refreshMap() {
+    if (!nodes) return;
+    nodes.each(function (d) {
+      const on = matches(d);
+      const g = d3.select(this);
+      const trayIndex = tray.indexOf(d.id);
+      g.attr("opacity", on ? 1 : 0.07).style("pointer-events", on ? "auto" : "none");
+      g.select(".mg-ring").attr("stroke", d.id === selectedId ? "#ffb545" : trayIndex >= 0 ? CMP_COLORS[trayIndex] : "transparent");
+      g.select(".mg-label")
+        .style("display", on && (d.labelDefault || d.id === selectedId || trayIndex >= 0 || Boolean(query)) ? null : "none")
+        .attr("fill", d.id === selectedId ? "#ffb545" : "#8b96ab");
+    });
+  }
+
+  let lastMapWidth = mapMount.clientWidth;
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const w = mapMount.clientWidth;
+      if (Math.abs(w - lastMapWidth) > 40) { lastMapWidth = w; buildMap(); }
+    }, 250);
+  });
+
+  function select(id) {
+    const entity = byId.get(id);
+    if (!entity || entity.isAgg) return false;
+    selectedId = id;
+    refreshMap();
+    renderPanel();
+    return true;
+  }
+
+  /* ---- 比較トレイ ---- */
+  function addToTray(id) {
+    if (tray.includes(id) || tray.length >= 6 || !byId.has(id)) return;
+    tray.push(id);
+    renderTray(); refreshMap(); renderCompare(); renderPanel();
+  }
+  function removeFromTray(id) {
+    const index = tray.indexOf(id);
+    if (index < 0) return;
+    tray.splice(index, 1);
+    renderTray(); refreshMap(); renderCompare(); renderPanel();
+  }
+
+  const presetsMount = $("#cmp-presets");
+  if (presetsMount) {
+    presetsMount.innerHTML = aggregates.map((a) => `<button type="button" data-preset="${escapeHtml(a.id)}" title="${escapeHtml(a.label)}">＋${escapeHtml(a.short)}</button>`).join("");
+  }
+  function renderTray() {
+    const chips = $("#cmp-chips");
+    if (chips) {
+      chips.innerHTML = tray.length
+        ? tray.map((id, i) => {
+          const m = byId.get(id);
+          return `<button type="button" class="cmp-chip" data-remove="${escapeHtml(id)}" style="border-color:${CMP_COLORS[i]}" title="比較から外す"><i style="background:${CMP_COLORS[i]}"></i>${escapeHtml(m.short || m.label)}<span aria-hidden="true">×</span></button>`;
+        }).join("") + (tray.length > 1 ? '<button type="button" class="cmp-clear" data-clear>すべて外す</button>' : "")
+        : '<span class="cmp-hint">法人を選んで「＋比較に追加」（最大6件）。右のボタンで全体集計とも比べられる。</span>';
+    }
+    $$("#cmp-presets [data-preset]").forEach((b) => b.classList.toggle("is-active", tray.includes(b.dataset.preset)));
+  }
+  $("#cmp-bar")?.addEventListener("click", (event) => {
+    const preset = event.target.closest("[data-preset]");
+    if (preset) { const id = preset.dataset.preset; if (tray.includes(id)) removeFromTray(id); else addToTray(id); return; }
+    const chip = event.target.closest("[data-remove]");
+    if (chip) { removeFromTray(chip.dataset.remove); return; }
+    if (event.target.closest("[data-clear]")) { tray.length = 0; renderTray(); refreshMap(); renderCompare(); renderPanel(); }
+  });
+
+  function renderCompare() {
+    const view = $("#cmp-view");
+    if (!view) return;
+    const members = tray.map((id) => byId.get(id)).filter(Boolean);
+    if (!members.length) { view.innerHTML = ""; view.classList.remove("is-on"); return; }
+    view.classList.add("is-on");
+    const maxRev = d3.max(members, (m) => m.revenue);
+    const rows = members.map((m, i) => `
+      <div class="cmp-row">
+        <span class="cmp-name"><i class="cmp-dot" style="background:${CMP_COLORS[i]}"></i><span>${escapeHtml(m.short || m.label)}<small>${escapeHtml(m.year)}${m.isAgg ? `・${m.count}法人` : ""}</small></span></span>
+        <span class="cmp-stack">${stack100(m)}</span>
+        <span class="cmp-abs"><span class="cmp-abs-bar"><i style="width:${((m.revenue / maxRev) * 100).toFixed(1)}%"></i></span><b>${okuShort(m.revenue)}円</b></span>
+      </div>`).join("");
+    const pctOf = (v, m) => (v != null && m.revenue ? fmtPct((v / m.revenue) * 100, 1) : "—");
+    const metric = (label, fmt) => `<tr><th>${label}</th>${members.map((m) => `<td>${fmt(m)}</td>`).join("")}</tr>`;
+    const table = `<table class="cmp-table">
+      <thead><tr><td></td>${members.map((m, i) => `<td><i style="background:${CMP_COLORS[i]}"></i>${escapeHtml(m.short || m.label)}</td>`).join("")}</tr></thead>
+      <tbody>
+        ${metric("経常収益", (m) => oku(m.revenue))}
+        ${metric("経常費用", (m) => oku(m.expenseTotal))}
+        ${metric("総資産", (m) => oku(m.assets))}
+        ${metric("公費依存度", (m) => fmtPct(m.publicShare * 100, 1))}
+        ${metric("学生納付金", (m) => pctOf(m.buckets.tuition, m))}
+        ${metric("病院収益", (m) => pctOf(m.buckets.hospital, m))}
+        ${metric("外部資金", (m) => pctOf(m.buckets.external, m))}
+        ${metric("対象年度", (m) => escapeHtml(m.year))}
+      </tbody></table>`;
+    const trendMembers = members.map((m, i) => ({ m, i })).filter(({ m }) => m.trend?.revenue?.some((v) => v != null));
+    let trendHtml = "";
+    if (trendMembers.length) {
+      const w = 480, h = 220, pad = { t: 14, r: 118, b: 24, l: 48 };
+      const seriesList = trendMembers.map(({ m, i }) => ({
+        color: CMP_COLORS[i], short: m.short || m.label,
+        points: m.trend.years.map((yr, k) => ({ yr: +yr, v: m.trend.revenue[k] })).filter((p) => p.v != null),
+      })).filter((s) => s.points.length > 0);
+      if (seriesList.length) {
+        const allPts = seriesList.flatMap((s) => s.points);
+        const xs = d3.scaleLinear().domain(d3.extent(allPts, (p) => p.yr)).range([pad.l, w - pad.r]);
+        const ys = d3.scaleLog().domain([d3.min(allPts, (p) => p.v) * 0.8, d3.max(allPts, (p) => p.v) * 1.2]).range([h - pad.b, pad.t]);
+        const gridVals = [1e9, 1e10, 1e11, 1e12].filter((v) => v >= ys.domain()[0] && v <= ys.domain()[1]);
+        const grid = gridVals.map((v) => `<line x1="${pad.l}" x2="${w - pad.r}" y1="${ys(v).toFixed(1)}" y2="${ys(v).toFixed(1)}" stroke="#16202f" stroke-dasharray="2 4"/><text x="${pad.l - 6}" y="${(ys(v) + 3).toFixed(1)}" text-anchor="end" fill="#5a687f" font-size="9">${v >= 1e12 ? "1兆" : `${v / 1e8}億`}</text>`).join("");
+        const yearTicks = xs.ticks(Math.min(5, xs.domain()[1] - xs.domain()[0])).filter(Number.isInteger);
+        const xAxis = yearTicks.map((yr) => `<text x="${xs(yr).toFixed(1)}" y="${h - 6}" text-anchor="middle" fill="#5a687f" font-size="9">${yr}</text>`).join("");
+        const lines = seriesList.map((s) => {
+          const last = s.points[s.points.length - 1];
+          const path = s.points.length > 1
+            ? `<path d="${s.points.map((p, k) => `${k ? "L" : "M"}${xs(p.yr).toFixed(1)},${ys(p.v).toFixed(1)}`).join("")}" fill="none" stroke="${s.color}" stroke-width="1.8"/>`
+            : "";
+          return `${path}<circle cx="${xs(last.yr).toFixed(1)}" cy="${ys(last.v).toFixed(1)}" r="2" fill="${s.color}"/><text x="${(xs(last.yr) + 6).toFixed(1)}" y="${(ys(last.v) + 3).toFixed(1)}" fill="${s.color}" font-size="9">${escapeHtml(s.short)} ${okuShort(last.v)}</text>`;
+        }).join("");
+        const noTrend = members.filter((m) => !m.trend?.revenue?.some((v) => v != null)).map((m) => m.short || m.label);
+        trendHtml = `<div class="cmp-trend"><h4>経常収益の推移（対数スケール）</h4>
+          <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="選択法人の経常収益の推移" style="width:100%;height:auto;font-family:'IBM Plex Mono',monospace">${grid}${xAxis}${lines}</svg>
+          ${noTrend.length ? `<p class="method-note">推移データなし: ${noTrend.map(escapeHtml).join("・")}（私立は単年度、全体集計は推移の対象外）</p>` : ""}</div>`;
+      }
+    }
+    if (!trendHtml) trendHtml = '<div class="cmp-trend"><h4>経常収益の推移</h4><p class="method-note">選択中の法人には推移データがない（私立は単年度、全体集計は推移の対象外）。</p></div>';
+    view.innerHTML = `
+      <h3>比較 — 収益の構成と規模</h3>
+      <div class="cmp-rows">${rows}</div>
+      <div class="cmp-grid">
+        <div class="cmp-table-wrap">${table}</div>
+        ${trendHtml}
+      </div>
+      <p class="method-note">中央の帯=収益の構成比（%）、右=経常収益の絶対額（選択中の最大値に対する相対バー）。会計基準の異なる法人（国立大学法人／学校法人／独立行政法人会計基準）を概念的な区分で対応付けたもので、年度も法人により異なる。「計」は取得済み法人の単純合計。</p>`;
   }
 
   function renderPanel() {
     const entity = entities.find((e) => e.id === selectedId);
     if (!entity) return;
-    const oku = (v) => (v == null ? "—" : `${(v / 1e8).toLocaleString("ja-JP", { maximumFractionDigits: v < 1e9 ? 1 : 0 })}億円`);
     const rows = (items, total, residualLabel) => {
       const known = items.filter(([, v]) => v != null && v > 0);
       const residual = total != null ? Math.max(0, total - d3.sum(known, ([, v]) => v)) : null;
@@ -990,6 +1228,13 @@ function initAnatomy(finance) {
           </svg></div>`;
       }
     }
+    const agg = aggFor(entity);
+    const vsHtml = agg ? `
+      <div class="anatomy-vs"><h4>構成の比較 — セクター全体と</h4>
+        <div class="vs-row"><span>${escapeHtml(entity.short || entity.label)}</span><span class="cmp-stack">${stack100(entity)}</span></div>
+        <div class="vs-row"><span>${escapeHtml(agg.short)}</span><span class="cmp-stack">${stack100(agg)}</span></div>
+      </div>` : "";
+    const inTray = tray.includes(entity.id);
     panel.innerHTML = `
       <div class="anatomy-head">
         <h3>${escapeHtml(entity.label)}</h3>
@@ -1001,46 +1246,40 @@ function initAnatomy(finance) {
           ${entity.net != null ? `<span>当期総利益<b style="color:${entity.net < 0 ? "#e0797a" : "#5ad8a1"}">${entity.net < 0 ? "△" : ""}${oku(Math.abs(entity.net))}</b></span>` : ""}
           ${entity.assets != null ? `<span>総資産<b>${oku(entity.assets)}</b></span>` : ""}
         </div>
+        <button type="button" class="cmp-add" ${inTray || tray.length >= 6 ? "disabled" : ""}>${inTray ? "✓ 比較トレイに追加済み" : tray.length >= 6 ? "比較トレイが上限（6件）" : "＋ 比較に追加"}</button>
       </div>
       <div class="anatomy-grid">
         <div class="anatomy-col"><h4>収益の内訳</h4>${rows(entity.revenueItems, entity.revenue, "その他収益")}</div>
-        <div class="anatomy-col"><h4>費用の内訳</h4>${rows(entity.expenseItems, entity.expenseTotal, entity.expenseResidualLabel)}${trendSvg}</div>
+        <div class="anatomy-col"><h4>費用の内訳</h4>${rows(entity.expenseItems, entity.expenseTotal, entity.expenseResidualLabel)}${vsHtml}${trendSvg}</div>
       </div>
       ${entity.note ? `<p class="method-note">${escapeHtml(entity.note)}</p>` : ""}`;
   }
-
-  gallery.addEventListener("click", (event) => {
-    const button = event.target.closest(".glyph");
-    if (!button) return;
-    selectedId = button.dataset.id;
-    $$("#glyph-gallery .glyph").forEach((g) => {
-      const on = g.dataset.id === selectedId;
-      g.classList.toggle("is-selected", on);
-      g.setAttribute("aria-selected", on ? "true" : "false");
-    });
-    renderPanel();
+  panel.addEventListener("click", (event) => {
+    const add = event.target.closest(".cmp-add");
+    if (add && !add.disabled) addToTray(selectedId);
   });
-  $$("#glyph-sort button").forEach((button) => {
+
+  $$("#glyph-filter button[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
-      sortKey = button.dataset.sort;
-      $$("#glyph-sort button").forEach((b) => b.classList.toggle("is-active", b === button));
-      renderGallery();
+      filterKey = button.dataset.filter;
+      $$("#glyph-filter button[data-filter]").forEach((b) => b.classList.toggle("is-active", b === button));
+      refreshMap();
     });
   });
+  $("#glyph-search")?.addEventListener("input", (event) => {
+    query = event.target.value.trim();
+    refreshMap();
+  });
 
-  anatomySelect = (id) => {
-    if (!entities.some((entity) => entity.id === id)) return false;
-    selectedId = id;
-    renderGallery();
-    renderPanel();
-    return true;
-  };
+  anatomySelect = (id) => select(id);
 
-  renderGallery();
+  buildMap();
+  renderTray();
+  renderCompare();
   renderPanel();
   const count = (sector) => entities.filter((e) => e.sector === sector).length;
-  setText("#anatomy-lede", `国立大学${count("国立")}法人・主要私立${count("私立")}法人・国立研究開発法人${count("研究開発法人")}機関・大学共同利用機関法人${count("大学共同利用")}法人の収入構成を、ひとつずつ「かたち」にした。花弁の向きが財源、大きさが割合、全体の大きさが収益規模。かたちが似ている法人は、財務構造が似ている。クリックで内訳まで開く。`);
-  setText("#anatomy-source", "出典: 国立大=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）、研究機関=国立研究開発法人・大学共同利用機関法人の各法人開示の財務諸表（最新年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準/独立行政法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。");
+  setText("#anatomy-lede", `国立大学${count("国立")}法人・主要私立${count("私立")}法人・国立研究開発法人${count("研究開発法人")}機関・大学共同利用機関法人${count("大学共同利用")}法人、計${entities.length}法人をひとつの平面に置いた。右にあるほど公費頼み、上にあるほど収益が大きい。花弁の向きが財源、大きさが割合。クリックで内訳が開き、「比較に追加」で最大6法人・セクター全体集計と並べて比較できる。`);
+  setText("#anatomy-source", "出典: 国立大=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）、研究機関=国立研究開発法人・大学共同利用機関法人の各法人開示の財務諸表（最新年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準/独立行政法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。「計」は取得済み法人の単純合計で、年度は法人により異なる。");
 }
 
 /* ================================================================= ledger */

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260808b" />
+    <link rel="stylesheet" href="analytics.css?v=20260809a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -176,17 +176,28 @@
         <div class="ch-head">
           <p class="ch-no">08 / FINANCIAL ANATOMY</p>
           <h2 id="anatomy-title">大学・研究機関の財務のかたち</h2>
-          <p class="ch-lede" id="anatomy-lede">国立大学・私立大学・国立研究開発法人・大学共同利用機関法人の収入構成を、ひとつずつ「かたち」にする。花弁の向きが財源、大きさが割合。かたちが似ている法人は、財務構造が似ている。</p>
+          <p class="ch-lede" id="anatomy-lede">すべての法人をひとつの平面に置く。右にあるほど公費頼み、上にあるほど収益が大きい。花弁の向きが財源、大きさが割合。クリックで内訳、比較トレイで並べて比べる。</p>
         </div>
         <div class="glyph-legend" id="glyph-legend" aria-hidden="true"></div>
-        <div class="glyph-toolbar" id="glyph-sort" role="toolbar" aria-label="並べ替え">
-          <span class="toolbar-label">並べ替え:</span>
-          <button class="is-active" data-sort="revenue">収益規模</button>
-          <button data-sort="public">公費依存度</button>
-          <button data-sort="hospital">病院比率</button>
-          <button data-sort="tuition">納付金依存度</button>
+        <div class="glyph-toolbar" id="glyph-filter" role="toolbar" aria-label="絞り込み">
+          <span class="toolbar-label">絞り込み:</span>
+          <button class="is-active" data-filter="all">すべて</button>
+          <button data-filter="国立">国立大学</button>
+          <button data-filter="私立">私立大学</button>
+          <button data-filter="研究開発法人">研究開発法人</button>
+          <button data-filter="大学共同利用">大学共同利用</button>
+          <input type="search" id="glyph-search" placeholder="法人名で検索" aria-label="法人名で検索" />
         </div>
-        <div class="glyph-gallery" id="glyph-gallery" role="listbox" aria-label="法人の一覧"></div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="glyph-map"><div class="terrain-hover" id="glyph-hover" aria-hidden="true"></div></div>
+          <p class="method-note">横軸=公費依存度（運営費交付金＋補助金÷経常収益）、縦軸=経常収益（対数）。重なりを避けるため各法人の位置はわずかにずらしてある。</p>
+        </figure>
+        <div class="cmp-bar" id="cmp-bar" role="group" aria-label="比較トレイ">
+          <span class="toolbar-label">比較:</span>
+          <span class="cmp-chips" id="cmp-chips"></span>
+          <span class="cmp-presets" id="cmp-presets"></span>
+        </div>
+        <div class="cmp-view" id="cmp-view" aria-live="polite"></div>
         <div class="anatomy-panel" id="anatomy-panel"></div>
         <p class="method-note" id="anatomy-source">出典を確認中</p>
       </section>
@@ -206,6 +217,6 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-    <script src="money.js?v=20260808b" defer></script>
+    <script src="money.js?v=20260809a" defer></script>
   </body>
 </html>

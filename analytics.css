@@ -274,17 +274,71 @@ canvas { display: block; }
 }
 .glyph-toolbar button:hover { color: var(--text); }
 .glyph-toolbar button.is-active { color: #14100a; background: var(--jp); border-color: var(--jp); }
-.glyph-gallery { display: flex; flex-wrap: wrap; gap: 2px; align-items: end; }
-.glyph {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: end;
-  padding: 4px 2px 3px; border: 1px solid transparent; background: none; cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+.glyph-toolbar input[type="search"] {
+  background: transparent; border: 1px solid var(--hair); color: var(--text);
+  font: 400 11.5px var(--mono); padding: 6px 11px; min-width: 180px;
 }
-.glyph:hover, .glyph.is-selected { border-color: var(--hair); background: rgba(255, 181, 69, 0.05); }
-.glyph.is-selected { border-color: var(--jp); }
-.glyph svg { display: block; overflow: visible; }
-.glyph small { display: block; margin-top: 2px; font: 400 8.5px var(--mono); color: var(--faint); max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.glyph.is-selected small, .glyph:hover small { color: var(--text); }
+.glyph-toolbar input[type="search"]:focus { outline: none; border-color: var(--jp); }
+#glyph-map { position: relative; }
+.map-glyph { cursor: pointer; outline: none; }
+.map-glyph:focus .mg-ring { stroke: var(--jp); }
+.mg-label {
+  font: 400 9px var(--mono); fill: #8b96ab; pointer-events: none;
+  paint-order: stroke; stroke: rgba(6, 9, 15, 0.85); stroke-width: 3px;
+}
+/* ------------------------------------------------------------ compare tray */
+.cmp-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-top: 28px; padding: 12px 14px; border: 1px solid var(--hair); background: var(--panel);
+}
+.cmp-chips { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cmp-chip {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid; padding: 4px 9px;
+}
+.cmp-chip i { width: 8px; height: 8px; border-radius: 50%; }
+.cmp-chip span { color: var(--faint); margin-left: 2px; }
+.cmp-chip:hover span { color: var(--text); }
+.cmp-hint { font: 400 11px var(--mono); color: var(--faint); }
+.cmp-presets { margin-left: auto; display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.cmp-presets button, .cmp-clear {
+  font: 500 10.5px var(--mono); color: var(--dim); background: transparent;
+  border: 1px solid var(--hair); padding: 4px 9px; cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.cmp-presets button:hover, .cmp-clear:hover { color: var(--text); }
+.cmp-presets button.is-active { color: #14100a; background: var(--jp); border-color: var(--jp); }
+.cmp-view { display: none; margin-top: 14px; border: 1px solid var(--hair); background: var(--panel); padding: 22px 24px; }
+.cmp-view.is-on { display: block; }
+.cmp-view h3 { font-family: var(--mincho); font-size: 18px; margin-bottom: 14px; }
+.cmp-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 170px; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--grid); }
+.cmp-name { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text); }
+.cmp-name small { display: block; font: 400 9.5px var(--mono); color: var(--faint); }
+.cmp-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.cmp-stack { display: flex; height: 18px; overflow: hidden; background: var(--grid); }
+.cmp-stack i { display: flex; align-items: center; justify-content: center; height: 100%; opacity: 0.85; }
+.cmp-stack em { font: 600 8.5px var(--mono); font-style: normal; color: #0a0d13; }
+.cmp-abs { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.cmp-abs-bar { height: 8px; background: var(--grid); }
+.cmp-abs-bar i { display: block; height: 100%; background: #5a6d8c; }
+.cmp-abs b { font: 500 11px var(--mono); color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+.cmp-table-wrap { overflow-x: auto; }
+.cmp-table { border-collapse: collapse; width: 100%; font: 400 11px var(--mono); }
+.cmp-table th, .cmp-table td { padding: 5px 12px 5px 0; text-align: right; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cmp-table th { text-align: left; color: var(--dim); font-weight: 400; }
+.cmp-table thead td { color: var(--text); font-weight: 600; }
+.cmp-table thead td i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; }
+.cmp-trend h4 { font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--faint); margin-bottom: 10px; }
+.cmp-add {
+  font: 500 10.5px var(--mono); color: var(--jp); background: transparent;
+  border: 1px solid var(--jp); padding: 5px 11px; cursor: pointer; transition: background 0.2s, color 0.2s;
+}
+.cmp-add:hover:not([disabled]) { background: var(--jp); color: #14100a; }
+.cmp-add[disabled] { color: var(--faint); border-color: var(--hair); cursor: default; }
+.anatomy-vs { margin-top: 18px; }
+.anatomy-vs h4 { font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--faint); margin-bottom: 10px; }
+.vs-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: center; padding: 4px 0; font: 400 10.5px var(--mono); color: var(--dim); }
 .anatomy-panel { margin-top: 26px; border: 1px solid var(--hair); background: var(--panel); padding: 24px 26px; }
 .anatomy-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--grid); padding-bottom: 14px; }
 .anatomy-head h3 { font-family: var(--mincho); font-size: 24px; }
@@ -304,6 +358,11 @@ canvas { display: block; }
 @media (max-width: 860px) {
   .anatomy-grid { grid-template-columns: 1fr; }
   .anatomy-stats { margin-left: 0; width: 100%; }
+  .cmp-grid { grid-template-columns: 1fr; }
+  .cmp-presets { margin-left: 0; }
+  .cmp-row { grid-template-columns: 104px minmax(0, 1fr); }
+  .cmp-abs { grid-column: 2; }
+  .glyph-toolbar input[type="search"] { min-width: 0; flex: 1 1 130px; }
 }
 
 /* -------------------------------------------------- institutes ranked bars */
