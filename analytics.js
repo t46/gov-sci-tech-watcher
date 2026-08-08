@@ -165,10 +165,11 @@ function initHero(indicators, updates) {
 
   const shareValues = seriesMap(indicators?.papers, "share").jp || [];
   if (shareValues.length) {
-    const first = shareValues[0];
     const peak = shareValues.reduce((a, b) => (b[1] > a[1] ? b : a));
     const last = lastPoint(shareValues);
-    setText("#hero-lede", `世界の論文に占める日本のシェアは、${peak[0]}年の${fmtPct(peak[1])}から${last[0]}年の${fmtPct(last[1])}へ。研究費、人材、論文、政策 — 40年の軌道を一次データだけで描く。`);
+    const title = $("#hero-title");
+    if (title) title.innerHTML = `論文シェア、<em>${fmtPct(peak[1])}</em> → <em>${fmtPct(last[1])}</em>。`;
+    setText("#hero-lede", `日本が世界の論文に占める割合、${peak[0]}年から${last[0]}年。研究費・人材・論文・政策の40年を、一次データだけで描く。`);
   }
 }
 
