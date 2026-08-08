@@ -442,7 +442,8 @@ function renderKakenhi(indicators) {
     return;
   }
   mount.innerHTML = "";
-  const rows = (block.rows || []).slice(0, 25);
+  const shorten = (label) => label.replace(/^(国立研究開発法人|大学共同利用機関法人|独立行政法人|学校法人)/, "");
+  const rows = (block.rows || []).slice(0, 25).map((r) => ({ ...r, label: shorten(r.label) }));
   const width = mount.clientWidth || 1000, height = Math.max(420, rows.length * 24 + 60);
   const margin = { top: 8, right: 110, bottom: 30, left: 210 };
   const x = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.amount) * 1.05]).range([margin.left, width - margin.right]);
@@ -464,7 +465,8 @@ function renderKakenhi(indicators) {
   if (!REDUCED && gsap) {
     gsap.from(bars.nodes(), { attr: { width: 0 }, duration: 1.1, ease: "power3.out", stagger: 0.03, scrollTrigger: { trigger: mount, start: "top 80%" } });
   }
-  setText("#kakenhi-lede", block.lede || `科研費の機関別配分（${block.year_label || ""}）。`);
+  const top10 = d3.sum((block.rows || []).slice(0, 10), (r) => r.amount);
+  setText("#kakenhi-lede", `${block.year_label || ""}、${fmtInt(block.institution_count || 0)}機関に総額${okuFromThousand(block.total_amount || 0)}（新規＋継続）。上位10機関が全体の${fmtPct((top10 / (block.total_amount || 1)) * 100)}を占める。`);
   setText("#kakenhi-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 

@@ -479,6 +479,102 @@ def block_plan_budget() -> dict[str, object]:
     }
 
 
+# --------------------------------------------------------------------- KAKENHI
+
+KAKENHI_INDEX = "https://www.jsps.go.jp/j-grantsinaid/27_kdata/kohyo/index.html"
+KAKENHI_FALLBACK_XLSX = "https://www.jsps.go.jp/file/storage/kaken_27_kohyo7-3/3-5_r7.xlsx"
+
+
+def _column_index(letter: str) -> int:
+    value = 0
+    for ch in letter:
+        value = value * 26 + (ord(ch) - ord("A") + 1)
+    return value - 1
+
+
+def _column_letter(index: int) -> str:
+    letters = ""
+    index += 1
+    while index:
+        index, rem = divmod(index - 1, 26)
+        letters = chr(ord("A") + rem) + letters
+    return letters
+
+
+def _kakenhi_find_xlsx() -> tuple[str, int]:
+    """Discover the latest 3-5 (機関別) xlsx via the kohyo index pages.
+
+    Returns (url, reiwa_year). URLs live in data-linkurl attributes, not href.
+    """
+    index_html = fetch(KAKENHI_INDEX).decode("utf-8", errors="replace")
+    year_pages = sorted(set(re.findall(r"[\w/.\-]*?r(\d{2})_(\d{2})\.html", index_html)), reverse=True)
+    seen: set[tuple[str, str]] = set()
+    for year, round_no in year_pages:
+        if (year, round_no) in seen:
+            continue
+        seen.add((year, round_no))
+        page_url = f"https://www.jsps.go.jp/j-grantsinaid/27_kdata/kohyo/r{year}_{round_no}.html"
+        try:
+            page_html = fetch(page_url).decode("utf-8", errors="replace")
+        except Exception:
+            continue
+        match = re.search(r"[\"'=,]([^\"'=,]*?3-5_r\d+\.xlsx)", page_html)
+        if match:
+            url = match.group(1)
+            if url.startswith("/"):
+                url = f"https://www.jsps.go.jp{url}"
+            return url, int(year)
+    return KAKENHI_FALLBACK_XLSX, 7
+
+
+def block_kakenhi() -> dict[str, object]:
+    """JSPS 科研費: 研究者が所属する研究機関別の採択件数・配分額（新規+継続）."""
+    url, reiwa = _kakenhi_find_xlsx()
+    rows = read_sheet(fetch(url), "xl/worksheets/sheet1.xml")
+    header_row = None
+    name_column = None
+    for index in sorted(rows):
+        for column, text in rows[index].items():
+            if text == "機関名":
+                header_row, name_column = index, column
+                break
+        if header_row:
+            break
+    if not header_row or not name_column:
+        raise ValueError("機関名 header not found")
+    base = _column_index(name_column)
+    count_col = _column_letter(base + 1)
+    total_col = _column_letter(base + 6)
+    new_rate_col = _column_letter(base + 12)
+    institutions = []
+    for index in sorted(row for row in rows if row > header_row):
+        values = rows[index]
+        name = values.get(name_column, "").strip().rstrip("＊*").strip()
+        count = number(values.get(count_col))
+        total_yen = number(values.get(total_col))
+        if not name or count is None or total_yen is None or name in {"機関名"}:
+            continue
+        entry = {"label": name, "count": int(count), "amount": round(total_yen / 1000)}  # 円 → 千円
+        rate = number(values.get(new_rate_col))
+        if rate is not None:
+            entry["new_rate"] = rate
+        institutions.append(entry)
+    if not institutions:
+        raise ValueError("no institution rows parsed")
+    year = 2018 + reiwa
+    total_amount = sum(entry["amount"] for entry in institutions)
+    ranked = sorted(institutions, key=lambda entry: -entry["amount"])
+    return {
+        "status": "ok", "unit": "千円",
+        "year_label": f"令和{reiwa}年度（{year}年度）",
+        "source": {"title": f"日本学術振興会 科研費データ 研究機関別採択件数・配分額一覧（令和{reiwa}年度）", "url": KAKENHI_INDEX},
+        "note": "新規採択＋継続分。配分額は直接経費＋間接経費の合計。機関名の＊（新規応募50件以上）は除去。",
+        "institution_count": len(institutions),
+        "total_amount": total_amount,
+        "rows": ranked[:40],
+    }
+
+
 # ------------------------------------------------------------------- OECD MSTI
 
 def oecd_query(key: str, start: int) -> list[dict[str, str]]:
@@ -644,6 +740,7 @@ def main() -> int:
         "joint_research": run_block("joint_research", block_joint_research),
         "gov_support_business": run_block("gov_support_business", block_gov_support_business),
         "plan_budget": run_block("plan_budget", block_plan_budget),
+        "kakenhi": run_block("kakenhi", block_kakenhi),
         "oecd_gerd_gdp": run_block("oecd_gerd_gdp", lambda: block_oecd("G.PT_B1GQ..", 1990, "%", "GERD as percentage of GDP", "2024年は暫定値を含む。")),
         "oecd_researchers": run_block("oecd_researchers", lambda: block_oecd("T_RS.10P3EMP..", 1990, "人/千人雇用", "Researchers per 1000 employment")),
         "oecd_gov_financed": run_block("oecd_gov_financed", lambda: block_oecd("G_FG.PT_GERD..", 1990, "%", "Government-financed GERD share")),
