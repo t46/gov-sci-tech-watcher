@@ -1,0 +1,1189 @@
+{
+  "note": "国立研究開発法人・大学共同利用機関法人の財務諸表PDFの検証済みレジストリ。fetch_finance.py が読む。urls は年度(西暦)→PDF URL配列（BS/PL分割はすべて列挙）。template は {year}=西暦年度 / {reiwa}=令和N / {reiwa2}=令和ゼロ埋め2桁。unit はPDF記載の単位（千円は取得時に円へ換算）。accounting: dokuho=独立行政法人会計基準, kokudai=国立大学法人会計基準。",
+  "institutes": [
+    {
+      "id": "riken",
+      "label": "理化学研究所",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.riken.jp/about/disclosure/zaigen/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.riken.jp/medialibrary/riken/about/info/zaigen/zaimu-{year}-1.pdf"
+      ],
+      "years": [
+        2019,
+        2025
+      ],
+      "extra": {
+        "subsidies": "研究補助金収益",
+        "donations": "寄附金収益",
+        "commissioned_gov": "政府受託研究収入",
+        "commissioned_govrel": "政府関係法人等受託研究収入",
+        "commissioned_priv": "民間受託研究収入"
+      },
+      "short": "理研"
+    },
+    {
+      "id": "aist",
+      "label": "産業技術総合研究所",
+      "category": "研究開発法人",
+      "ministry": "経済産業省",
+      "index_url": "https://www.aist.go.jp/aist_j/information/outline/zaimu/index.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.aist.go.jp/pdf/aist_j/zaimu/r{reiwa}kakutei.pdf"
+      ],
+      "years": [
+        2019,
+        2025
+      ],
+      "extra": {
+        "research_revenue": "研究収益",
+        "ip_revenue": "知的所有権収益"
+      },
+      "notes": "r2（2020年度）は概要文書のみで財務諸表なし → 欠測",
+      "short": "産総研"
+    },
+    {
+      "id": "jaxa",
+      "label": "宇宙航空研究開発機構",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.jaxa.jp/about/finance/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.jaxa.jp/about/finance/pdf/finance_r{reiwa2}-01.pdf"
+      ],
+      "years": [
+        2021,
+        2024
+      ],
+      "extra": {
+        "commissioned_gov": "政府関係受託収入",
+        "commissioned_priv": "民間等受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "2019・2020年度（finance_r01/r02-01.pdf）はCIDフォント破損でテキスト抽出不能 → vision抽出のstatic_valuesで補完。経常費用>経常収益は実態（経常損失を臨時利益の運営費交付金精算収益化額で補填）",
+      "short": "JAXA",
+      "static_values": {
+        "2019": {
+          "revenue_total": 206826537609,
+          "expense_total": 203195974489,
+          "grants": 76991724636,
+          "assets": 659841852251
+        },
+        "2020": {
+          "revenue_total": 195610754369,
+          "expense_total": 176885300184,
+          "grants": 79008027544,
+          "assets": 713062748235
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "jaea",
+      "label": "日本原子力研究開発機構",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.jaea.go.jp/02/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.jaea.go.jp/02/pdf/zaimu_r{reiwa2}-1.pdf"
+      ],
+      "years": [
+        2019,
+        2024
+      ],
+      "extra": {
+        "commissioned_gov": "政府受託研究収入",
+        "commissioned_priv": "民間受託研究収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "2020年度（zaimu_r02-1.pdf）は財務諸表ページのフォント破損 → vision抽出のstatic_valuesで補完",
+      "short": "原子力機構",
+      "static_values": {
+        "2020": {
+          "revenue_total": 161541126925,
+          "expense_total": 161251130908,
+          "grants": 109648859977,
+          "assets": 781906497955
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "nict",
+      "label": "情報通信研究機構",
+      "category": "研究開発法人",
+      "ministry": "総務省",
+      "index_url": "https://www.nict.go.jp/disclosure/finance.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r1/1-1-1.pdf",
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r1/1-1-3.pdf"
+        ],
+        "2020": [
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r2/1-1-1.pdf",
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r2/1-1-3.pdf"
+        ],
+        "2024": [
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r6/1-1.pdf",
+          "https://www.nict.go.jp/disclosure/finance/finance-statement/r6/1-3.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned_gov": "国及び地方公共団体受託収入",
+        "commissioned_priv": "その他の団体受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "貸借対照表・損益計算書が分割PDF。先頭の勘定ブロック（1-1系）が法人単位。年度によりファイル名体系が変わる（R5以降は1-1/1-3、R4以前は1-1-1/1-1-3）→ 毎年索引ページで確認。2021-2023年度（r3〜r5）はフォント破損でテキスト抽出不能 → vision抽出のstatic_valuesで補完",
+      "short": "NICT",
+      "static_values": {
+        "2021": {
+          "revenue_total": 72154560272,
+          "expense_total": 72873644906,
+          "grants": 19228529467,
+          "assets": 193206549725
+        },
+        "2022": {
+          "revenue_total": 86047748632,
+          "expense_total": 84914740405,
+          "grants": 21959670544,
+          "assets": 289694847253
+        },
+        "2023": {
+          "revenue_total": 88346076653,
+          "expense_total": 88733942575,
+          "grants": 21161500291,
+          "assets": 302813588011
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "nies",
+      "label": "国立環境研究所",
+      "category": "研究開発法人",
+      "ministry": "環境省",
+      "index_url": "https://www.nies.go.jp/kihon/zaimu.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.nies.go.jp/kihon/zaimu/{year}/1-3.pdf"
+      ],
+      "years": [
+        2019,
+        2024
+      ],
+      "extra": {
+        "commissioned_gov": "政府又は地方公共団体受託研究収入",
+        "commissioned_priv": "民間等受託研究収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "9分割PDF（1-3=損益計算書）。貸借対照表（1-1）は2段組で左右の列が混線しテキスト抽出不能 → 資産は欠測扱い",
+      "short": "国環研"
+    },
+    {
+      "id": "jamstec",
+      "label": "海洋研究開発機構",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.jamstec.go.jp/j/about/disclosure/informations.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "notes": "個別PDF（taishaku/sonneki, data/pdf/{年度}/）はテキスト層に数値のみでラベル欠落、束ねPDF finance_01 はフォント完全破損 → 全年度 vision抽出のstatic_valuesで補完",
+      "short": "JAMSTEC",
+      "static_values": {
+        "2019": {
+          "revenue_total": 40312642324,
+          "expense_total": 40762121714,
+          "grants": 29590622719,
+          "assets": 76438683002
+        },
+        "2020": {
+          "revenue_total": 38228933036,
+          "expense_total": 39007521798,
+          "grants": 29591422156,
+          "assets": 75153555871
+        },
+        "2021": {
+          "revenue_total": 38045045622,
+          "expense_total": 38253380686,
+          "grants": 29091912564,
+          "assets": 80534402459
+        },
+        "2022": {
+          "revenue_total": 38157368219,
+          "expense_total": 37968659059,
+          "grants": 29921766441,
+          "assets": 87304278291
+        },
+        "2023": {
+          "revenue_total": 40993152075,
+          "expense_total": 40802341285,
+          "grants": 30876236736,
+          "assets": 91483679023
+        },
+        "2024": {
+          "revenue_total": 47162328544,
+          "expense_total": 46950682632,
+          "grants": 34141883573,
+          "assets": 99538593952
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "rois",
+      "label": "情報・システム研究機構",
+      "category": "大学共同利用機関法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.rois.ac.jp/open/",
+      "unit": "千円",
+      "accounting": "kokudai",
+      "template": [
+        "https://www.rois.ac.jp/open/pdf02/R{reiwa2}_zaihyo.pdf"
+      ],
+      "years": [
+        2020,
+        2024
+      ],
+      "extra": {
+        "commissioned": "受託研究収益",
+        "joint": "共同研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "国立情報学研究所・統計数理研究所・国立遺伝学研究所・国立極地研究所ほかを含む。国立大学法人会計基準（千円）。2019年度（R01_zaihyo.pdf）はフォント破損 → vision抽出のstatic_valuesで補完",
+      "short": "情報・システム",
+      "static_values": {
+        "2019": {
+          "revenue_total": 24979084000,
+          "expense_total": 24954726000,
+          "grants": 19139355000,
+          "assets": 54764995000
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "nibn",
+      "label": "医薬基盤・健康・栄養研究所",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.nibn.go.jp/introduction/disclosure/finance/index.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.nibn.go.jp/introduction/disclosure/finance/documents/R{reiwa}zaimu_houjin.pdf"
+      ],
+      "years": [
+        2019,
+        2024
+      ],
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "法人単位のほか勘定別に分割。受託研究収入は入れ子ラベル（国又は地方公共団体/以外）のため抽出対象外。旧nibiohn.go.jpからドメイン移転済み",
+      "short": "医薬基盤研"
+    },
+    {
+      "id": "ncc",
+      "label": "国立がん研究センター",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncc.go.jp/jp/about/org/joho/index.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.ncc.go.jp/jp/about/org/joho/pdf/R1_Finance.pdf"
+        ],
+        "2022": [
+          "https://www.ncc.go.jp/jp/about/org/joho/r4_13_zaimu.pdf"
+        ],
+        "2023": [
+          "https://www.ncc.go.jp/jp/about/org/joho/r5_14_zaimu.pdf"
+        ],
+        "2024": [
+          "https://www.ncc.go.jp/jp/about/org/joho/r6_15_zaimu.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "病院型：受託研究収益の独立行なし（業務収益内の研究収益）。ラベルに康熙部首の異体字（⽤⾦等）が混入 → NFKC正規化で照合。ファイル名規則が年度で変遷（R1_Finance→R2_zaimu→r6_15_zaimu）。2020・2021年度（R2/R3_zaimu.pdf）はフォント破損 → vision抽出のstatic_valuesで補完",
+      "short": "がん研C",
+      "static_values": {
+        "2020": {
+          "revenue_total": 84389627060,
+          "expense_total": 82793625673,
+          "grants": 6209184985,
+          "assets": 157010810750,
+          "hospital": 57505077736
+        },
+        "2021": {
+          "revenue_total": 89404051620,
+          "expense_total": 88253162116,
+          "grants": 6001262685,
+          "assets": 163063117750,
+          "hospital": 61805636203
+        }
+      },
+      "static_note": "static_valuesはフォント破損PDFのvision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "nied",
+      "label": "防災科学技術研究所",
+      "short": "防災科研",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.bosai.go.jp/introduction/open/finance.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://web.archive.org/web/20240626072148/https://www.bosai.go.jp/introduction/open/pdf/01zaimu.pdf"
+        ],
+        "2020": [
+          "https://www.bosai.go.jp/introduction/open/pdf/02zaimu.pdf"
+        ],
+        "2021": [
+          "https://www.bosai.go.jp/introduction/open/pdf/03zaimu.pdf"
+        ],
+        "2022": [
+          "https://www.bosai.go.jp/introduction/open/pdf/04zaimu.pdf"
+        ],
+        "2023": [
+          "https://www.bosai.go.jp/introduction/open/pdf/05zaimu.pdf"
+        ],
+        "2024": [
+          "https://www.bosai.go.jp/introduction/open/pdf/06zaimu.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned_gov": "政府受託収入",
+        "commissioned_priv": "その他受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "ファイル名は{令和N:02d}zaimu.pdf。2019年度は現行サイトから削除済み → Wayback Machineの検証済みスナップショットを使用"
+    },
+    {
+      "id": "jst",
+      "label": "科学技術振興機構",
+      "short": "JST",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.jst.go.jp/announce/zaimu/zaimu.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.jst.go.jp/announce/zaimu/r01/pdf/1jst.pdf"
+        ],
+        "2020": [
+          "https://www.jst.go.jp/announce/zaimu/r02/pdf/2jst.pdf"
+        ],
+        "2021": [
+          "https://www.jst.go.jp/announce/zaimu/r03/pdf/3jst.pdf"
+        ],
+        "2022": [
+          "https://www.jst.go.jp/announce/zaimu/r04/pdf/4jst.pdf"
+        ],
+        "2023": [
+          "https://www.jst.go.jp/announce/zaimu/r05/pdf/5jst.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned_gov": "政府等受託収入",
+        "commissioned_priv": "その他の受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "資金配分機関（大学ファンド運用で総資産12兆円規模）。2024年度（r06）のPDFはCIDフォント破損でテキスト抽出不能 → vision抽出のstatic_valuesで補完",
+      "role": "funder",
+      "static_values": {
+        "2024": {
+          "revenue_total": 533903495041,
+          "expense_total": 265762705043,
+          "grants": 100607663174,
+          "assets": 12056284218068
+        }
+      },
+      "static_note": "2024年度はフォント破損 → vision抽出（経常利益との整合を検証済み）。経常費用が小さく見えるのは基金・大学ファンド関連の損益構造による"
+    },
+    {
+      "id": "nrib",
+      "label": "酒類総合研究所",
+      "short": "酒類総研",
+      "category": "研究開発法人",
+      "ministry": "財務省",
+      "index_url": "https://www.nrib.go.jp/gui/houteikoukai.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R01_zaimu00.pdf"
+        ],
+        "2020": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R02_zaimu00.pdf"
+        ],
+        "2021": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R03_zaimu00.pdf"
+        ],
+        "2022": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R04_zaimu01.pdf"
+        ],
+        "2023": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R05_zaimu01.pdf"
+        ],
+        "2024": [
+          "https://www.nrib.go.jp/gui/zaimu/pdf/R06_zaimu01.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned": "受託研究収益",
+        "joint": "共同研究収益"
+      },
+      "notes": "最小の国立研究開発法人。R01-03は束ねPDFがzaimu00、R04以降はzaimu01に繰上げ。サイトはImperva CDNでcurlが稀に偽404を返す"
+    },
+    {
+      "id": "nihu",
+      "label": "人間文化研究機構",
+      "short": "人間文化",
+      "category": "大学共同利用機関法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.nihu.jp/ja/opendoor/h-zaimu.html",
+      "unit": "千円",
+      "accounting": "kokudai",
+      "urls": {
+        "2019": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR01.pdf"
+        ],
+        "2020": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR02.pdf"
+        ],
+        "2021": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR03.pdf"
+        ],
+        "2022": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR04.pdf"
+        ],
+        "2023": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR05.pdf"
+        ],
+        "2024": [
+          "https://www.nihu.jp/files/hojin/zaimu/zsR06.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned": "受託研究収益",
+        "joint": "共同研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "国立歴史民俗博物館・国文学研究資料館・国立国語研究所・国際日本文化研究センター・総合地球環境学研究所・国立民族学博物館を含む。国立大学法人会計基準（千円）。目次の頁番号を値として拾わないこと（数値照合は4桁以上/カンマ区切りに限定済み）"
+    },
+    {
+      "id": "ncvc",
+      "label": "国立循環器病研究センター",
+      "short": "循環器病C",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncvc.go.jp/about/overview/jyohokokai/financial-state/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.ncvc.go.jp/about/zaimusyohyou_R01.pdf"
+        ],
+        "2020": [
+          "https://www.ncvc.go.jp/about/20210712_reiwa2_zaimusyohyou.pdf"
+        ],
+        "2021": [
+          "https://www.ncvc.go.jp/wp-content/uploads/20220825_reiwa3_zaimusyohyo.pdf"
+        ],
+        "2022": [
+          "https://www.ncvc.go.jp/wp-content/uploads/20230828_reiwa4zaimusyohyo_pdf.pdf"
+        ],
+        "2023": [
+          "https://www.ncvc.go.jp/wp-content/uploads/20240910_reiwa5zaimusyohyo_pdf.pdf"
+        ],
+        "2024": [
+          "https://www.ncvc.go.jp/wp-content/uploads/20250828_zaimukeiri_zaimusyohyo.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "病院型。受託・共同研究は独立行なし（業務収益内の研究収益）。ファイル名は日付入りで不規則 → 毎年開示ページを再スクレイプ"
+    },
+    {
+      "id": "ncnp",
+      "label": "国立精神・神経医療研究センター",
+      "short": "精神・神経C",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncnp.go.jp/about/disclosure/about.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.mhlw.go.jp/content/10800000/000650730.pdf"
+        ],
+        "2020": [
+          "https://www.ncnp.go.jp/press_search/images/public_info/public_info_K9NRUzJtTsStf0Tt_1.pdf"
+        ],
+        "2021": [
+          "https://www.ncnp.go.jp/press_search/images/public_info/public_info_kY0EWqvPs8IjhVVn_1.pdf"
+        ],
+        "2022": [
+          "https://www.ncnp.go.jp/press_search/images/public_info/public_info_ieeqV5XnNT22QLkI_1.pdf"
+        ],
+        "2023": [
+          "https://www.ncnp.go.jp/press_search/images/public_info/public_info_QvWG1DAY1Q4NtGyi_1.pdf"
+        ],
+        "2024": [
+          "https://www.ncnp.go.jp/press_search/images/public_info/public_info_NkVZzM15NmS9apIg_1.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "開示は直近5年のみのローリング窓・ハッシュ名PDF → 毎年再スクレイプ。2019年度は厚労省サイトの検証済みコピーを使用"
+    },
+    {
+      "id": "ncchd",
+      "label": "国立成育医療研究センター",
+      "short": "成育C",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncchd.go.jp/center/information/public/houjin.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.ncchd.go.jp/center/information/public/r1_zaimusyohyo.pdf"
+        ],
+        "2020": [
+          "https://www.ncchd.go.jp/center/information/public/r2_zaimusyohyo.pdf"
+        ],
+        "2021": [
+          "https://www.ncchd.go.jp/center/information/public/r3_zaimusyohyo.pdf"
+        ],
+        "2022": [
+          "https://www.ncchd.go.jp/center/information/public/r4_zaimusyohyo.pdf"
+        ],
+        "2023": [
+          "https://www.ncchd.go.jp/center/information/public/r5_zaimusyohyo.pdf"
+        ],
+        "2024": [
+          "https://www.ncchd.go.jp/center/information/public/r6_zaimusyohyo.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "康熙部首の異体字（⽤等）が混入 → NFKC正規化で照合。r{令和}_zaimusyohyo.pdf で安定"
+    },
+    {
+      "id": "ncgg",
+      "label": "国立長寿医療研究センター",
+      "short": "長寿C",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncgg.go.jp/ncgg-overview/disclosure/finance.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.ncgg.go.jp/ncgg-overview/disclosure/documents/R1zaimushohyo.pdf"
+        ],
+        "2020": [
+          "https://www.ncgg.go.jp/ncgg-overview/disclosure/documents/R2zaimushohyo.pdf"
+        ],
+        "2021": [
+          "https://www.ncgg.go.jp/ncgg-overview/disclosure/documents/R3zaimushohyo.pdf"
+        ],
+        "2022": [
+          "https://www.ncgg.go.jp/ncgg-overview/disclosure/documents/R4zaimushohyo.pdf"
+        ],
+        "2024": [
+          "https://www.ncgg.go.jp/ncgg-overview/disclosure/documents/R6zaimushohyo.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "R{令和}zaimushohyo.pdf で安定",
+      "static_values": {
+        "2023": {
+          "revenue_total": 13322324522,
+          "expense_total": 13978877763,
+          "grants": 2611177947,
+          "assets": 24118732273,
+          "hospital": 7828356378
+        }
+      },
+      "static_note": "2023年度はフォント破損 → vision抽出（経常損失との整合を検証済み）"
+    },
+    {
+      "id": "ncgm",
+      "label": "国立国際医療研究センター",
+      "short": "国際医療C",
+      "category": "研究開発法人",
+      "ministry": "厚生労働省",
+      "index_url": "https://www.ncgm.go.jp/disclosure/030/010/zaimusyohyo.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r1_zaimushohyou.pdf"
+        ],
+        "2020": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r2_zaimushohyou.pdf"
+        ],
+        "2021": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r3_zaimushohyou.pdf"
+        ],
+        "2022": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r4_zaimushohyou.pdf"
+        ],
+        "2023": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r5_zaimushohyou.pdf"
+        ],
+        "2024": [
+          "https://www.ncgm.go.jp/disclosure/030/010/r6_zaimushohyou.pdf"
+        ]
+      },
+      "extra": {
+        "hospital": "医業収益",
+        "research_revenue": "研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "2025年4月に国立健康危機管理研究機構（JIHS）へ統合。2024年度がNCGMとして最後の財務諸表（ドメインはJIHS下で存続）"
+    },
+    {
+      "id": "naro",
+      "label": "農業・食品産業技術総合研究機構",
+      "short": "農研機構",
+      "category": "研究開発法人",
+      "ministry": "農林水産省",
+      "index_url": "https://www.naro.go.jp/public_information/financial/financial_state/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.naro.go.jp/public_information/files/zaimu_r{reiwa}01.pdf"
+      ],
+      "years": [
+        2019,
+        2025
+      ],
+      "extra": {
+        "commissioned": "受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "法人単位財務諸表（zaimu_r{令和}01.pdf）。5勘定別の諸表は別ファイル"
+    },
+    {
+      "id": "jircas",
+      "label": "国際農林水産業研究センター",
+      "short": "国際農林水産",
+      "category": "研究開発法人",
+      "ministry": "農林水産省",
+      "index_url": "https://www.jircas.go.jp/ja/disclosure/finance",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.jircas.go.jp/sites/default/files/2020/R01zaimu.pdf"
+        ],
+        "2020": [
+          "https://www.jircas.go.jp/sites/default/files/R02zaimu.pdf"
+        ],
+        "2021": [
+          "https://www.jircas.go.jp/sites/default/files/R03zaimu.pdf"
+        ],
+        "2022": [
+          "https://www.jircas.go.jp/sites/default/files/R04zaimu.pdf"
+        ],
+        "2023": [
+          "https://www.jircas.go.jp/sites/default/files/R05zaimu.pdf"
+        ],
+        "2024": [
+          "https://www.jircas.go.jp/sites/default/files/R06zaimu.pdf"
+        ],
+        "2025": [
+          "https://www.jircas.go.jp/sites/default/files/R07zaimu.pdf"
+        ]
+      },
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "2019年度のみ/2020/サブフォルダ下（単純な年度置換は404）"
+    },
+    {
+      "id": "ffpri",
+      "label": "森林研究・整備機構",
+      "short": "森林機構",
+      "category": "研究開発法人",
+      "ministry": "農林水産省",
+      "index_url": "https://www.ffpri.go.jp/koukaijouhou/zaimu/index.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "layout": true,
+      "urls": {
+        "2019": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r01-zaimu-houjin.pdf"
+        ],
+        "2020": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r02zaimu-houjin.pdf"
+        ],
+        "2021": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r03zaimu-houjin.pdf"
+        ],
+        "2022": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r04zaimushohyo.pdf"
+        ],
+        "2023": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r05zaimushohyou.pdf"
+        ],
+        "2024": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r06zaimushohyou.pdf"
+        ],
+        "2025": [
+          "https://www.ffpri.go.jp/koukaijouhou/zaimu/documents/r07zaimushohyou.pdf"
+        ]
+      },
+      "extra": {
+        "subsidies": "国庫補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "法人単位（研究・育種＋水源林＋森林保険等の連結）。総資産1.2兆円超は水源林の土地。既定のテキスト抽出は損益計算書の列順が崩れる → layoutモード必須。ファイル名の綴りが年度で3回変化。ffpri.affrc.go.jpではなくffpri.go.jpを使う"
+    },
+    {
+      "id": "fra",
+      "label": "水産研究・教育機構",
+      "short": "水産機構",
+      "category": "研究開発法人",
+      "ministry": "農林水産省",
+      "index_url": "https://www.fra.go.jp/home/kokaijoho/johoteikyo/joho-teikyo.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/zaimu/R01organization.pdf"
+        ],
+        "2020": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/zaimu/R02organization.pdf"
+        ],
+        "2021": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/zaimu/R03organization.pdf"
+        ],
+        "2022": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/R04organization.pdf"
+        ],
+        "2023": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/R5-1-1_R05organization.pdf"
+        ],
+        "2024": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/R6-1-1_R06organization.pdf"
+        ],
+        "2025": [
+          "https://www.fra.go.jp/home/kokaijoho/johoteikyo/files/r7-1-1_r07organization.pdf"
+        ]
+      },
+      "labels": {
+        "assets": "負債純資産合計"
+      },
+      "extra": {
+        "commissioned": "受託収入",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "貸借対照表に「資産合計」行が無い → 同額の「負債純資産合計」で代用。URLパターンが3回変化 → 毎年開示ページを確認"
+    },
+    {
+      "id": "nedo",
+      "label": "新エネルギー・産業技術総合開発機構",
+      "short": "NEDO",
+      "category": "研究開発法人",
+      "ministry": "経済産業省",
+      "index_url": "https://www.nedo.go.jp/introducing/teikyou_R6jigyo.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2019": [
+          "https://www.nedo.go.jp/content/100963279.pdf",
+          "https://www.nedo.go.jp/content/100963280.pdf",
+          "https://www.nedo.go.jp/content/100963281.pdf",
+          "https://www.nedo.go.jp/content/100963282.pdf",
+          "https://www.nedo.go.jp/content/100963283.pdf",
+          "https://www.nedo.go.jp/content/100963284.pdf"
+        ],
+        "2020": [
+          "https://www.nedo.go.jp/content/100963273.pdf",
+          "https://www.nedo.go.jp/content/100963274.pdf",
+          "https://www.nedo.go.jp/content/100963275.pdf",
+          "https://www.nedo.go.jp/content/100963276.pdf",
+          "https://www.nedo.go.jp/content/100963277.pdf",
+          "https://www.nedo.go.jp/content/100963278.pdf"
+        ],
+        "2021": [
+          "https://www.nedo.go.jp/content/100963262.pdf",
+          "https://www.nedo.go.jp/content/100963263.pdf",
+          "https://www.nedo.go.jp/content/100963264.pdf",
+          "https://www.nedo.go.jp/content/100963265.pdf",
+          "https://www.nedo.go.jp/content/100963266.pdf",
+          "https://www.nedo.go.jp/content/100963267.pdf",
+          "https://www.nedo.go.jp/content/100963268.pdf"
+        ],
+        "2022": [
+          "https://www.nedo.go.jp/content/100963553.pdf",
+          "https://www.nedo.go.jp/content/100963554.pdf",
+          "https://www.nedo.go.jp/content/100963555.pdf",
+          "https://www.nedo.go.jp/content/100963556.pdf",
+          "https://www.nedo.go.jp/content/100963557.pdf",
+          "https://www.nedo.go.jp/content/100963558.pdf",
+          "https://www.nedo.go.jp/content/100963559.pdf",
+          "https://www.nedo.go.jp/content/100963560.pdf"
+        ],
+        "2023": [
+          "https://www.nedo.go.jp/content/100980263.pdf",
+          "https://www.nedo.go.jp/content/100980264.pdf",
+          "https://www.nedo.go.jp/content/100980265.pdf",
+          "https://www.nedo.go.jp/content/100980266.pdf",
+          "https://www.nedo.go.jp/content/100980267.pdf",
+          "https://www.nedo.go.jp/content/100980268.pdf",
+          "https://www.nedo.go.jp/content/100980269.pdf",
+          "https://www.nedo.go.jp/content/100980270.pdf"
+        ],
+        "2024": [
+          "https://www.nedo.go.jp/content/800028292.pdf",
+          "https://www.nedo.go.jp/content/800028293.pdf",
+          "https://www.nedo.go.jp/content/800028294.pdf",
+          "https://www.nedo.go.jp/content/800028295.pdf",
+          "https://www.nedo.go.jp/content/800028296.pdf",
+          "https://www.nedo.go.jp/content/800028297.pdf",
+          "https://www.nedo.go.jp/content/800028298.pdf",
+          "https://www.nedo.go.jp/content/800028299.pdf"
+        ],
+        "2025": [
+          "https://www.nedo.go.jp/content/800058278.pdf",
+          "https://www.nedo.go.jp/content/800058279.pdf",
+          "https://www.nedo.go.jp/content/800058280.pdf",
+          "https://www.nedo.go.jp/content/800058281.pdf",
+          "https://www.nedo.go.jp/content/800058282.pdf",
+          "https://www.nedo.go.jp/content/800058283.pdf",
+          "https://www.nedo.go.jp/content/800058284.pdf",
+          "https://www.nedo.go.jp/content/800058285.pdf"
+        ]
+      },
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "資金配分機関。GX基金・半導体基金等の国庫パススルーで総資産が2019年度0.23兆→2024年度8.2兆円に膨張。交付金は経常収益の1割程度。URLは不透明ID → 毎年 情報提供ページを再スクレイプ",
+      "role": "funder"
+    },
+    {
+      "id": "pwri",
+      "label": "土木研究所",
+      "short": "土木研",
+      "category": "研究開発法人",
+      "ministry": "国土交通省",
+      "index_url": "https://www.pwri.go.jp/jpn/about/zaimu/index.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.pwri.go.jp/jpn/about/zaimu/{year}/zaihyo-r{reiwa}.pdf"
+      ],
+      "years": [
+        2019,
+        2025
+      ],
+      "extra": {
+        "donations": "寄附金収益"
+      },
+      "notes": "単一PDF・全年度テキスト良好。交付金が経常収益の8割超の典型的研究所型"
+    },
+    {
+      "id": "bri",
+      "label": "建築研究所",
+      "short": "建築研",
+      "category": "研究開発法人",
+      "ministry": "国土交通省",
+      "index_url": "https://www.kenken.go.jp/japanese/information/announcement/accounts/accounts.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "urls": {
+        "2020": [
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r02/1-1.pdf",
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r02/1-3.pdf"
+        ],
+        "2021": [
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r03/1-1.pdf",
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r03/1-3.pdf"
+        ],
+        "2023": [
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r05/1-1.pdf",
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r05/1-3.pdf"
+        ],
+        "2024": [
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r06/1-1.pdf",
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r06/1-3.pdf"
+        ],
+        "2025": [
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r07/1-1.pdf",
+          "https://www.kenken.go.jp/japanese/information/announcement/accounts/r07/1-3.pdf"
+        ]
+      },
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "1-1=貸借対照表, 1-3=損益計算書の分割PDF（1-1〜1-8）。2019年度（r01）はフォント破損 → vision抽出のstatic_valuesで補完",
+      "static_values": {
+        "2019": {
+          "revenue_total": 2160311395,
+          "expense_total": 2137407056,
+          "grants": 1601183772,
+          "assets": 16793615476
+        },
+        "2022": {
+          "revenue_total": 2244756323,
+          "expense_total": 2229975216,
+          "grants": 1541259699,
+          "assets": 16778612860
+        }
+      },
+      "static_note": "2019・2022年度はフォント破損 → vision抽出（経常利益との整合を検証済み）"
+    },
+    {
+      "id": "mpat",
+      "label": "海上・港湾・航空技術研究所",
+      "short": "海上・港湾・航空",
+      "category": "研究開発法人",
+      "ministry": "国土交通省",
+      "index_url": "https://www.mpat.go.jp/disclosures/financial-statements/",
+      "unit": "円",
+      "accounting": "dokuho",
+      "template": [
+        "https://www.mpat.go.jp/wp-umisora101/wp-content/themes/practice/assets/pdf/zaimushohyo_r{reiwa}.pdf"
+      ],
+      "years": [
+        2019,
+        2025
+      ],
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "海上技術安全研究所・港湾空港技術研究所・電子航法研究所の統合法人（法人一本の諸表）。開示ページは/disclosures/（複数形）。経常損失の年が多い"
+    },
+    {
+      "id": "qst",
+      "label": "量子科学技術研究開発機構",
+      "short": "QST",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.qst.go.jp/site/about-qst/1316.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "layout": true,
+      "urls": {
+        "2019": [
+          "https://www.qst.go.jp/uploaded/attachment/17539.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/17540.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/17541.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/17542.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/17543.pdf"
+        ],
+        "2020": [
+          "https://www.qst.go.jp/uploaded/attachment/23345.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/23346.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/23347.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/23348.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/23349.pdf"
+        ],
+        "2021": [
+          "https://www.qst.go.jp/uploaded/attachment/34247.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34248.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34249.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34250.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34251.pdf"
+        ],
+        "2022": [
+          "https://www.qst.go.jp/uploaded/attachment/34264.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34265.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34266.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34267.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/34268.pdf"
+        ],
+        "2023": [
+          "https://www.qst.go.jp/uploaded/attachment/40154.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/40155.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/40156.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/40157.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/40158.pdf"
+        ],
+        "2024": [
+          "https://www.qst.go.jp/uploaded/attachment/47325.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/47326.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/47327.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/47328.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/47329.pdf",
+          "https://www.qst.go.jp/uploaded/attachment/47330.pdf"
+        ]
+      },
+      "extra": {
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "添付IDは不透明 → 毎年開示ページを再スクレイプ。BS/PL等が別PDF。貸借対照表は列優先レイアウトで既定抽出だと数値がラベルより先に出る → layoutモード必須。受託・共同研究の独立行なし"
+    },
+    {
+      "id": "nims",
+      "label": "物質・材料研究機構",
+      "short": "NIMS",
+      "category": "研究開発法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.nims.go.jp/nims/disclosure/finance.html",
+      "unit": "円",
+      "accounting": "dokuho",
+      "layout": true,
+      "urls": {
+        "2019": [
+          "https://www.nims.go.jp/nims/disclosure/archive/lecian00000fkvfk-att/R1_finance_financial-statements.pdf"
+        ],
+        "2020": [
+          "https://www.nims.go.jp/nims/disclosure/archive/lecian00000xnw7c-att/R2_finance_financial-statements.pdf"
+        ],
+        "2021": [
+          "https://www.nims.go.jp/nims/disclosure/archive/k6heui0000006jfp-att/R3_finance_financial-statements.pdf"
+        ],
+        "2022": [
+          "https://www.nims.go.jp/nims/disclosure/archive/hpqovq0000007yy5-att/R4_finance_financial-statements.pdf"
+        ],
+        "2023": [
+          "https://www.nims.go.jp/nims/disclosure/archive/f0e02l000006ifr8-att/R5_finance_financial-statements.pdf"
+        ],
+        "2024": [
+          "https://www.nims.go.jp/nims/disclosure/hdfqf100000016lh-att/R6_finance_financial-statements.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned_gov": "政府受託収入",
+        "commissioned_priv": "その他受託収入",
+        "subsidies": "補助金等収益"
+      },
+      "notes": "CMSハッシュディレクトリ → 毎年再スクレイプ。束ねPDFは列優先レイアウトで既定抽出だとラベルと数値が分離し誤マッチ → layoutモード必須"
+    },
+    {
+      "id": "kek",
+      "label": "高エネルギー加速器研究機構",
+      "short": "KEK",
+      "category": "大学共同利用機関法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.kek.jp/ja/about/disclosure/",
+      "unit": "千円",
+      "accounting": "kokudai",
+      "urls": {
+        "2019": [
+          "https://www.kek.jp/wp-content/uploads/2024/02/R1zaimushohyou.pdf"
+        ],
+        "2020": [
+          "https://www.kek.jp/wp-content/uploads/2024/02/R2zaimushohyou.pdf"
+        ],
+        "2021": [
+          "https://www.kek.jp/wp-content/uploads/2024/02/R3zaimushohyou.pdf"
+        ],
+        "2022": [
+          "https://www.kek.jp/wp-content/uploads/2024/02/R4zaimushohyou.pdf"
+        ],
+        "2023": [
+          "https://www.kek.jp/wp-content/uploads/2024/12/R5zaimushohyou.pdf"
+        ],
+        "2024": [
+          "https://www.kek.jp/wp-content/uploads/2025/12/R6zaimushohyou.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned": "受託研究収益",
+        "joint": "共同研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "国立大学法人会計基準（千円。ただし利益処分書のみ円建て）。wp-contentのアップロード月が年度と大きくずれる（R6は2025年12月）→ 毎年開示ページを再スクレイプ"
+    },
+    {
+      "id": "nins",
+      "label": "自然科学研究機構",
+      "short": "自然科学",
+      "category": "大学共同利用機関法人",
+      "ministry": "文部科学省",
+      "index_url": "https://www.nins.jp/open/post.html",
+      "unit": "千円",
+      "accounting": "kokudai",
+      "urls": {
+        "2019": [
+          "https://www.nins.jp/open/2574.pdf"
+        ],
+        "2020": [
+          "https://www.nins.jp/open/3291.pdf"
+        ],
+        "2021": [
+          "https://www.nins.jp/open/3617.pdf"
+        ],
+        "2022": [
+          "https://www.nins.jp/open/assets/dcf6e3b9e7eb7fbb43b927d434c88082e7073f4e.pdf"
+        ],
+        "2023": [
+          "https://www.nins.jp/open/assets/a934f7d0f116b2b6025fa3bdc591fd8bb8511965.pdf"
+        ],
+        "2024": [
+          "https://www.nins.jp/open/assets/94dbc6cbecde5a37dd63b7ca00a70199f04258b2.pdf"
+        ]
+      },
+      "extra": {
+        "commissioned": "受託研究収益",
+        "joint": "共同研究収益",
+        "subsidies": "補助金等収益",
+        "donations": "寄附金収益"
+      },
+      "notes": "国立天文台・核融合科学研究所・基礎生物学研究所・生理学研究所・分子科学研究所を含む。国立大学法人会計基準（千円）。URLは近年40桁ハッシュ → 毎年再スクレイプ。layoutモードは2019年PDFで出力が壊れるので使わない"
+    }
+  ]
+}

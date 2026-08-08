@@ -38,9 +38,23 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def _ssl_context():
+    """Mozilla CA bundle via certifi — some hosts (naro.go.jp) chain to roots
+    missing from the platform default store."""
+    try:
+        import certifi
+        import ssl
+    except ImportError:
+        return None
+    return ssl.create_default_context(cafile=certifi.where())
+
+
+SSL_CONTEXT = _ssl_context()
+
+
 def fetch(url: str, timeout: int = 90) -> bytes:
     request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
-    with urlopen(request, timeout=timeout) as response:
+    with urlopen(request, timeout=timeout, context=SSL_CONTEXT) as response:
         return response.read()
 
 
@@ -247,14 +261,16 @@ def national_block() -> dict[str, object]:
 
 # ------------------------------------------------------------------ institutes
 
-def pdf_text(blob: bytes) -> str:
+def pdf_text(blob: bytes, layout: bool = False) -> str:
     from pypdf import PdfReader  # lazy import; only needed for institute PDFs
 
     reader = PdfReader(BytesIO(blob))
     pages = []
     for page in reader.pages:
         try:
-            pages.append(page.extract_text() or "")
+            # layout mode preserves column order for PDFs whose default
+            # extraction scrambles the PL table (e.g. 森林研究・整備機構)
+            pages.append((page.extract_text(extraction_mode="layout") if layout else page.extract_text()) or "")
         except Exception:  # noqa: BLE001 — skip unreadable pages
             pages.append("")
     return "\n".join(pages)
@@ -272,10 +288,23 @@ def pdf_metric(text: str, label: str, line_start: bool = False) -> int | None:
 
     line_start=True anchors the label to a line head — needed for labels that
     are substrings of longer ones (資産合計 inside 流動資産合計).
+    NFKC normalization folds Kangxi-radical lookalikes (⽤/⾦ …) some PDFs use
+    into ordinary kanji. The number pattern demands strict 3-digit comma
+    grouping so a value fused with the next table column stops at the correct
+    boundary (…17,081,100,307|81,776,642,736).
     """
-    despaced = re.sub(r"[ \t　]", "", repair_shifted_ascii(text))
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFKC", repair_shifted_ascii(text))
+    despaced = re.sub(r"[ \t　]", "", normalized)
+    despaced = re.sub(r"\(注[^)]{0,4}\)", "", despaced)  # (注1) etc. would otherwise be read as a value
     anchor = r"^" if line_start else ""
-    pattern = anchor + re.escape(label) + r"[^0-9△▲\-]{0,20}?([△▲\-]?[0-9][0-9,]*)"
+    # Value must be comma-grouped or at least 4 digits: a bare page number in a
+    # table of contents (「…の明細……8」) must never be read as a metric.
+    # The trailing (?!,[0-9]) rejects malformed continuations (1,234,56 /
+    # 1234,567) while still cutting a value fused with the NEXT column at the
+    # correct grouping boundary (…17,081,100,307|81,776,642,736).
+    pattern = anchor + re.escape(label) + r"[^0-9△▲\-]{0,20}?([△▲\-]?(?:[0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,}))(?!,[0-9])"
     match = re.search(pattern, despaced, re.M)
     if not match:
         return None
@@ -292,55 +321,78 @@ INSTITUTE_METRICS = {
     "assets": ("資産合計", True),  # 行頭固定 — 流動資産合計等への誤マッチを防ぐ
 }
 
-INSTITUTES = [
-    {
-        "id": "riken", "label": "理化学研究所",
-        "index": "https://www.riken.jp/about/disclosure/zaigen/",
-        "template": "https://www.riken.jp/medialibrary/riken/about/info/zaigen/zaimu-{year}-1.pdf",
-        "years": list(range(2019, 2026)),
-        "extra": {"subsidies": "研究補助金収益", "donations": "寄附金収益"},
-    },
-    {
-        "id": "aist", "label": "産業技術総合研究所",
-        "index": "https://www.aist.go.jp/aist_j/information/outline/zaimu/index.html",
-        "template": "https://www.aist.go.jp/pdf/aist_j/zaimu/r{reiwa}kakutei.pdf",
-        "years": list(range(2019, 2026)),
-        "extra": {"research_revenue": "研究収益", "ip_revenue": "知的所有権収益"},
-    },
-]
+INSTITUTE_REGISTRY = ROOT / "data" / "institute_sources.json"
+
+
+def _institute_urls(config: dict) -> dict[int, list[str]]:
+    """Resolve year -> PDF url list from explicit map and/or template range."""
+    resolved: dict[int, list[str]] = {}
+    start, end = config.get("years", [0, -1])
+    for year in range(start, end + 1):
+        resolved[year] = [
+            template.format(year=year, reiwa=year - 2018, reiwa2=f"{year - 2018:02d}")
+            for template in config.get("template", [])
+        ]
+    for year_label, urls in config.get("urls", {}).items():
+        resolved[int(year_label)] = list(urls)
+    return {year: urls for year, urls in resolved.items() if urls}
 
 
 def institutes_block() -> dict[str, object]:
+    registry = json.loads(INSTITUTE_REGISTRY.read_text(encoding="utf-8"))
     results = []
-    for config in INSTITUTES:
+    for config in registry["institutes"]:
+        scale = 1000 if config.get("unit") == "千円" else 1
+        overrides = config.get("labels", {})
         values: dict[int, dict[str, int]] = {}
-        for year in config["years"]:
-            url = config["template"].format(year=year, reiwa=year - 2018)
-            text = None
-            for _attempt in range(2):
-                try:
-                    text = pdf_text(fetch(url))
-                    break
-                except Exception:
-                    continue
-            if text is None:
+        for year, urls in sorted(_institute_urls(config).items()):
+            texts = []
+            for url in urls:
+                for _attempt in range(2):
+                    try:
+                        texts.append(pdf_text(fetch(url), layout=bool(config.get("layout"))))
+                        break
+                    except Exception:
+                        continue
+            if len(texts) < len(urls):  # a part is missing — skip the year entirely
                 continue
+            text = "\n".join(texts)
             entry: dict[str, int] = {}
-            specs = {**INSTITUTE_METRICS, **{key: (label, False) for key, label in config.get("extra", {}).items()}}
+            specs = dict(INSTITUTE_METRICS)
+            for key, label in overrides.items():
+                specs[key] = (label, specs.get(key, (label, False))[1])
+            for key, label in config.get("extra", {}).items():
+                specs[key] = (label, False)
             for key, (label, line_start) in specs.items():
                 value = pdf_metric(text, label, line_start)
                 if value is not None:
-                    entry[key] = value
+                    entry[key] = value * scale
             if entry.get("revenue_total"):
                 values[year] = entry
+        # Years whose PDFs defeat text extraction (broken CID fonts, scans)
+        # carry hand-verified values in the registry instead. Stored in yen and
+        # authoritative field-by-field over anything parsed out of the PDF.
+        for year_label, entry in config.get("static_values", {}).items():
+            merged = dict(values.get(int(year_label), {}))
+            merged.update(entry)
+            values[int(year_label)] = merged
         if values:
-            results.append({"id": config["id"], "label": config["label"], "index_url": config["index"], "values": values})
+            results.append({
+                "id": config["id"], "label": config["label"],
+                "short": config.get("short", config["label"]),
+                "role": config.get("role", "performer"),
+                "category": config.get("category", "研究開発法人"),
+                "ministry": config.get("ministry"),
+                "accounting": config.get("accounting", "dokuho"),
+                "index_url": config["index_url"],
+                "values": values,
+            })
     if not results:
         raise ValueError("no institute statements parsed")
     return {
         "status": "ok", "unit": "円",
-        "source": {"title": "国立研究開発法人 財務諸表（各法人の公式開示）", "url": "https://www.riken.jp/about/disclosure/zaigen/"},
-        "note": "独立行政法人会計基準に基づく損益計算書・貸借対照表から抽出。運営費交付金は損益計算書の収益化額（交付額とは異なる）。",
+        "source": {"title": "国立研究開発法人・大学共同利用機関法人 財務諸表（各法人の公式開示）", "url": "https://www.riken.jp/about/disclosure/zaigen/"},
+        "note": "独立行政法人会計基準（大学共同利用機関法人は国立大学法人会計基準）に基づく損益計算書・貸借対照表から抽出。運営費交付金は損益計算書の収益化額（交付額とは異なる）。千円表記の法人は円に換算済み。",
         "institutes": results,
     }
 
@@ -369,6 +421,7 @@ def private_block() -> dict[str, object]:
     if PRIVATE_SECTOR.exists():
         sector = json.loads(PRIVATE_SECTOR.read_text(encoding="utf-8"))
         block["sector"] = {
+            "status": "ok",
             "source": {"title": "日本私立大学連盟「加盟大学財務状況の推移」", "url": "https://www.shidairen.or.jp/publications/"},
             "note": "私大連加盟法人の集計。表7の2014年度以前は帰属収入ベース（消費収支計算書）。",
             "table5": sector.get("table5"),
@@ -394,15 +447,20 @@ def run_block(name: str, builder) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--blocks", nargs="*", choices=["national", "private", "institutes"],
+                        help="limit to these blocks (others reuse the existing output file)")
     args = parser.parse_args()
+    previous = {}
+    if args.blocks and args.output.exists():
+        previous = json.loads(args.output.read_text(encoding="utf-8"))
     print("Fetching finance blocks:")
-    output = {
-        "schema_version": 1,
-        "generated_at": now_iso(),
-        "national": run_block("national", national_block),
-        "private": run_block("private", private_block),
-        "institutes": run_block("institutes", institutes_block),
-    }
+    builders = {"national": national_block, "private": private_block, "institutes": institutes_block}
+    output = {"schema_version": 1, "generated_at": now_iso()}
+    for name, builder in builders.items():
+        if args.blocks and name not in args.blocks:
+            output[name] = previous.get(name, {"status": "unavailable"})
+            continue
+        output[name] = run_block(name, builder)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(f"Wrote {args.output} ({args.output.stat().st_size:,} bytes)")

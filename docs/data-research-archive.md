@@ -53,28 +53,41 @@
 - 同梱の有用ファイル: `3-2-2`（採択率上位30: 一橋54.3%等）、`4-1-2`（分野別・大区分/中区分）、`3-1-2`（国公私別）、`4-2`（中区分別上位10機関・5年累計）
 - `1-1-2_r7.xlsx` は**作業中シート（「★昆修正」「（没）」）が混入** → シート名を明示指定
 
-## 4. 国立研究開発法人 財務諸表（14機関検証済み）
+## 4. 国立研究開発法人・大学共同利用機関法人 財務諸表（全機関接続済み）
 
-**統合開示は制度的に存在しない**（通則法38条：各法人が個別電子公告）。総務省・e-Gov・財務省・e-Statすべて確認済みで機械可読の横断データ無し。
+**統合開示は制度的に存在しない**（通則法38条：各法人が個別電子公告）。総務省・e-Gov・財務省・e-Statすべて確認済みで機械可読の横断データ無し。→ 1機関ずつ調査し、**検証済みレジストリ `data/institute_sources.json`** に集約した（URL・単位・会計基準・機関固有ラベル・フォント破損年のvision抽出値まで全部そこにある）。以下は調査で得た機関別の罠の記録。
 
-| 機関 | FY2024財務諸表URL | パターン | 形式・罠 |
-|---|---|---|---|
-| 理研 | riken.jp/medialibrary/riken/about/info/zaigen/zaimu-2024-1.pdf | `zaimu-{西暦}-{1..5}.pdf` 完全予測可 | テキスト良好。2019-2024検証済 |
-| 産総研 | aist.go.jp/pdf/aist_j/zaimu/r6kakutei.pdf | `r{N}kakutei.pdf` 完全予測可（r7=2025有） | テキスト良好。r2は概要のみで財務諸表なし |
-| JAXA | jaxa.jp/about/finance/pdf/finance_r06-01.pdf | `finance_r{NN}-01.pdf` 予測可、2003- | 経常費用2,955億vs収益2,453億の乖離は勘定区分の混在疑い→一般勘定で要再確認 |
-| JAEA | jaea.go.jp/02/pdf/zaimu_r06-1.pdf | `zaimu_r{YY}-1.pdf` 予測可、2005- | テキスト良好。総資産8,827億 |
-| NICT | nict.go.jp/disclosure/finance-statement/r6/1-3.pdf | 年度フォルダ+連番 予測可、2006- | BS=1-1, PL=1-3 と分割 |
-| NIES | nies.go.jp/kihon/zaimu/2024/1-3.pdf | `/kihon/zaimu/{年}/1-N.pdf` ほぼ予測可、2001- | 9分割PDF。交付金の親子二重計上に注意（収益化額15,542,524,341 vs 親16,906,310,511） |
-| JAMSTEC | jamstec.go.jp …/data/pdf/{YYYY}/sonneki.pdf | 予測可、2003- | **ASCIIが+0x3DFEシフトした壊れフォント** → `chr(ord(c)-0x3DFE)` で修復。束ねPDF(finance_01)は完全に壊れておりNG |
-| QST | qst.go.jp/site/about-qst/1316.html 経由 | 添付ID不透明 → 要スクレイプ、2016- | BS/PL別PDF |
-| NIMS | nims.go.jp/nims/disclosure/finance.html 経由 | CMSハッシュdir → 要スクレイプ | `R{n}_finance_financial-statements.pdf` |
-| KEK | kek.jp/wp-content/uploads/{年月}/R6zaimushohyou.pdf | ファイル名は安定、uploadsパスが不定 → 要スクレイプ、2004- | **国立大学法人会計基準**（千円、行政コスト計算書なし） |
-| ROIS | rois.ac.jp/open/pdf02/R06_zaihyo.pdf | `R{YY}_zaihyo.pdf` 完全予測可、2006- | 国立大学法人会計基準（NII/統数研/遺伝研/極地研を含む） |
-| NINS | nins.jp/open/assets/{40桁hash}.pdf | 完全不透明 → 要スクレイプ | 国立大学法人会計基準 |
-| NIBIOHN | nibn.go.jp（旧nibiohn.go.jpから移転） | `R{n}zaimu_houjin.pdf` ほぼ予測可 | 勘定別に4分割 |
-| NCC | ncc.go.jp/jp/about/org/joho/r6_15_zaimu.pdf | `r{N}_{期数}_zaimu.pdf` | 病院型：受託研究収益の独立行なし（業務収益内） |
+| 機関 | URLパターン | 形式・罠 |
+|---|---|---|
+| 理研 | `zaimu-{西暦}-1.pdf` 完全予測可 | テキスト良好。受託は政府/政府関係法人等/民間の3行 |
+| 産総研 | `r{N}kakutei.pdf` 完全予測可 | r2（2020年度）は概要のみで財務諸表なし。「研究収益」の年次変動大 |
+| JAXA | `finance_r{NN}-01.pdf` 予測可 | r01/r02はCIDフォント破損→vision。費用>収益は実態（経常損失を臨時利益「交付金精算収益化額」で補填） |
+| JAEA | `zaimu_r{YY}-1.pdf` 予測可 | r02のみ財務諸表ページのフォント破損→vision |
+| NICT | `/disclosure/finance/finance-statement/r{N}/…` | BS/PL分割。ファイル名体系が変遷（R4以前1-1-1/1-1-3、R5以降1-1/1-3）。r3〜r5フォント破損→vision |
+| NIES | `/kihon/zaimu/{年}/1-3.pdf` | 貸借対照表(1-1)は2段組で列混線→資産は欠測扱い |
+| JAMSTEC | `/data/pdf/{年}/sonneki.pdf`+`taishaku.pdf` | 個別PDFはテキスト層に数値のみ（ラベル欠落）、束ねPDFは完全破損 → **全年度vision** |
+| ROIS | `R{YY}_zaihyo.pdf` 完全予測可 | 国立大学法人会計基準（千円）。R01フォント破損→vision |
+| 医薬基盤研 | `/finance/documents/R{n}zaimu_houjin.pdf` | 法人単位を使用。受託研究は入れ子ラベルで抽出対象外 |
+| NCC | `r{N}_{期数}_zaimu.pdf`（命名変遷あり） | **康熙部首の異体字（⽤⾦等）→NFKC正規化必須**。R2/R3フォント破損→vision。病院型は医業収益/研究収益が業務収益の内訳 |
+| 防災科研 | `/open/pdf/{令和N:02d}zaimu.pdf` | 2019年度は現行サイトから削除→Wayback Machine。受託は政府受託収入/その他受託収入 |
+| JST | `/announce/zaimu/r{NN}/pdf/{N}jst.pdf` | **r06はCIDフォント完全破損**（3ライブラリで確認、漢字はシフト非一定で復元不能）→vision。大学ファンドで総資産12兆 |
+| 酒類総研 | `/gui/zaimu/pdf/R{NN}_zaimu00or01.pdf` | R04から束ねPDFの連番が繰上げ。Imperva CDNがcurlに偽404を返すことあり |
+| 人間文化 | `/files/hojin/zaimu/zsR{NN}.pdf` | 千円・国立大学法人会計基準。**目次の頁番号を値として拾う罠**→数値は4桁以上/カンマ区切り限定で回避 |
+| 医療センター5法人 | 各センターで命名バラバラ | NCVC=日付入り不規則、NCNP=ハッシュ名+直近5年のみのローリング窓（過年度は厚労省サイトで補完）、成育=r{N}_zaimusyohyo.pdf、長寿=R{N}zaimushohyo.pdf（R5破損→vision）、NCGM=r{N}_zaimushohyou.pdf（2025年4月JIHSへ統合、ドメイン存続） |
+| 農研機構 | `zaimu_r{N}01.pdf`（法人単位） | **naro.go.jpはSECOM ECCルートでPythonの既定CAストアだと検証失敗→certifi必須** |
+| 国際農林水産 | `R{NN}zaimu.pdf` | 2019年度のみ/2020/サブフォルダ下 |
+| 森林機構 | `r{NN}zaimushohyou.pdf`（綴りが3回変化） | **既定のpypdf抽出でPL列順が崩れる→layoutモード必須**。総資産1.2兆は水源林の土地（正しい） |
+| 水産機構 | `R{N}-1-1_R{NN}organization.pdf`（変遷3回） | **「資産合計」行が無い**→同額の「負債純資産合計」で代用 |
+| NEDO | nedo.go.jp/content/{不透明ID}.pdf → 毎年スクレイプ | 法人単位PDFが各年の先頭。GX・半導体基金のパススルーで総資産0.23兆→8.2兆に膨張。資金配分機関としてJSTと共に別枠表示 |
+| 土木研 | `/zaimu/{年}/zaihyo-r{N}.pdf` 予測可 | 全年度テキスト良好。交付金比率84%の典型的研究所型 |
+| 建築研 | `/accounts/r{NN}/1-1.pdf`+`1-3.pdf` | r01・r04フォント破損→vision |
+| 海技研等 | `/wp-umisora101/…/zaimushohyo_r{N}.pdf` | 開示ページは/disclosures/（複数形。単数形は403）。経常損失の年が多い |
+| QST | `uploaded/attachment/{ID}.pdf` 不透明 → 要スクレイプ | BS/PL別PDF。**BSが列優先レイアウト→layoutモード必須**。受託・共同の独立行なし |
+| NIMS | CMSハッシュdir → 要スクレイプ | 束ねPDFが列優先でラベルと数値が分離→**layoutモード必須**。受託は政府受託収入/その他受託収入 |
+| KEK | `wp-content/uploads/{年/月}/R{N}zaimushohyou.pdf` パス不定 → 要スクレイプ | 国立大学法人会計基準（千円。利益処分書のみ円）。アップロード月が年度と大幅にずれる |
+| NINS | 近年は`assets/{40桁hash}.pdf` → 要スクレイプ | 国立大学法人会計基準（千円）。**layoutモードは2019年PDFで壊れる→既定抽出** |
 
-共通の罠: ①ラベルの文字間スペース → 全空白除去後に照合 ②「経常収益合計」を先に照合（附属明細書に「運営費交付金収益」が多数再出現）③交付金は損益計算書の収益化額と決算報告書の交付額を混ぜない ④FY2019以前は行政サービス実施コスト計算書の時代で非比較 ⑤国立健康危機管理研究機構（旧NCGM+NIID）は2025年4月統合。FY2024 交付金収益の序列: JAXA 1,093億 > JAEA 1,049億 > 産総研 727億 > 理研 540億 > JAMSTEC 341億 > …
+共通の罠（fetch_finance.py の pdf_metric が対応済み）: ①ラベルの文字間スペース→全空白除去 ②康熙部首の異体字→NFKC正規化 ③（注1）の数字を値と誤読→注記マーカー除去 ④隣列と融合した数値→厳密3桁カンマ区切りで切る ⑤目次の頁番号→4桁未満の裸数値は不採用 ⑥「資産合計」は行頭アンカー ⑦交付金は損益計算書の収益化額と決算報告書の交付額を混ぜない ⑧フォント破損PDF（漢字はCIDシフト非一定で復元不能）→visionで読み取り経常利益との整合を検証して `static_values` にチェックイン。FY2024 交付金収益（法人単位PLの収益化額）の序列: NEDO 1,267億 > JAXA 1,093億 > JAEA 1,049億 > JST 1,006億 > 産総研 727億 > 理研 540億 > 農研機構 537億 > JAMSTEC 341億
 
 ## 5. 私立大学セクター
 

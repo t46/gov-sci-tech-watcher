@@ -693,42 +693,77 @@ function renderPrivBars(finance) {
   setText("#priv-source", `出典: ${block.source?.title || ""}（${block.fiscal_year || ""}）。${block.note || ""}`);
 }
 
-function renderInstLines(finance) {
+function instLatest(inst) {
+  const years = Object.keys(inst?.values || {}).filter((y) => inst.values[y]).map(Number).sort((a, b) => a - b);
+  if (!years.length) return null;
+  const year = years[years.length - 1];
+  return { year, entry: inst.values[year], years };
+}
+
+function renderInstitutes(finance) {
   const mount = $("#inst-lines");
   const block = finance?.institutes;
   if (!mount || !block || block.status !== "ok") { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
-  mount.innerHTML = "";
-  const palette = { riken: "#ffb545", aist: "#4fd8ff" };
-  const width = mount.clientWidth || 560, height = Math.max(320, width * 0.58);
-  const margin = { top: 24, right: 120, bottom: 32, left: 52 };
-  const points = [];
+  const rows = [];
   for (const inst of block.institutes || []) {
-    for (const [year, entry] of Object.entries(inst.values)) {
-      points.push({ id: inst.id, year: +year, revenue: entry.revenue_total, grants: entry.grants });
-    }
+    const latest = inst ? instLatest(inst) : null;
+    if (!latest || latest.entry.revenue_total == null) continue;
+    rows.push({
+      id: inst.id, label: inst.label, short: inst.short || inst.label,
+      category: inst.category, ministry: inst.ministry || "", role: inst.role || "performer",
+      year: latest.year, revenue: latest.entry.revenue_total, grants: latest.entry.grants,
+      trend: latest.years.map((y) => ({ year: y, revenue: inst.values[y]?.revenue_total })).filter((p) => p.revenue != null),
+    });
   }
-  const x = d3.scaleLinear().domain(d3.extent(points, (p) => p.year)).range([margin.left, width - margin.right]);
-  const y = d3.scaleLinear().domain([0, d3.max(points, (p) => p.revenue) * 1.08]).range([height - margin.bottom, margin.top]);
-  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-    .attr("aria-label", "理研と産総研の経常収益・運営費交付金の推移");
-  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${Math.round(v / 1e8)}億`).tickSize(-(width - margin.left - margin.right))));
-  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
-  for (const inst of block.institutes || []) {
-    const series = Object.entries(inst.values).map(([year, entry]) => ({ year: +year, revenue: entry.revenue_total, grants: entry.grants })).sort((a, b) => a.year - b.year);
-    const color = palette[inst.id] || "#8b96ab";
-    svg.append("path").attr("d", d3.line().x((p) => x(p.year)).y((p) => y(p.revenue)).curve(d3.curveMonotoneX)(series.filter((p) => p.revenue != null)))
-      .attr("fill", "none").attr("stroke", color).attr("stroke-width", 2.2);
-    svg.append("path").attr("d", d3.line().x((p) => x(p.year)).y((p) => y(p.grants)).curve(d3.curveMonotoneX)(series.filter((p) => p.grants != null)))
-      .attr("fill", "none").attr("stroke", color).attr("stroke-width", 1.1).attr("stroke-dasharray", "3 4").attr("opacity", 0.7);
-    const last = series[series.length - 1];
-    svg.append("text").attr("x", x(last.year) + 7).attr("y", y(last.revenue) + 4)
-      .attr("fill", color).attr("font-size", 11).attr("font-weight", 600).text(`${{ riken: "理研", aist: "産総研" }[inst.id] || inst.label} ${Math.round(last.revenue / 1e8)}億`);
-    svg.append("text").attr("x", x(last.year) + 7).attr("y", y(last.grants) + 4)
-      .attr("fill", color).attr("font-size", 9).attr("opacity", 0.75).text(`交付金 ${Math.round(last.grants / 1e8)}億`);
+  rows.sort((a, b) => b.revenue - a.revenue);
+  if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const spark = (trend) => {
+    if (trend.length < 2) return "";
+    const w = 84, h = 22, pad = 2;
+    const x = d3.scaleLinear().domain(d3.extent(trend, (p) => p.year)).range([pad, w - pad]);
+    const y = d3.scaleLinear().domain([0, d3.max(trend, (p) => p.revenue)]).range([h - pad, pad]);
+    const d = trend.map((p, i) => `${i ? "L" : "M"}${x(p.year).toFixed(1)},${y(p.revenue).toFixed(1)}`).join("");
+    const last = trend[trend.length - 1];
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="#ffb545" stroke-width="1.3" opacity="0.85"/><circle cx="${x(last.year).toFixed(1)}" cy="${y(last.revenue).toFixed(1)}" r="1.8" fill="#ffb545"/></svg>`;
+  };
+  const section = (list, title, note) => {
+    if (!list.length) return "";
+    const max = list[0].revenue;
+    return `<p class="ir-group">${escapeHtml(title)}<small>${escapeHtml(note)}</small></p>` + list.map((r) => {
+      const grantShare = r.grants != null && r.revenue ? r.grants / r.revenue : null;
+      return `
+    <div class="ir-row" role="listitem" data-id="i-${escapeHtml(String(r.id))}" tabindex="0" title="${escapeHtml(r.label)}（${escapeHtml(r.ministry)}・${r.year}年度） クリックで解剖ビューへ">
+      <span class="ir-name">${escapeHtml(r.short)}${r.category === "大学共同利用機関法人" ? '<i class="ir-kyodo" title="大学共同利用機関法人">◆</i>' : ""}</span>
+      <span class="ir-bar"><i class="ir-rev" style="width:${Math.max(0.6, (r.revenue / max) * 100)}%"></i>${grantShare != null ? `<i class="ir-grant" style="width:${Math.max(0.3, (r.grants / max) * 100)}%"></i>` : ""}</span>
+      <span class="ir-value">${Math.round(r.revenue / 1e8).toLocaleString("ja-JP")}億<small>${grantShare != null ? `交付金${Math.round(grantShare * 100)}%` : "交付金 —"}</small></span>
+      <span class="ir-spark">${spark(r.trend)}</span>
+    </div>`;
+    }).join("");
+  };
+  const performers = rows.filter((r) => r.role !== "funder");
+  const funders = rows.filter((r) => r.role === "funder");
+  mount.innerHTML = `<div class="inst-rank" role="list">${
+    section(performers, "研究実施機関", "自ら研究を行う法人。棒はグループ内の相対スケール")
+  }${
+    section(funders, "資金配分機関", "JST・NEDO — 収益の大半は基金・補助金のパススルー。スケールが桁違いのため別枠")
+  }</div>`;
+  mount.querySelectorAll(".ir-row").forEach((row) => {
+    const go = () => {
+      if (anatomySelect && anatomySelect(row.dataset.id)) {
+        document.getElementById("ch-anatomy")?.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth" });
+      }
+    };
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); go(); } });
+  });
+  if (!REDUCED && gsap) {
+    gsap.from(mount.querySelectorAll(".ir-rev"), {
+      scaleX: 0, transformOrigin: "left center", duration: 0.9, stagger: 0.02, ease: "power3.out",
+      scrollTrigger: { trigger: mount, start: "top 80%" },
+    });
   }
-  setText("#inst-source", `出典: ${block.source?.title || ""}。実線=経常収益、点線=運営費交付金収益。${block.note || ""}`);
+  const kyodo = rows.filter((r) => r.category === "大学共同利用機関法人").length;
+  setText("#inst-source", `出典: ${block.source?.title || ""}。国立研究開発法人${rows.length - kyodo}機関＋大学共同利用機関法人${kyodo}機関、各機関の最新年度。棒=経常収益、明るい帯=運営費交付金収益、右=経常収益の推移。行をクリックすると08章の解剖ビューが開く。${block.note || ""}`);
 }
 
 function renderSectorLines(finance) {
@@ -777,10 +812,12 @@ function renderSectorLines(finance) {
 const BUCKETS = [
   { key: "public", label: "公費（交付金・補助金）", color: "#4fd8ff" },
   { key: "tuition", label: "学生納付金", color: "#ffb545" },
-  { key: "hospital", label: "附属病院", color: "#e0797a" },
+  { key: "hospital", label: "病院収益", color: "#e0797a" },
   { key: "external", label: "外部資金（受託・共同・寄付）", color: "#5ad8a1" },
   { key: "other", label: "その他", color: "#59687f" },
 ];
+
+let anatomySelect = null;
 
 function buildEntities(finance) {
   const entities = [];
@@ -836,6 +873,37 @@ function buildEntities(finance) {
       });
     }
   }
+  const inst = finance?.institutes;
+  if (inst?.status === "ok") {
+    for (const org of inst.institutes || []) {
+      const latest = org ? instLatest(org) : null;
+      if (!latest || !latest.entry.revenue_total) continue;
+      const e = latest.entry;
+      const commissioned = (e.commissioned || 0) + (e.commissioned_gov || 0) + (e.commissioned_govrel || 0) + (e.commissioned_priv || 0);
+      const buckets = {
+        public: (e.grants || 0) + (e.subsidies || 0),
+        tuition: 0,
+        hospital: e.hospital || 0,
+        external: commissioned + (e.joint || 0) + (e.donations || 0) + (e.research_revenue || 0) + (e.ip_revenue || 0),
+      };
+      buckets.other = Math.max(0, e.revenue_total - buckets.public - buckets.hospital - buckets.external);
+      const series = (key) => latest.years.map((y) => org.values[y]?.[key] ?? null);
+      entities.push({
+        id: `i-${org.id}`, label: org.label, short: org.short,
+        sector: org.category === "大学共同利用機関法人" ? "大学共同利用" : "研究開発法人",
+        year: `${latest.year}年度`, revenue: e.revenue_total, buckets,
+        revenueItems: [
+          ["運営費交付金", e.grants], ["補助金等", e.subsidies], ["受託研究・受託収入", commissioned || null],
+          ["共同研究", e.joint], ["寄付金", e.donations], ["病院（医業収益）", e.hospital],
+          ["研究収益", e.research_revenue], ["知的所有権", e.ip_revenue],
+        ],
+        expenseTotal: e.expense_total, expenseItems: [], expenseResidualLabel: "経常費用計",
+        net: null, assets: e.assets ?? null,
+        note: `${org.ministry ? `${org.ministry}所管。` : ""}${org.accounting === "kokudai" ? "国立大学法人会計基準。" : "独立行政法人会計基準。"}費用の内訳は抽出対象外（収益の財源別内訳のみ）。`,
+        trend: { years: latest.years, revenue: series("revenue_total"), grants: series("grants") },
+      });
+    }
+  }
   return entities;
 }
 
@@ -878,9 +946,9 @@ function initAnatomy(finance) {
     const sorted = [...entities].sort((a, b) => sortValue(b) - sortValue(a));
     gallery.innerHTML = sorted.map((entity) => {
       const selected = entity.id === selectedId;
-      const shortLabel = entity.label.replace(/大学$/, "").replace("国立大学機構", "機構");
+      const shortLabel = entity.short || entity.label.replace(/大学$/, "").replace("国立大学機構", "機構");
       const pct = sortKey === "revenue" ? `${(entity.revenue / 1e8).toFixed(0)}億円` : fmtPct(((entity.buckets[sortKey] || 0) / entity.revenue) * 100);
-      return `<button class="glyph${selected ? " is-selected" : ""}" role="option" aria-selected="${selected}" data-id="${entity.id}" title="${escapeHtml(entity.label)}（${escapeHtml(entity.sector)}） ${pct}">${glyphSvg(entity, selected)}<small>${escapeHtml(shortLabel)}</small></button>`;
+      return `<button class="glyph${selected ? " is-selected" : ""}" role="option" aria-selected="${selected}" data-id="${escapeHtml(String(entity.id))}" title="${escapeHtml(entity.label)}（${escapeHtml(entity.sector)}） ${pct}">${glyphSvg(entity, selected)}<small>${escapeHtml(shortLabel)}</small></button>`;
     }).join("");
     if (!REDUCED && gsap) {
       gsap.from(gallery.children, { opacity: 0, scale: 0.6, duration: 0.5, stagger: 0.004, ease: "power2.out" });
@@ -960,12 +1028,19 @@ function initAnatomy(finance) {
     });
   });
 
+  anatomySelect = (id) => {
+    if (!entities.some((entity) => entity.id === id)) return false;
+    selectedId = id;
+    renderGallery();
+    renderPanel();
+    return true;
+  };
+
   renderGallery();
   renderPanel();
-  const natl = entities.filter((e) => e.sector === "国立").length;
-  const priv = entities.length - natl;
-  setText("#anatomy-lede", `国立${natl}法人＋主要私立${priv}法人の収入構成を、ひとつずつ「かたち」にした。花弁の向きが財源、大きさが割合、全体の大きさが収益規模。かたちが似ている法人は、財務構造が似ている。クリックで内訳まで開く。`);
-  setText("#anatomy-source", "出典: 国立=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。");
+  const count = (sector) => entities.filter((e) => e.sector === sector).length;
+  setText("#anatomy-lede", `国立大学${count("国立")}法人・主要私立${count("私立")}法人・国立研究開発法人${count("研究開発法人")}機関・大学共同利用機関法人${count("大学共同利用")}法人の収入構成を、ひとつずつ「かたち」にした。花弁の向きが財源、大きさが割合、全体の大きさが収益規模。かたちが似ている法人は、財務構造が似ている。クリックで内訳まで開く。`);
+  setText("#anatomy-source", "出典: 国立大=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）、研究機関=国立研究開発法人・大学共同利用機関法人の各法人開示の財務諸表（最新年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準/独立行政法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。");
 }
 
 /* ================================================================= ledger */
@@ -1038,7 +1113,7 @@ async function init() {
   renderPlanBars(indicators);
   renderNatlScatter(finance);
   renderPrivBars(finance);
-  renderInstLines(finance);
+  renderInstitutes(finance);
   renderSectorLines(finance);
   initAnatomy(finance);
   renderLedger(indicators, finance);

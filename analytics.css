@@ -306,6 +306,32 @@ canvas { display: block; }
   .anatomy-stats { margin-left: 0; width: 100%; }
 }
 
+/* -------------------------------------------------- institutes ranked bars */
+.inst-rank { border-top: 1px solid var(--hair); }
+.ir-group { font: 600 10px var(--mono); letter-spacing: 0.2em; color: var(--faint); padding: 18px 4px 8px; }
+.ir-group small { font-weight: 400; letter-spacing: 0.04em; margin-left: 12px; color: var(--dim); }
+.ir-row {
+  display: grid; grid-template-columns: 118px minmax(0, 1fr) 118px 92px;
+  gap: 12px; align-items: center; padding: 6px 4px;
+  border-bottom: 1px solid var(--grid); cursor: pointer;
+  transition: background 0.2s;
+}
+.ir-row:hover, .ir-row:focus-visible { background: rgba(79, 216, 255, 0.05); outline: none; }
+.ir-row:focus-visible { box-shadow: inset 0 0 0 1px var(--cn); }
+.ir-name { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ir-kyodo { font-style: normal; color: var(--good); font-size: 9px; margin-left: 5px; vertical-align: 1px; }
+.ir-bar { position: relative; height: 12px; background: var(--grid); overflow: hidden; }
+.ir-bar i { position: absolute; top: 0; bottom: 0; left: 0; }
+.ir-bar .ir-rev { background: #3d4c63; }
+.ir-bar .ir-grant { background: var(--cn); opacity: 0.85; }
+.ir-value { font: 400 11px var(--mono); color: var(--text); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ir-value small { display: block; color: var(--faint); font-size: 9px; }
+.ir-spark { display: flex; justify-content: flex-end; }
+@media (max-width: 760px) {
+  .ir-row { grid-template-columns: 96px minmax(0, 1fr) 100px; }
+  .ir-spark { display: none; }
+}
+
 /* ---------------------------------------------------------------- console */
 .console { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; }
 .console-feed { border-top: 1px solid var(--hair); }

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260808" />
+    <link rel="stylesheet" href="analytics.css?v=20260808b" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -146,7 +146,7 @@
         <div class="ch-head">
           <p class="ch-no">07 / FINANCIAL STATEMENTS</p>
           <h2 id="finance-title">大学・研究所の財務諸表</h2>
-          <p class="ch-lede" id="finance-lede">国立大学法人・主要私立大学・国立研究開発法人の財務諸表を、同じ物差しで並べる。</p>
+          <p class="ch-lede" id="finance-lede">国立大学法人・主要私立大学・国立研究開発法人・大学共同利用機関法人の財務諸表を、同じ物差しで並べる。</p>
         </div>
         <figure class="fig fig-wide">
           <figcaption><span class="fig-kicker">A</span>国立大学法人 — 経常収益と運営費交付金依存度（2024年度）</figcaption>
@@ -154,18 +154,16 @@
           <div class="terrain-hover" id="natl-hover" aria-hidden="true"></div>
           <p class="method-note" id="natl-source">出典を確認中</p>
         </figure>
-        <div class="duo" style="margin-top: 56px">
-          <figure class="fig">
-            <figcaption><span class="fig-kicker">B</span>主要私立16大学 — 事業活動収入の構成（2025年度）</figcaption>
-            <div class="fig-body" id="priv-bars"></div>
-            <p class="method-note" id="priv-source">出典を確認中</p>
-          </figure>
-          <figure class="fig">
-            <figcaption><span class="fig-kicker">C</span>理研・産総研 — 経常収益と運営費交付金の推移</figcaption>
-            <div class="fig-body" id="inst-lines"></div>
-            <p class="method-note" id="inst-source">出典を確認中</p>
-          </figure>
-        </div>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>国立研究開発法人・大学共同利用機関法人 — 経常収益と運営費交付金（最新年度）</figcaption>
+          <div class="fig-body" id="inst-lines"></div>
+          <p class="method-note" id="inst-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">C</span>主要私立16大学 — 事業活動収入の構成（2025年度）</figcaption>
+          <div class="fig-body" id="priv-bars"></div>
+          <p class="method-note" id="priv-source">出典を確認中</p>
+        </figure>
         <figure class="fig fig-wide" style="margin-top: 56px">
           <figcaption><span class="fig-kicker">D</span>私立大学セクター全体 — 収入と支出の53年（私大連加盟法人）</figcaption>
           <div class="fig-body" id="sector-lines"></div>
@@ -177,8 +175,8 @@
       <section class="chapter" id="ch-anatomy" aria-labelledby="anatomy-title">
         <div class="ch-head">
           <p class="ch-no">08 / FINANCIAL ANATOMY</p>
-          <h2 id="anatomy-title">大学の財務のかたち</h2>
-          <p class="ch-lede" id="anatomy-lede">国立91法人と主要私立16法人の収入構成を、ひとつずつ「かたち」にする。花弁の向きが財源、大きさが割合。かたちが似ている大学は、財務構造が似ている。</p>
+          <h2 id="anatomy-title">大学・研究機関の財務のかたち</h2>
+          <p class="ch-lede" id="anatomy-lede">国立大学・私立大学・国立研究開発法人・大学共同利用機関法人の収入構成を、ひとつずつ「かたち」にする。花弁の向きが財源、大きさが割合。かたちが似ている法人は、財務構造が似ている。</p>
         </div>
         <div class="glyph-legend" id="glyph-legend" aria-hidden="true"></div>
         <div class="glyph-toolbar" id="glyph-sort" role="toolbar" aria-label="並べ替え">
@@ -208,6 +206,6 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-    <script src="money.js?v=20260808" defer></script>
+    <script src="money.js?v=20260808b" defer></script>
   </body>
 </html>
