@@ -577,15 +577,42 @@ function renderInstitutions(indicators) {
 function initFlows(indicators, analytics) {
   const canvas = $("#flow-canvas");
   const people = analytics?.reality?.people;
+  const funding = indicators?.funding_flow;
   if (!canvas || !people || people.status !== "ok") {
     if (canvas) canvas.closest(".flow-stage").innerHTML = '<p class="data-empty" style="padding:30px">研究者移動のデータを取得できませんでした。</p>';
     return;
   }
-  const PER_PARTICLE = 50;
-  const links = (people.links || []).filter((l) => l.value > 0);
-  const sourceNames = ["企業", "非営利団体", "公的機関", "大学等", "その他"];
-  const targetNames = ["企業", "非営利団体", "公的機関", "大学等"];
-  const sectorColor = { "企業": "#a7b4cc", "非営利団体": "#8d7fb0", "公的機関": "#5ad8a1", "大学等": "#ffb545", "その他": "#59687f" };
+  const sectorColor = { "企業": "#a7b4cc", "非営利団体": "#8d7fb0", "公的機関": "#5ad8a1", "大学等": "#ffb545", "大学": "#ffb545", "その他": "#59687f", "政府": "#4fd8ff", "外国": "#c9a76a" };
+  const peopleTotal = d3.sum(people.links || [], (l) => l.value);
+  const MODES = {
+    people: {
+      links: (people.links || []).filter((l) => l.value > 0),
+      sourceNames: ["企業", "非営利団体", "公的機関", "大学等", "その他"],
+      targetNames: ["企業", "非営利団体", "公的機関", "大学等"],
+      perParticle: 50,
+      fmtValue: (v) => `${fmtInt(v)}人`,
+      lede: `${analytics.reality.survey_year}年調査で観測された研究者の組織間移動は${fmtInt(peopleTotal)}人。粒子1つ＝研究者50人として流している。`,
+      sourceNote: `出典: 総務省 科学技術研究調査（${analytics.reality.survey_year}年調査）。「大学等→大学等」等の同一部門間移動を含む。`,
+      axisLeft: "移動元",
+      axisRight: "移動先（採用・転入）",
+      detailOut: "転出先",
+      detailIn: "転入元",
+    },
+    money: funding && funding.status === "ok" ? {
+      links: (funding.links || []).filter((l) => l.value > 0),
+      sourceNames: ["企業", "政府", "大学", "非営利団体", "外国"],
+      targetNames: ["企業", "公的機関", "大学", "非営利団体"],
+      perParticle: 25000,
+      fmtValue: (v) => fmtCho(v),
+      lede: `${funding.year_label}の研究開発費${fmtCho(d3.sum(funding.links, (l) => l.value))}が、負担部門から使用部門へ流れる。粒子1つ＝250億円。`,
+      sourceNote: `出典: ${funding.source?.title || ""}。${funding.note || ""}`,
+      axisLeft: "負担部門",
+      axisRight: "使用部門",
+      detailOut: "支出先",
+      detailIn: "受入元",
+    } : null,
+  };
+  let mode = MODES.people;
 
   let geom = null;
   let focus = null;
@@ -594,6 +621,7 @@ function initFlows(indicators, analytics) {
 
   function layout() {
     const { ctx, width, height } = fitCanvas(canvas);
+    const { links, sourceNames, targetNames, perParticle } = mode;
     const pad = { top: 46, bottom: 46 };
     const leftX = width * (MOBILE ? 0.1 : 0.16);
     const rightX = width * (MOBILE ? 0.9 : 0.84);
@@ -628,7 +656,7 @@ function initFlows(indicators, analytics) {
     particles.length = 0;
     if (!REDUCED) {
       for (const link of linkGeo) {
-        const n = Math.max(1, Math.round(link.value / PER_PARTICLE));
+        const n = Math.max(1, Math.round(link.value / perParticle));
         for (let i = 0; i < Math.min(n, 320); i += 1) {
           particles.push({ link, t: Math.random(), speed: 0.0016 + Math.random() * 0.0022, size: 0.8 + Math.random() * 1.4 });
         }
@@ -669,16 +697,16 @@ function initFlows(indicators, analytics) {
       ctx.fillText(node.name, node.x + (isSource ? -12 : 12), (node.y0 + node.y1) / 2 + 4);
       ctx.fillStyle = "#8b96ab";
       ctx.font = '400 10px "IBM Plex Mono", monospace';
-      ctx.fillText(`${fmtInt(node.total)}人`, node.x + (isSource ? -12 : 12), (node.y0 + node.y1) / 2 + 19);
+      ctx.fillText(mode.fmtValue(node.total), node.x + (isSource ? -12 : 12), (node.y0 + node.y1) / 2 + 19);
       ctx.font = '500 12px "IBM Plex Mono", monospace';
       ctx.globalAlpha = 1;
     }
     ctx.textAlign = "left";
     ctx.fillStyle = "#4c5a72";
     ctx.font = '500 10px "IBM Plex Mono", monospace';
-    ctx.fillText("移動元", geom.width * 0.05, 26);
+    ctx.fillText(mode.axisLeft, geom.width * 0.05, 26);
     ctx.textAlign = "right";
-    ctx.fillText("移動先（採用・転入）", geom.width * 0.95, 26);
+    ctx.fillText(mode.axisRight, geom.width * 0.95, 26);
     ctx.textAlign = "left";
   }
 
@@ -707,10 +735,10 @@ function initFlows(indicators, analytics) {
     const detail = $("#flow-detail");
     if (!detail) return;
     if (!name) { detail.innerHTML = "セクターに触れると、流れの内訳を表示"; return; }
-    const outbound = links.filter((l) => l.source === name).sort((a, b) => b.value - a.value);
-    const inbound = links.filter((l) => l.target === name).sort((a, b) => b.value - a.value);
-    const top = (list, dir) => list.slice(0, 2).map((l) => `${dir === "out" ? l.target : l.source} ${fmtInt(l.value)}人`).join(" / ");
-    detail.innerHTML = `<b>${escapeHtml(name)}</b> — 転出先: ${escapeHtml(top(outbound, "out") || "—")}<br>転入元: ${escapeHtml(top(inbound, "in") || "—")}`;
+    const outbound = mode.links.filter((l) => l.source === name).sort((a, b) => b.value - a.value);
+    const inbound = mode.links.filter((l) => l.target === name).sort((a, b) => b.value - a.value);
+    const top = (list, dir) => list.slice(0, 2).map((l) => `${dir === "out" ? l.target : l.source} ${mode.fmtValue(l.value)}`).join(" / ");
+    detail.innerHTML = `<b>${escapeHtml(name)}</b> — ${mode.detailOut}: ${escapeHtml(top(outbound, "out") || "—")}<br>${mode.detailIn}: ${escapeHtml(top(inbound, "in") || "—")}`;
   }
 
   canvas.addEventListener("pointermove", (event) => {
@@ -726,7 +754,31 @@ function initFlows(indicators, analytics) {
     if (REDUCED && geom) { const { ctx, width, height } = geom; ctx.clearRect(0, 0, width, height); drawBase(); }
   });
 
-  layout();
+  function applyMode() {
+    focus = null;
+    setFocus(null);
+    layout();
+    if (REDUCED && geom) { const { ctx, width, height } = geom; ctx.clearRect(0, 0, width, height); drawBase(); }
+    setText("#flows-lede", mode.lede);
+    setText("#flows-source", mode.sourceNote);
+  }
+
+  const modeButtons = $$("#flow-mode button");
+  if (!MODES.money) {
+    const moneyButton = modeButtons.find((b) => b.dataset.mode === "money");
+    if (moneyButton) moneyButton.disabled = true;
+  }
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const next = MODES[button.dataset.mode];
+      if (!next || next === mode) return;
+      mode = next;
+      modeButtons.forEach((b) => { b.classList.toggle("is-active", b === button); b.setAttribute("aria-selected", b === button ? "true" : "false"); });
+      applyMode();
+    });
+  });
+
+  applyMode();
   if (REDUCED) { drawBase(); } else {
     const observer = new IntersectionObserver((entries) => {
       const visible = entries[0]?.isIntersecting;
@@ -737,9 +789,6 @@ function initFlows(indicators, analytics) {
     frame();
   }
   window.addEventListener("resize", () => { layout(); if (REDUCED) drawBase(); }, { passive: true });
-
-  const total = d3.sum(links, (l) => l.value);
-  setText("#flows-lede", `${analytics.reality.survey_year}年調査で観測された研究者の組織間移動は${fmtInt(total)}人。粒子1つ＝研究者${PER_PARTICLE}人として流している。`);
 
   /* money strip */
   const money = analytics?.reality?.money;
@@ -755,7 +804,6 @@ function initFlows(indicators, analytics) {
         <span class="m-note">内部使用研究費 / ${fmtInt(r.organizations)}組織</span>
       </div>`).join("");
   }
-  setText("#flows-source", `出典: 総務省 科学技術研究調査（${analytics?.reality?.survey_year || "—"}年調査）。移動先「大学等→大学等」等の同一部門間移動を含む。`);
 }
 
 /* ================================================================ 05 LIVE */
@@ -811,7 +859,7 @@ function renderLedger(indicators, analytics, updates) {
   };
   const ind = indicators || {};
   push(ind.gerd_gdp); push(ind.researchers); push(ind.phd_enrollment); push(ind.phd_degrees);
-  push(ind.papers); push(ind.field_share); push(ind.oecd_gerd_gdp); push(ind.openalex); push(ind.estat);
+  push(ind.papers); push(ind.field_share); push(ind.funding_flow); push(ind.oecd_gerd_gdp); push(ind.openalex); push(ind.estat);
   for (const source of analytics?.reality?.sources || []) {
     entries.push({ title: source.title, url: source.url, status: source.status === "ok" ? "ok" : "unavailable" });
   }

@@ -118,8 +118,12 @@
       <section class="chapter" id="ch-flows" aria-labelledby="flows-title">
         <div class="ch-head">
           <p class="ch-no">04 / SYSTEM FLOWS</p>
-          <h2 id="flows-title">セクター間の研究人材の移動</h2>
+          <h2 id="flows-title">セクター間の研究人材・研究資金の移動</h2>
           <p class="ch-lede" id="flows-lede">研究者の移動（実測値）を光の軌道として描く。粒子1つ＝研究者50人。</p>
+        </div>
+        <div class="flow-mode" id="flow-mode" role="tablist" aria-label="人材と資金の切替">
+          <button class="is-active" role="tab" aria-selected="true" data-mode="people">人材の移動</button>
+          <button role="tab" aria-selected="false" data-mode="money">資金の流れ</button>
         </div>
         <div class="flow-stage">
           <canvas id="flow-canvas"></canvas>

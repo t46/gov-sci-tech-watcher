@@ -269,6 +269,31 @@ def block_field_share() -> dict[str, object]:
     }
 
 
+def block_funding_flow() -> dict[str, object]:
+    """表1-1-5 (A)日本: 負担部門→使用部門の研究開発費マトリクス（2023年度、100万円）."""
+    rows = read_sheet(nistep_table("1-1-05"), "xl/worksheets/sheet2.xml")
+    use_columns = {"D": "企業", "E": "公的機関", "F": "大学", "I": "非営利団体"}
+    # 行8=企業、行10=政府（行9「政府計」は国・公立大学を含むため使わない）、行13=非営利、行14=外国
+    fund_rows = {8: "企業", 10: "政府", 13: "非営利団体", 14: "外国"}
+    links: list[dict[str, object]] = []
+    for row_index, funder in fund_rows.items():
+        for column, user in use_columns.items():
+            value = number(rows.get(row_index, {}).get(column))
+            if value is not None and value > 0:
+                links.append({"source": funder, "target": user, "value": value})
+    # 大学 = 国・公立大学(11) + 私立大学(12)
+    for column, user in use_columns.items():
+        total = sum(v for v in (number(rows.get(idx, {}).get(column)) for idx in (11, 12)) if v is not None and v > 0)
+        if total > 0:
+            links.append({"source": "大学", "target": user, "value": total})
+    return {
+        "status": "ok", "unit": "百万円", "year_label": "2023年度",
+        "source": nistep_source("1-1-5", "主要国の負担部門から使用部門への研究開発費の流れ（日本）"),
+        "note": "負担者「大学」は国・公立大学と私立大学の合計。原資料は総務省 科学技術研究調査。",
+        "links": links,
+    }
+
+
 # ------------------------------------------------------------------- OECD MSTI
 
 def oecd_query(key: str, start: int) -> list[dict[str, str]]:
@@ -427,6 +452,7 @@ def main() -> int:
         "phd_degrees": run_block("phd_degrees", block_phd_degrees),
         "papers": run_block("papers", block_paper_share),
         "field_share": run_block("field_share", block_field_share),
+        "funding_flow": run_block("funding_flow", block_funding_flow),
         "oecd_gerd_gdp": run_block("oecd_gerd_gdp", lambda: block_oecd("G.PT_B1GQ..", 1990, "%", "GERD as percentage of GDP", "2024年は暫定値を含む。")),
         "oecd_researchers": run_block("oecd_researchers", lambda: block_oecd("T_RS.10P3EMP..", 1990, "人/千人雇用", "Researchers per 1000 employment")),
         "oecd_gov_financed": run_block("oecd_gov_financed", lambda: block_oecd("G_FG.PT_GERD..", 1990, "%", "Government-financed GERD share")),
