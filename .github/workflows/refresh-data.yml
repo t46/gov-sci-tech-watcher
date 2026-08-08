@@ -78,6 +78,6 @@ jobs:
           npm ci
           publish_dir="$RUNNER_TEMP/science-signal-site"
           mkdir -p "$publish_dir/data"
-          cp index.html analytics.html analytics.js analytics.css _headers "$publish_dir/"
+          cp index.html analytics.html analytics.js analytics.css money.html money.js _headers "$publish_dir/"
           cp data/updates.json data/analytics.json data/indicators.json "$publish_dir/data/"
           npx wrangler pages deploy "$publish_dir" --project-name science-signal --branch main --commit-message "refresh government updates"

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="日本の研究開発資金の流れを一次データで描く。負担部門から使用部門への22兆円、政府マネーの42年、府省庁別予算、産学連携、国際比較、基本計画。" />
+    <meta name="theme-color" content="#06090f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
+    <title>資金 — SCIENCE SIGNAL 日本の科学技術観測室</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="analytics.css?v=20260808" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へ移動</a>
+
+    <header class="obs-header">
+      <a class="obs-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="obs-brand-dot" aria-hidden="true"></span>SCIENCE SIGNAL</a>
+      <nav class="obs-nav" aria-label="メインナビゲーション">
+        <a href="./">観測室</a>
+        <a class="active" href="money.html">資金</a>
+      </nav>
+      <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">資金データを取得中</span></div>
+    </header>
+
+    <nav class="chapter-rail" aria-label="章ナビゲーション">
+      <a href="#ch-flow" data-rail="ch-flow"><i>00</i><span>資金の流れ</span></a>
+      <a href="#ch-gov" data-rail="ch-gov"><i>01</i><span>政府マネー42年</span></a>
+      <a href="#ch-ministry" data-rail="ch-ministry"><i>02</i><span>府省庁別予算</span></a>
+      <a href="#ch-sangaku" data-rail="ch-sangaku"><i>03</i><span>産学連携</span></a>
+      <a href="#ch-kakenhi" data-rail="ch-kakenhi"><i>04</i><span>科研費</span></a>
+      <a href="#ch-support" data-rail="ch-support"><i>05</i><span>企業支援の国際比較</span></a>
+      <a href="#ch-plan" data-rail="ch-plan"><i>06</i><span>基本計画と予算</span></a>
+    </nav>
+
+    <main id="main">
+
+      <!-- 00 · FUNDING FLOW HERO -->
+      <section class="chapter hero" id="ch-flow" aria-labelledby="flow-title">
+        <div class="hero-copy" style="max-width: 1100px">
+          <p class="eyebrow"><span></span>SCIENCE SIGNAL / MONEY — 研究開発資金の観測</p>
+          <h1 id="flow-title">研究開発費<em>22.1兆円</em>。<br />政府のカネは、<em>2.6兆円</em>。</h1>
+          <p class="hero-lede" id="flow-lede">2023年度、負担部門から使用部門への研究開発費の流れ。粒子1つ＝250億円。</p>
+        </div>
+        <div class="flow-stage" style="margin-top: 34px">
+          <canvas id="flow-canvas"></canvas>
+          <div class="flow-detail" id="flow-detail" aria-live="polite">セクターに触れると、流れの内訳を表示</div>
+        </div>
+        <p class="method-note" id="flow-source">出典を確認中</p>
+      </section>
+
+      <!-- 01 · GOVERNMENT MONEY 42Y -->
+      <section class="chapter" id="ch-gov" aria-labelledby="gov-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / GOVERNMENT MONEY 1981–2023</p>
+          <h2 id="gov-title">政府負担研究費の支出先の推移</h2>
+          <p class="ch-lede" id="gov-lede">政府が負担する研究開発費が、どの部門で使われてきたかの割合。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="gov-stream"></div>
+          <div class="terrain-hover" id="gov-hover" aria-hidden="true"></div>
+          <p class="method-note" id="gov-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 02 · MINISTRY BUDGET -->
+      <section class="chapter" id="ch-ministry" aria-labelledby="ministry-title">
+        <div class="ch-head">
+          <p class="ch-no">02 / MINISTRY BUDGETS 1989–2025</p>
+          <h2 id="ministry-title">府省庁別の科学技術関係予算の推移</h2>
+          <p class="ch-lede" id="ministry-lede">国の科学技術関係予算（当初予算）が、どの府省庁を通るか。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="ministry-stream"></div>
+          <div class="terrain-hover" id="ministry-hover" aria-hidden="true"></div>
+          <p class="method-note" id="ministry-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 03 · INDUSTRY-ACADEMIA -->
+      <section class="chapter" id="ch-sangaku" aria-labelledby="sangaku-title">
+        <div class="ch-head">
+          <p class="ch-no">03 / INDUSTRY → ACADEMIA</p>
+          <h2 id="sangaku-title">企業から大学等への研究資金の推移</h2>
+          <p class="ch-lede" id="sangaku-lede">資金の流れで最も細い管のひとつ、産学のあいだの金額。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>大学等が企業から受け入れた研究費 1986–2023</figcaption>
+            <div class="fig-body" id="sangaku-line"></div>
+            <p class="method-note" id="sangaku-line-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>共同研究・受託研究・治験等の受入額 2006–2023</figcaption>
+            <div class="fig-body" id="sangaku-joint"></div>
+            <p class="method-note" id="sangaku-joint-source">出典を確認中</p>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 04 · KAKENHI -->
+      <section class="chapter" id="ch-kakenhi" aria-labelledby="kakenhi-title">
+        <div class="ch-head">
+          <p class="ch-no">04 / KAKENHI</p>
+          <h2 id="kakenhi-title">科研費の機関別配分</h2>
+          <p class="ch-lede" id="kakenhi-lede">競争的資金の代表・科学研究費助成事業が、どの研究機関に配分されているか。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="kakenhi-chart"></div>
+          <p class="method-note" id="kakenhi-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 05 · GOV SUPPORT INTERNATIONAL -->
+      <section class="chapter" id="ch-support" aria-labelledby="support-title">
+        <div class="ch-head">
+          <p class="ch-no">05 / GOVERNMENT SUPPORT FOR BUSINESS R&amp;D</p>
+          <h2 id="support-title">企業の研究開発への政府支援、国際比較</h2>
+          <p class="ch-lede" id="support-lede">直接支援（政府負担の企業研究費）と間接支援（研究開発減税）の対GDP比。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="support-scatter"></div>
+          <p class="method-note" id="support-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 06 · BASIC PLAN BUDGET -->
+      <section class="chapter" id="ch-plan" aria-labelledby="plan-title">
+        <div class="ch-head">
+          <p class="ch-no">06 / S&amp;T BASIC PLANS 1996–2025</p>
+          <h2 id="plan-title">科学技術基本計画と国の予算</h2>
+          <p class="ch-lede" id="plan-lede">6期30年の基本計画のもとでの、当初予算と補正予算。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="plan-bars"></div>
+          <div class="terrain-hover" id="plan-hover" aria-hidden="true"></div>
+          <p class="method-note" id="plan-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <footer class="obs-footer">
+        <div class="ledger" id="ledger">
+          <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
+        </div>
+        <div class="obs-footer-row">
+          <span>SCIENCE SIGNAL / MONEY</span>
+          <span>測っていないものを、測ったようには描かない。</span>
+          <span id="footer-year">2026</span>
+        </div>
+      </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+    <script src="money.js?v=20260808" defer></script>
+  </body>
+</html>

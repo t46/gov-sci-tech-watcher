@@ -73,6 +73,10 @@ canvas { display: block; }
   font: 600 13px var(--mono); letter-spacing: 0.14em;
 }
 .obs-brand-dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--jp); }
+.obs-nav { display: flex; gap: 22px; font: 500 12px var(--mono); letter-spacing: 0.06em; }
+.obs-nav a { color: var(--dim); padding: 4px 0; border-bottom: 1px solid transparent; transition: color 0.25s; }
+.obs-nav a:hover { color: var(--text); }
+.obs-nav a.active { color: var(--jp); border-bottom-color: var(--jp); }
 .obs-status { display: flex; align-items: center; gap: 8px; font: 400 11px var(--mono); color: var(--dim); }
 .obs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
 .obs-status-dot.is-live { background: var(--good); box-shadow: 0 0 8px rgba(90, 216, 161, 0.7); }

@@ -294,6 +294,191 @@ def block_funding_flow() -> dict[str, object]:
     }
 
 
+def block_gov_spending_dest() -> dict[str, object]:
+    """表1-2-5 (A)日本: 政府負担研究開発費の支出先内訳の推移（%）."""
+    rows = read_sheet(nistep_table("1-2-05"), "xl/worksheets/sheet2.xml")
+    columns = {"B": "企業", "D": "公的機関", "F": "大学", "H": "非営利団体"}
+    entries = []
+    for index in sorted(row for row in rows if row >= 6):
+        year_text = rows[index].get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            break
+        entry = {"year": int(year_text)}
+        for column, label in columns.items():
+            value = number(rows[index].get(column))
+            if value is not None:
+                entry[label] = value
+        entries.append(entry)
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("1-2-5", "主要国における政府負担研究開発費の支出先の内訳の推移（日本）"),
+        "note": "使用部門側から見た政府負担研究開発費の配分割合。原資料は総務省 科学技術研究調査。",
+        "rows": entries,
+    }
+
+
+def block_ministry_budget() -> dict[str, object]:
+    """表1-2-8 (A)当初予算: 府省庁別の科学技術関係予算（100万円）— 年度バンドが複数ブロック."""
+    rows = read_sheet(nistep_table("1-2-08"), "xl/worksheets/sheet2.xml")
+    data: dict[str, dict[int, float]] = {}
+    year_columns: dict[str, int] = {}
+    in_block_a = False
+    for index in sorted(rows):
+        values = rows[index]
+        label = values.get("A", "")
+        if re.match(r"^\([A-Z]\)", label):
+            in_block_a = label.startswith("(A)")
+            continue
+        if label.startswith(("注", "資料", "表")) or not in_block_a:
+            if label.startswith(("注", "資料")):
+                in_block_a = False
+            continue
+        years_in_row = {column: int(text) for column, text in values.items() if column != "A" and re.fullmatch(r"(19|20)\d{2}", text)}
+        if len(years_in_row) >= 3:
+            year_columns = years_in_row
+            continue
+        if label and label not in {"省庁別", "（当時）"} and not re.fullmatch(r"合\s*計", label) and year_columns:
+            ministry = data.setdefault(label, {})
+            for column, year in year_columns.items():
+                value = number(values.get(column))
+                if value is not None:
+                    ministry[year] = value
+    series = [
+        {"label": name, "values": sorted([[year, value] for year, value in points.items()])}
+        for name, points in data.items()
+        if points
+    ]
+    return {
+        "status": "ok", "unit": "百万円",
+        "source": nistep_source("1-2-8", "府省庁別の科学技術関係予算の推移（当初予算）"),
+        "note": "2001年の省庁再編前後で名称・所掌が変わる（例: 科学技術庁・文部省→文部科学省）。",
+        "series": series,
+    }
+
+
+def block_industry_academia() -> dict[str, object]:
+    """表1-3-17: 大学等が企業から受け入れた研究費の推移（100万円）."""
+    rows = read_sheet(nistep_table("1-3-17"), "xl/worksheets/sheet2.xml")
+    columns = {"B": "総額", "D": "国立大学", "F": "公立大学", "H": "私立大学"}
+    entries = []
+    for index in sorted(row for row in rows if row >= 5):
+        year_text = rows[index].get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            break
+        entry = {"year": int(year_text)}
+        for column, label in columns.items():
+            value = number(rows[index].get(column))
+            if value is not None:
+                entry[label] = value
+        entries.append(entry)
+    return {
+        "status": "ok", "unit": "百万円",
+        "source": nistep_source("1-3-17", "大学等における内部使用研究費のうち企業から受け入れた金額の推移"),
+        "rows": entries,
+    }
+
+
+def block_joint_research() -> dict[str, object]:
+    """表5-4-5 (A): 大学等の共同研究・受託研究の受入額推移（千円）."""
+    rows = read_sheet(nistep_table("5-4-05"), "xl/worksheets/sheet2.xml")
+    data: dict[str, list[list[object]]] = {}
+    current: str | None = None
+    for index in sorted(rows):
+        values = rows[index]
+        label = values.get("A", "")
+        if label in {"共同研究", "受託研究", "治験等"}:
+            current = label
+        elif label.startswith(("注", "資料")):
+            current = None
+        year_text = values.get("B", "")
+        if current and re.fullmatch(r"\d{4}", year_text):
+            total = number(values.get("L"))
+            year = int(year_text)
+            series = data.setdefault(current, [])
+            if total is not None and all(existing[0] != year for existing in series):
+                series.append([year, total])
+    return {
+        "status": "ok", "unit": "千円",
+        "source": nistep_source("5-4-5", "日本の大学等の民間企業等との共同研究等にかかる受入額の推移"),
+        "note": "受入額の合計（外国企業・寄附講座等を含む）。原資料は文部科学省 産学連携等実施状況調査。",
+        "series": [{"label": name, "values": sorted(points)} for name, points in data.items()],
+    }
+
+
+def block_gov_support_business() -> dict[str, object]:
+    """表1-3-10: 企業の研究開発への政府の直接的・間接的支援（対GDP比%）."""
+    rows = read_sheet(nistep_table("1-3-10"), "xl/worksheets/sheet2.xml")
+    countries = []
+    japan_series = []
+    for index in sorted(row for row in rows if row >= 7):
+        values = rows[index]
+        name = values.get("A", "")
+        if name and not name.startswith(("注", "資料")):
+            direct = number(values.get("B"))
+            indirect = number(values.get("C"))
+            match = re.match(r"(.+?)\((\d{4})\)", name)
+            if match and direct is not None:
+                countries.append({"label": match.group(1), "year": int(match.group(2)), "direct": direct, "indirect": indirect or 0})
+        year_text = values.get("E", "")
+        if re.fullmatch(r"\d{4}", year_text):
+            direct = number(values.get("F"))
+            indirect = number(values.get("G"))
+            if direct is not None:
+                japan_series.append({"year": int(year_text), "direct": direct, "indirect": indirect or 0})
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("1-3-10", "企業の研究開発のための政府による直接的支援・間接的支援"),
+        "note": "対GDP比。直接支援=政府負担分の企業研究開発費、間接支援=研究開発税制による控除額。OECD R&D Tax Incentives Database。",
+        "countries": countries,
+        "japan": sorted(japan_series, key=lambda entry: entry["year"]),
+    }
+
+
+def block_plan_budget() -> dict[str, object]:
+    """表1-2-6: 科学技術基本計画の期間ごとの国の科学技術関係予算（億円）."""
+    rows = read_sheet(nistep_table("1-2-06"), "xl/worksheets/sheet2.xml")
+    entries = []
+    period: str | None = None
+    header: dict[str, str] = {}
+    for index in sorted(rows):
+        values = rows[index]
+        label = values.get("A", "")
+        match = re.search(r"第(\d+)期", label)
+        if match and "基本計画" in label:
+            period = f"第{match.group(1)}期"
+            header = {}
+            continue
+        if label == "年度":
+            header = {column: text for column, text in values.items()}
+            continue
+        if label.startswith(("注", "資料")):
+            period = None
+            continue
+        if period and header and re.fullmatch(r"\d{4}", label):
+            initial = number(values.get("B"))
+            regional_column = next((column for column, text in header.items() if "都道府県" in text), None)
+            total_column = next((column for column, text in header.items() if text == "合計"), None)
+            supplementary = 0.0
+            for column, value_text in values.items():
+                if column in {"A", "B"} or column == regional_column or column == total_column:
+                    continue
+                value = number(value_text)
+                if value is not None:
+                    supplementary += value
+            entry = {"period": period, "year": int(label), "initial": initial, "supplementary": round(supplementary, 1)}
+            if regional_column:
+                regional = number(values.get(regional_column))
+                if regional is not None:
+                    entry["regional"] = regional
+            entries.append(entry)
+    return {
+        "status": "ok", "unit": "億円",
+        "source": nistep_source("1-2-6", "基本計画のもとでの科学技術関係予算の推移"),
+        "note": "当初予算と補正予算等（国分）。第2期以降の表にある都道府県・政令指定都市分は別掲し、合計には含めない。",
+        "rows": entries,
+    }
+
+
 # ------------------------------------------------------------------- OECD MSTI
 
 def oecd_query(key: str, start: int) -> list[dict[str, str]]:
@@ -453,6 +638,12 @@ def main() -> int:
         "papers": run_block("papers", block_paper_share),
         "field_share": run_block("field_share", block_field_share),
         "funding_flow": run_block("funding_flow", block_funding_flow),
+        "gov_spending_dest": run_block("gov_spending_dest", block_gov_spending_dest),
+        "ministry_budget": run_block("ministry_budget", block_ministry_budget),
+        "industry_academia": run_block("industry_academia", block_industry_academia),
+        "joint_research": run_block("joint_research", block_joint_research),
+        "gov_support_business": run_block("gov_support_business", block_gov_support_business),
+        "plan_budget": run_block("plan_budget", block_plan_budget),
         "oecd_gerd_gdp": run_block("oecd_gerd_gdp", lambda: block_oecd("G.PT_B1GQ..", 1990, "%", "GERD as percentage of GDP", "2024年は暫定値を含む。")),
         "oecd_researchers": run_block("oecd_researchers", lambda: block_oecd("T_RS.10P3EMP..", 1990, "人/千人雇用", "Researchers per 1000 employment")),
         "oecd_gov_financed": run_block("oecd_gov_financed", lambda: block_oecd("G_FG.PT_GERD..", 1990, "%", "Government-financed GERD share")),
