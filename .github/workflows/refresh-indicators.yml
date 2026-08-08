@@ -1,0 +1,48 @@
+name: Refresh indicator series
+
+on:
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: refresh-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  refresh-indicators:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: latest
+      - name: Fetch indicator series
+        env:
+          ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
+          OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+        run: uv run python scripts/fetch_indicators.py
+      - name: Commit refreshed indicators
+        run: |
+          git config user.name "gov-sci-tech-watcher[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add data/indicators.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_ENV"
+          else
+            git commit -m "chore: refresh indicator series"
+            git push
+            echo "changed=true" >> "$GITHUB_ENV"
+          fi
+      - name: Trigger site deployment
+        if: env.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run refresh-data.yml --ref main

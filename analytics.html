@@ -3,102 +3,168 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学が、どんなルール・資源・人・成果のつながりで動いているのかを読むための科学システム・アトラス。" />
-    <meta name="theme-color" content="#f5f1e8" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231d2935'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%23e5684c'/%3E%3C/svg%3E" />
-    <title>SCIENCE SYSTEM / JAPAN</title>
-    <link rel="stylesheet" href="analytics.css?v=20260807" />
+    <meta name="description" content="日本の科学技術を観測するデータビジュアライゼーション。40年の国際競争、研究資金、研究者の移動、論文の地形を、一次データから描く。" />
+    <meta name="theme-color" content="#06090f" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
+    <title>観測室 — SCIENCE SIGNAL OBSERVATORY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="analytics.css?v=20260808" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
-    <div class="atlas-shell">
-      <header class="atlas-header">
-        <a class="brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"></span>SCIENCE SIGNAL</a>
-        <nav aria-label="メインナビゲーション"><a href="./">新着シグナル</a><a class="active" href="analytics.html">システム・アトラス</a><a href="sources.html">情報源</a></nav>
-        <div class="header-status"><span id="header-status-dot"></span><span id="header-status">公式データを確認中</span></div>
-      </header>
 
-      <main id="main">
-        <section class="atlas-opening" aria-labelledby="page-title">
-          <div class="opening-copy">
-            <p class="overline">SCIENCE SYSTEM / JAPAN</p>
-            <h1 id="page-title">政策、資金、発信。<em>三本の糸が、結び目をつくる。</em></h1>
-            <p class="opening-lede">科学は発見だけで動くのではありません。政策、資金、研究者、大学、企業、出版社という糸が交わるところに、一つひとつの公式更新が現れます。太さや位置は量を表しません。</p>
-            <div class="opening-links"><a href="#signal-lens"><span>FOR RA / UNIVERSITY</span><strong>いま何が変わったか →</strong></a><a href="#system-lens"><span>FOR EVERYONE</span><strong>科学はどう動くか →</strong></a></div>
-          </div>
-          <div class="weave-wrap" id="opening-map" role="img" aria-label="政策・資金・発信という3本の糸が交わり結び目をつくる概念図"></div>
-          <div class="weave-legend">
-            <span><span class="sw" style="background:var(--ai)"></span>審議・制度の糸</span>
-            <span><span class="sw" style="background:var(--bengara)"></span>予算・支援の糸</span>
-            <span><span class="sw" style="background:var(--yamabuki)"></span>発信・検証の糸</span>
-            <span id="opening-meta" style="margin-left:auto;font:10px var(--mono);color:var(--muted)">—</span>
-          </div>
-          <div class="method-plate"><span class="plate-mark">NOTE</span><p>この図は関係を読むための概念モデルです。糸の太さ・結び目の位置は、金額や件数などの量を表していません。実測できる数値は「証拠」の章で、定義と出典を添えて別に示します。</p></div>
-        </section>
+    <header class="obs-header">
+      <a class="obs-brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="obs-brand-dot" aria-hidden="true"></span>SCIENCE SIGNAL</a>
+      <nav class="obs-nav" aria-label="メインナビゲーション">
+        <a href="./">新着シグナル</a>
+        <a class="active" href="analytics.html">観測室</a>
+        <a href="sources.html">情報源</a>
+      </nav>
+      <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">観測データを取得中</span></div>
+    </header>
 
-        <nav class="atlas-rail" aria-label="アトラス内の章">
-          <span>SCIENCE SYSTEM</span>
-          <a class="is-active" href="#signal-lens" data-section-link="signal-lens">変化</a>
-          <a href="#system-lens" data-section-link="system-lens">構造</a>
-          <a href="#evidence-lens" data-section-link="evidence-lens">証拠</a>
-          <a href="#sources-lens" data-section-link="sources-lens">出典</a>
-          <i id="scroll-progress"></i>
-        </nav>
+    <nav class="chapter-rail" aria-label="章ナビゲーション">
+      <a href="#ch-hero" data-rail="ch-hero"><i>00</i><span>観測室</span></a>
+      <a href="#ch-race" data-rail="ch-race"><i>01</i><span>40年の競争</span></a>
+      <a href="#ch-phd" data-rail="ch-phd"><i>02</i><span>博士の曲線</span></a>
+      <a href="#ch-fields" data-rail="ch-fields"><i>03</i><span>分野の地形</span></a>
+      <a href="#ch-flows" data-rail="ch-flows"><i>04</i><span>資金と人</span></a>
+      <a href="#ch-live" data-rail="ch-live"><i>05</i><span>ライブ</span></a>
+    </nav>
 
-        <section id="signal-lens" class="atlas-section signal-section" aria-labelledby="signal-title">
-          <div class="section-heading">
-            <div><p class="section-no">01 / SIGNAL DESK</p><h2 id="signal-title">まず、<em>いま変わったこと</em>。</h2></div>
-            <p>RAや大学スタッフが政策・予算の変化を追うための入口です。ここでは、公式更新を「何が起きたか」「どの段階の文書か」「原典はどこか」で読みます。</p>
+    <main id="main">
+
+      <!-- 00 · HERO -->
+      <section class="chapter hero" id="ch-hero" aria-labelledby="hero-title">
+        <canvas id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero-grid" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span>SCIENCE SIGNAL / OBSERVATORY — 日本の科学技術観測室</p>
+          <h1 id="hero-title">科学技術の現在地を、<br /><em>光で観測する。</em></h1>
+          <p class="hero-lede" id="hero-lede">研究費、研究者、論文、政策。日本の科学システムの40年を、一次データだけで描く。</p>
+          <div class="hero-readouts" id="hero-readouts">
+            <div class="readout"><span class="ro-label">研究開発費 / GDP</span><strong class="ro-value" id="ro-gerd">—</strong><span class="ro-note" id="ro-gerd-note">取得中</span></div>
+            <div class="readout"><span class="ro-label">論文数（年間）</span><strong class="ro-value" id="ro-papers">—</strong><span class="ro-note" id="ro-papers-note">取得中</span></div>
+            <div class="readout"><span class="ro-label">博士課程入学者</span><strong class="ro-value" id="ro-phd">—</strong><span class="ro-note" id="ro-phd-note">取得中</span></div>
+            <div class="readout"><span class="ro-label">政策シグナル</span><strong class="ro-value" id="ro-signals">—</strong><span class="ro-note" id="ro-signals-note">取得中</span></div>
           </div>
-          <div class="signal-layout">
-            <div class="signal-main">
-              <div class="signal-toolbar"><span class="toolbar-label">LATEST OFFICIAL UPDATES</span><a href="./">すべての更新を見る →</a></div>
-              <div id="signal-feed" class="signal-feed" aria-live="polite"><p class="loading-copy">公式更新を読み込んでいます。</p></div>
+        </div>
+        <div class="scroll-cue" aria-hidden="true"><span>SCROLL</span><i></i></div>
+      </section>
+
+      <!-- 01 · PAPER SHARE RACE -->
+      <section class="chapter" id="ch-race" aria-labelledby="race-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / WORLD SHARE 1982–2022</p>
+          <h2 id="race-title">世界の論文地図で、<em>日本はどこにいるか。</em></h2>
+          <p class="ch-lede">主要7か国の論文数シェア（全分野・3年移動平均）。スクロールで40年を進める。<span id="race-lede-fact"></span></p>
+        </div>
+        <div class="race-track" id="race-track">
+          <div class="race-stage" id="race-stage">
+            <div class="race-year" id="race-year" aria-hidden="true">1982</div>
+            <canvas id="race-canvas"></canvas>
+            <svg id="race-svg" aria-hidden="true"></svg>
+            <div class="race-legend" id="race-legend" aria-hidden="true"></div>
+            <div class="race-annot" id="race-annot" aria-live="polite"></div>
+            <div class="race-metric" id="race-metric" role="tablist" aria-label="指標の切替">
+              <button class="is-active" role="tab" aria-selected="true" data-metric="share">論文数シェア</button>
+              <button role="tab" aria-selected="false" data-metric="top10_share">Top10%論文シェア</button>
+              <button role="tab" aria-selected="false" data-metric="top1_share">Top1%論文シェア</button>
             </div>
-            <aside class="signal-side">
-              <div class="pulse-block"><div class="block-heading"><p class="viz-kicker">POLICY PULSE</p><span>月 / 件</span></div><h3>政策更新のリズム</h3><div id="policy-pulse" class="pulse-chart"></div><p class="chart-footnote">取得した公式更新の公開月。量は重要度を表しません。</p></div>
-              <div class="role-block"><p class="viz-kicker">DOCUMENT ROLE</p><h3>文書の役割</h3><div id="document-roles" class="role-list"></div><p class="chart-footnote">会議、予算、計画、報告など、政策過程の位置づけ。</p></div>
-            </aside>
           </div>
-        </section>
+        </div>
+        <p class="method-note" id="race-source">出典を確認中</p>
+      </section>
 
-        <section id="system-lens" class="atlas-section system-section" aria-labelledby="system-title">
-          <div class="section-heading">
-            <div><p class="section-no">02 / SYSTEM MAP</p><h2 id="system-title">次に、<em>科学を動かす構造</em>。</h2></div>
-            <p>この図は量を比べるグラフではなく、科学を支えるプレイヤーと関係を読むための見取り図です。ノードを選ぶと、どんな役割を持つかが表示されます。</p>
-          </div>
-          <div class="system-map-layout">
-            <div id="system-map" class="system-map" role="img" aria-label="科学システムのプレイヤーと関係"></div>
-            <aside id="system-detail" class="system-detail" aria-live="polite"><p class="detail-kicker">SELECT A PLAYER</p><h3>科学は一人では動かない</h3><p>政府、大学、企業、研究機関、研究者、出版社。役割と関係を選びながら、科学の仕組みを読み進めます。</p></aside>
-          </div>
-          <div class="system-loop"><span>RULES</span><i>→</i><span>RESOURCES</span><i>→</i><span>RESEARCH</span><i>→</i><span>KNOWLEDGE</span><i>→</i><span>RECOGNITION</span><i>↺</i></div>
-          <p class="method-note">構造図の線は量的な流量ではありません。実測値がある部分だけ、次の「証拠」章で数値化しています。</p>
-        </section>
+      <!-- 02 · PHD -->
+      <section class="chapter" id="ch-phd" aria-labelledby="phd-title">
+        <div class="ch-head">
+          <p class="ch-no">02 / DOCTORAL PIPELINE</p>
+          <h2 id="phd-title">博士だけが、<em>減っている。</em></h2>
+          <p class="ch-lede" id="phd-lede">主要国の博士号取得者数を2000年=100として指数化。日本の曲線だけが下を向く。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>博士号取得者数の推移（2000年 = 100）</figcaption>
+            <div class="fig-body" id="phd-intl"></div>
+            <p class="method-note" id="phd-intl-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>日本の博士課程入学者数 — 専攻別 1981–2024</figcaption>
+            <div class="fig-body" id="phd-stream"></div>
+            <p class="method-note" id="phd-stream-source">出典を確認中</p>
+          </figure>
+        </div>
+      </section>
 
-        <section id="evidence-lens" class="atlas-section evidence-section" aria-labelledby="evidence-title">
-          <div class="section-heading">
-            <div><p class="section-no">03 / EVIDENCE</p><h2 id="evidence-title">構造を、<em>数字で確かめる</em>。</h2></div>
-            <p>科学システムのすべてが同じように測れるわけではありません。ここでは、公式統計で確認できる研究費と研究者の移動だけを、定義を添えて表示します。</p>
-          </div>
-          <div class="evidence-grid">
-            <article class="evidence-figure expenditure-figure"><header><div><p class="viz-kicker">RESEARCH EXPENDITURE</p><h3>どこで研究費が使われているか</h3></div><span>2025 / 億円</span></header><div id="expenditure-chart" class="figure-chart"></div><footer><span>内部使用研究費</span><span>研究主体別</span></footer></article>
-            <article class="evidence-figure people-figure"><header><div><p class="viz-kicker">RESEARCHER MOVEMENT</p><h3>研究者はどこへ動くか</h3></div><span>2025 / 人</span></header><div id="people-flow" class="figure-chart"></div><div id="people-detail" class="people-detail">線または主体を選ぶと移動の内訳を表示します。</div><footer><span>採用・転入の転入元 → 転入先</span><button id="people-reset" type="button">リセット</button></footer></article>
-          </div>
-          <div class="not-yet"><span>THE NEXT LAYER</span><strong>成果が、どのように流通し、評価され、次の資源配分につながるのか。</strong><p>論文・データ・特許・ソフトウェア・人材・政策への接続は、別の一次データを接続して追加します。測れていないものを、測ったようには表示しません。</p></div>
-        </section>
+      <!-- 03 · FIELD TERRAIN -->
+      <section class="chapter" id="ch-fields" aria-labelledby="fields-title">
+        <div class="ch-head">
+          <p class="ch-no">03 / FIELD TERRAIN 1981–2023</p>
+          <h2 id="fields-title">研究の重心は、<em>分野ごとに動く。</em></h2>
+          <p class="ch-lede">論文の分野別構成の40年。国を切り替えると、各国の「かたち」の違いが見える。</p>
+        </div>
+        <div class="terrain-toolbar" id="terrain-tabs" role="tablist" aria-label="国の切替"></div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="terrain"></div>
+          <div class="terrain-hover" id="terrain-hover" aria-hidden="true"></div>
+          <p class="method-note" id="terrain-source">出典を確認中</p>
+        </figure>
+        <div class="inst-block">
+          <h3 class="sub-title">いま論文を生んでいる場所 <span id="inst-window"></span></h3>
+          <div class="fig-body" id="inst-pack"></div>
+          <p class="method-note" id="inst-source">出典を確認中</p>
+        </div>
+      </section>
 
-        <section id="sources-lens" class="atlas-section sources-section" aria-labelledby="sources-title">
-          <div class="section-heading">
-            <div><p class="section-no">04 / SOURCES</p><h2 id="sources-title">最後に、<em>原典へ戻る</em>。</h2></div>
-            <p>このアトラスの図解は、解釈と事実を分けて表示します。数字の定義、調査年、取得元を確認できます。</p>
-          </div>
-          <div class="source-ledger"><div><span>A</span><strong>政策・予算</strong><p>政府公式RSS・公式ページ</p></div><div><span>B</span><strong>研究費</strong><p>科学技術研究調査 総括表第2表</p></div><div><span>C</span><strong>研究者の移動</strong><p>科学技術研究調査 総括表第5表</p></div><a href="sources.html">情報源台帳を開く →</a></div>
-        </section>
+      <!-- 04 · MONEY & PEOPLE FLOWS -->
+      <section class="chapter" id="ch-flows" aria-labelledby="flows-title">
+        <div class="ch-head">
+          <p class="ch-no">04 / SYSTEM FLOWS</p>
+          <h2 id="flows-title">資金と人が、<em>システムを流れる。</em></h2>
+          <p class="ch-lede" id="flows-lede">研究者の移動（実測値）を光の軌道として描く。粒子1つ＝研究者50人。</p>
+        </div>
+        <div class="flow-stage">
+          <canvas id="flow-canvas"></canvas>
+          <div class="flow-detail" id="flow-detail" aria-live="polite">セクターに触れると、流れの内訳を表示</div>
+        </div>
+        <div class="money-strip" id="money-strip"></div>
+        <p class="method-note" id="flows-source">出典を確認中</p>
+      </section>
 
-        <footer class="atlas-footer"><span>SCIENCE SIGNAL / SCIENCE SYSTEM</span><span>STRUCTURE IS NOT DESTINY</span><span id="footer-year">2026</span></footer>
-      </main>
-    </div>
+      <!-- 05 · LIVE CONSOLE -->
+      <section class="chapter" id="ch-live" aria-labelledby="live-title">
+        <div class="ch-head">
+          <p class="ch-no">05 / LIVE CONSOLE</p>
+          <h2 id="live-title">観測は、<em>いまも続いている。</em></h2>
+          <p class="ch-lede" id="live-lede">政府公式ソースを3時間ごとに巡回。最新の政策シグナルが着弾する。</p>
+        </div>
+        <div class="console">
+          <div class="console-feed" id="live-feed" aria-live="polite"></div>
+          <aside class="console-side">
+            <div class="board" id="source-board"><p class="board-title">FEED STATUS</p></div>
+            <a class="console-link" href="./">全シグナルを見る →</a>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="obs-footer">
+        <div class="ledger" id="ledger">
+          <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
+        </div>
+        <div class="obs-footer-row">
+          <span>SCIENCE SIGNAL / OBSERVATORY</span>
+          <span>測っていないものを、測ったようには描かない。</span>
+          <span id="footer-year">2026</span>
+        </div>
+      </footer>
+    </main>
+
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
-    <script src="analytics.js?v=20260807" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+    <script src="analytics.js?v=20260808" defer></script>
   </body>
 </html>

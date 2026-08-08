@@ -10,8 +10,10 @@
 2. 科学・研究・AI・量子・予算などのキーワードで対象を絞り、タイトル・日時・分類・公式URLと、公式ページ/PDFから抽出した本文を `data/updates.json` に保存します。
    HTML本文とPDFは無料の `pypdf` / 標準ライブラリで抽出し、本文は原文を改変せず読みやすいブロックに分けます。
 3. `llama.cpp` と日本語対応の小型GGUFモデルをGitHub Actions上で実行し、新着・本文が変わった記事を1回1件だけ要約します。結果はURLと本文ハッシュをキーに `data/summary_cache.json` へ保存し、モデルが利用できない場合はルールベースの整理へフォールバックします。要約は補助機能であり、本文の取得・公開はモデルの成否に依存しません。
-4. `scripts/build_analytics.py` が、更新データから政策領域・文書の役割・テーマ・月別の更新を集計し、e-Statの科学技術研究調査から研究開発費と研究者の移動を取得して `data/analytics.json` に保存します。`analytics.html` は、全体像 → 政策 → 資金 → 人 → 取得元の順に統計を束ねる観測ページです。時系列はD3、資金比較・サンキー図・散布図・移動バランスは静的SVGとして表示し、`sources.html` は取得元と統計表の台帳を表示します。
-5. GitHub Actions が3時間おきに取得・要約・統計更新・コミットします。
+4. `scripts/build_analytics.py` が、更新データから政策領域・文書の役割・テーマ・月別の更新を集計し、e-Statの科学技術研究調査から研究開発費と研究者の移動を取得して `data/analytics.json` に保存します。
+5. `scripts/fetch_indicators.py` が、NISTEP 科学技術指標2025（Excel表）、OECD MSTI（SDMX）、OpenAlex（論文集計API）から長期時系列を取得し、`data/indicators.json` に保存します。`ESTAT_APP_ID` を設定すると e-Stat API の国内詳細系列も接続できます。`.github/workflows/refresh-indicators.yml` が週次で更新します。
+6. `analytics.html`（観測室）は、これらのデータを 00 観測室 → 01 40年の競争（論文シェアのスクロール・スクラブ） → 02 博士の曲線 → 03 分野の地形 → 04 資金と人の流れ → 05 ライブ・コンソール の6章で描くダークテーマのデータビジュアライゼーションです。Canvas粒子・D3・GSAP ScrollTriggerを使用し、`sources.html` は取得元と統計表の台帳を表示します。
+7. GitHub Actions が3時間おきに取得・要約・統計更新・コミットします。
 6. Cloudflare Pages が静的サイトを配信します。`CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` をGitHub ActionsのSecretsに設定すると、更新後にCloudflare Pagesへ自動デプロイします。
 
 本文と要約は、公式ページ/PDFの確認を助けるための表示です。要約はローカルモデルによる補助情報であり、政策判断の根拠にはせず、必ず原典をご確認ください。掲載内容の正確性・掲載期間・利用条件は各公式サイトの案内を優先してください。特にRSSや本文の再利用を提供元が制限している場合があるため、公開運用前に必ず確認してください。
