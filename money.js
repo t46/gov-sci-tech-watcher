@@ -1357,9 +1357,223 @@ function initAnatomy(finance) {
   setText("#anatomy-source", "出典: 国立大=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）、研究機関=国立研究開発法人・大学共同利用機関法人の各法人開示の財務諸表（最新年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準/独立行政法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。「計」は取得済み法人の単純合計で、年度は法人により異なる。");
 }
 
+/* ==================================================== 09 academic publishing */
+
+const okuFromYen = (v) => `${(v / 1e8).toFixed(v >= 1e10 ? 0 : 1)}億円`;
+const okuAxis = (v) => `${Math.round(v)}億`;
+
+/* 億円単位の複数系列を1枚の折れ線にする共通描画 */
+function pubLineChart(mount, series, { yLabel = "億円", dashKeys = new Set() } = {}) {
+  mount.innerHTML = "";
+  series = series.filter((s) => s.values.length > 0);
+  if (!series.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return null; }
+  const width = mount.clientWidth || 620;
+  const height = Math.max(300, Math.min(380, width * 0.56));
+  const margin = { top: 18, right: 142, bottom: 30, left: 44 };
+  const allPoints = series.flatMap((s) => s.values);
+  const [minYear, maxYear] = d3.extent(allPoints, (p) => p[0]);
+  const x = d3.scaleLinear().domain([minYear, maxYear]).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, d3.max(allPoints, (p) => p[1]) * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", series.map((s) => s.label).join("・"));
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat(okuAxis).tickSize(-(width - margin.left - margin.right))));
+  const span = maxYear - minYear;
+  const step = Math.max(1, Math.ceil(span / (MOBILE ? 4 : 8)));
+  const tickYears = d3.range(minYear, maxYear + 1, step);
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickValues(tickYears).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const labelYs = [];
+  for (const s of series) {
+    const path = svg.append("path")
+      .attr("d", d3.line().x((p) => x(p[0])).y((p) => y(p[1])).curve(d3.curveMonotoneX)(s.values))
+      .attr("fill", "none").attr("stroke", s.color).attr("stroke-width", s.strong ? 2.4 : 1.5)
+      .attr("opacity", s.strong ? 1 : 0.85);
+    if (dashKeys.has(s.label)) path.attr("stroke-dasharray", "5 4");
+    if (!REDUCED && gsap) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", dashKeys.has(s.label) ? "5 4" : `${length}`).attr("stroke-dashoffset", dashKeys.has(s.label) ? 0 : length);
+      if (!dashKeys.has(s.label)) gsap.to(path.node(), { strokeDashoffset: 0, duration: 1.8, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 80%" } });
+    }
+    const last = s.values[s.values.length - 1];
+    let ly = y(last[1]) + 4;
+    while (labelYs.some((v) => Math.abs(v - ly) < 13)) ly += 13;
+    labelYs.push(ly);
+    svg.append("text").attr("x", x(last[0]) + 7).attr("y", ly)
+      .attr("fill", s.color).attr("font-size", s.strong ? 11 : 10).attr("font-weight", s.strong ? 600 : 400)
+      .text(`${s.label} ${okuFromYen(last[1] * 1e8)}`);
+  }
+  return svg;
+}
+
+function renderPubPillars(publishing) {
+  const mount = $("#pub-pillars");
+  if (!mount) return;
+  const sub = publishing?.subscription;
+  const apc = publishing?.apc;
+  if (sub?.status !== "ok") { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const all = sub.sectors?.all || {};
+  const toOku = (millionYen) => millionYen / 100;
+  const seriesOf = (key) => sub.years.map((year, i) => [year, all[key]?.[i] != null ? toOku(all[key][i]) : null]).filter((p) => p[1] != null);
+  const series = [
+    { label: "雑誌（紙）", color: "#59687f", values: seriesOf("journals_print") },
+    { label: "電子ジャーナル", color: "#4fd8ff", strong: true, values: seriesOf("ejournal") },
+  ];
+  if (apc?.status === "ok") {
+    series.push({ label: "APC（推計）", color: "#ffb545", strong: true, values: apc.years.map((year, i) => [year, apc.apc_yen.total[i] != null ? apc.apc_yen.total[i] / 1e8 : null]).filter((p) => p[1] != null) });
+  }
+  mount.insertAdjacentHTML("beforebegin", `<div class="pub-legend">
+    <span><i style="background:#4fd8ff"></i>電子ジャーナル経費（調査報告値）</span>
+    <span><i style="background:#59687f"></i>紙の雑誌（同）</span>
+    <span class="is-dashed" style="color:#ffb545"><i></i>APC＝論文掲載料（定価ベース推計）</span>
+  </div>`);
+  pubLineChart(mount, series, { dashKeys: new Set(["APC（推計）"]) });
+  const ej = seriesOf("ejournal");
+  const ejLast = ej[ej.length - 1];
+  setText("#pub-pillars-source", `出典: 購読側=${sub.source?.title || ""}（単位は原資料の千円を億円換算）。APC側=${apc?.source?.title || ""}。${sub.note || ""} 電子ジャーナル経費は${ejLast?.[0]}年度${Math.round(ejLast?.[1] || 0)}億円。転換契約（Read & Publish）ではAPC相当分が購読契約に含まれるため、購読とAPCの単純合算はできない。`);
+}
+
+function renderPubPublishers(publishing) {
+  const mount = $("#pub-publishers");
+  if (!mount) return;
+  const apc = publishing?.apc;
+  if (apc?.status !== "ok" || !apc.publisher_series?.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const sorted = [...apc.publisher_series].sort((a, b) => (b.values[b.values.length - 1]?.apc_yen || 0) - (a.values[a.values.length - 1]?.apc_yen || 0));
+  const palette = ["#e0797a", "#ffb545", "#4fd8ff", "#5ad8a1", "#b18cff", "#a7b4cc"];
+  const series = sorted.slice(0, MOBILE ? 5 : 7).map((p, i) => ({
+    label: p.name,
+    color: palette[i] || "#59687f",
+    strong: i < 3,
+    values: p.values.filter((v) => v.apc_yen != null).map((v) => [v.year, v.apc_yen / 1e8]),
+  }));
+  pubLineChart(mount, series);
+  const latest = apc.publishers_latest?.filter((p) => !["その他", "合計"].includes(p.name)) || [];
+  const latestTotal = apc.apc_yen.total[apc.apc_yen.total.length - 1] || 0;
+  const topShare = latestTotal ? d3.sum(latest, (p) => p.apc_yen || 0) / latestTotal : 0;
+  setText("#pub-publishers-source", `出典: ${apc.source?.title || ""}。${apc.latest_year}年は上位10社でAPC支払推定額の${fmtPct(topShare * 100, 0)}を占める。${apc.note || ""}`);
+}
+
+function renderPubInsts(publishing) {
+  const mount = $("#pub-insts");
+  if (!mount) return;
+  const apc = publishing?.apc;
+  const rows = (apc?.institutions_latest || []).filter((r) => !["その他会員館", "会員館以外", "合計"].includes(r.name));
+  if (apc?.status !== "ok" || !rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  setText("#pub-insts-year", `${apc.latest_year}年・公表論文数上位20機関のうちAPC推定額上位10`);
+  const top = rows.map((r) => ({ ...r, total: (r.apc_full_yen || 0) + (r.apc_hybrid_yen || 0) }))
+    .sort((a, b) => b.total - a.total).slice(0, 10);
+  const max = top[0].total;
+  if (!max) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = `<div class="pub-legend">
+    <span><i style="background:#ffb545"></i>フルOA誌のAPC</span>
+    <span><i style="background:#4fd8ff"></i>ハイブリッド誌のAPC</span>
+  </div>` + top.map((r) => `
+    <div class="a-row">
+      <span class="a-label">${escapeHtml(r.name)}</span>
+      <span class="a-bar" style="height: 12px">
+        <i style="left:0; width:${((r.apc_full_yen || 0) / max * 100).toFixed(1)}%; background:#ffb545"></i>
+        <i style="left:${((r.apc_full_yen || 0) / max * 100).toFixed(1)}%; width:${((r.apc_hybrid_yen || 0) / max * 100).toFixed(1)}%; background:#4fd8ff"></i>
+      </span>
+      <span class="a-value">${okuFromYen(r.total)}<small>${fmtInt(r.papers)}本</small></span>
+    </div>`).join("");
+  setText("#pub-insts-source", `出典: ${apc.source?.title || ""}（JUSTICE会員館の上位機関）。金額は責任著者論文×APC定価の推計。本数は公表論文数。`);
+}
+
+function renderPubOpenalex(publishing) {
+  const mount = $("#pub-openalex");
+  if (!mount) return;
+  const apc = publishing?.apc;
+  const oa = publishing?.openalex;
+  if (oa?.status !== "ok") {
+    mount.innerHTML = '<p class="data-empty">OpenAlexによる独自推計は準備中。</p>';
+    setText("#pub-openalex-source", "同一の問い（日本の責任著者論文のAPC総額）を、JUSTICE（Web of Science×独自価格表）とは独立に OpenAlex（CC0）×DOAJ定価で推計し、突き合わせる予定。");
+    return;
+  }
+  const series = [
+    { label: "OpenAlex推計", color: "#5ad8a1", strong: true, values: oa.years.map((year, i) => [year, oa.total_yen[i] != null ? oa.total_yen[i] / 1e8 : null]).filter((p) => p[1] != null) },
+  ];
+  if (apc?.status === "ok") {
+    series.unshift({ label: "JUSTICE推計", color: "#ffb545", strong: true, values: apc.years.map((year, i) => [year, apc.apc_yen.total[i] != null ? apc.apc_yen.total[i] / 1e8 : null]).filter((p) => p[1] != null) });
+  }
+  pubLineChart(mount, series);
+  const priced = d3.sum(oa.series.gold.priced) + d3.sum(oa.series.hybrid.priced);
+  const papers = d3.sum(oa.series.gold.papers) + d3.sum(oa.series.hybrid.papers);
+  setText("#pub-openalex-source", `出典: ${oa.source?.title || ""}（${shortDate(oa.generated_at)}時点の一括集計）。${oa.note || ""} 定価が判明したのはgold/hybrid論文の${papers ? fmtPct(priced / papers * 100, 0) : "—"}（未判明分は0円扱いのため過小方向）。データベース・OA判定・価格表が異なる2つの推計が近い水準を示すかの相互検証で、どちらも実支払額ではない。`);
+}
+
+function renderPubContracts(publishing) {
+  const mount = $("#pub-contracts");
+  if (!mount) return;
+  const contracts = publishing?.contracts;
+  const items = (contracts?.items || []).filter((c) => c.amount_yen);
+  if (contracts?.status !== "ok" || !items.length) {
+    mount.innerHTML = '<p class="data-empty">契約公表データは準備中。</p>';
+    setText("#pub-contracts-source", "国立大学法人等が公表する契約情報から、出版社との契約額を収集して掲載する予定。");
+    return;
+  }
+  const sorted = [...items].sort((a, b) => b.amount_yen - a.amount_yen);
+  const row = (c) => `<tr>
+      <th>${escapeHtml(c.org)}</th>
+      <th>${escapeHtml(c.title)}</th>
+      <th>${escapeHtml(c.vendor)}</th>
+      <td>${okuFromYen(c.amount_yen)}</td>
+      <th>${escapeHtml(String(c.fiscal_year || "—"))}</th>
+      <th>${c.source_url ? `<a href="${escapeHtml(safeUrl(c.source_url))}" target="_blank" rel="noopener noreferrer">公表資料</a>` : "—"}</th>
+    </tr>`;
+  const LIMIT = 25;
+  const render = (showAll) => {
+    mount.innerHTML = `<table class="cmp-table"><thead><tr>
+        <th>機関</th><th>契約</th><th>相手方</th><td>契約額</td><th>年度</th><th>出典</th>
+      </tr></thead><tbody>${(showAll ? sorted : sorted.slice(0, LIMIT)).map(row).join("")}</tbody></table>`
+      + (sorted.length > LIMIT && !showAll ? `<button class="dir-more" id="pub-contracts-more">残り${sorted.length - LIMIT}件を表示</button>` : "");
+    $("#pub-contracts-more")?.addEventListener("click", () => render(true));
+  };
+  render(false);
+  setText("#pub-contracts-source", `出典: 各法人の契約公表資料（表内リンク。随意契約公表・落札公示）から手動検証で収集（${contracts.collected_at || ""}時点・${fmtInt(items.length)}件）。確認できた契約のみで全機関・全契約の網羅ではない。契約額は公表された契約金額であり、決済実績や年額とは限らない（複数年契約の総額・外貨連動の概算を含む）。Web of Science等のデータベース契約も出版社系支出として含む。`);
+}
+
+const PUB_FACTS = [
+  { value: "53%", text: "自然・医学系論文に占める大手5社（Elsevier・Springer・Wiley-Blackwell・ACS・Taylor & Francis）のシェア（2013年）。1973年は約20%だった。", source: { title: "Larivière et al. 2015 (PLOS ONE)", url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0127502" } },
+  { value: "38.9%", text: "Reed-Elsevier（現RELX）科学技術・医学部門の利益率（2013年）。1990年代から一貫して30%超。", source: { title: "Larivière et al. 2015 (PLOS ONE)", url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0127502" } },
+  { value: "約100億ドル/年", text: "世界の学術ジャーナル市場の規模（2019年108.1億ドル）。STM市場全体では約270億ドル。", source: { title: "STM Global Brief 2021 (Outsell/Simba)", url: "https://s3.eu-west-2.amazonaws.com/stm.offloadmedia/wp-content/uploads/2024/08/10032918/2021_10_19_STM_Global_Brief_2021_Economics_and_Market_Size-1.pdf" } },
+  { value: "25.4億ドル", text: "世界が大手6社（Elsevier・Frontiers・MDPI・PLOS・Springer Nature・Wiley）に支払ったAPCの推計（2023年単年・定価ベース）。2019年の約3倍。", source: { title: "Haustein et al. 2024 (arXiv)", url: "https://arxiv.org/abs/2407.16551" } },
+  { value: "86%", text: "APCを支払った日本の研究者のうち、財源に「個人で獲得した外部資金（科研費等）」を挙げた割合（複数回答）。掲載料の主な原資は研究費側にある。", source: { title: "NISTEP DP206（2022）", url: "https://nistep.repo.nii.ac.jp/record/6789/files/NISTEP-DP206-FullJ.pdf" } },
+  { value: "66.2%", text: "日本の研究者が過去3年に出版した査読付き論文のうち、APCを支払ってオープンアクセスにした論文の割合（2024年調査・論文ベース）。", source: { title: "NISTEP 調査資料-354（2026）", url: "https://nistep.repo.nii.ac.jp/records/2000290" } },
+];
+
+function renderPubFacts() {
+  const mount = $("#pub-facts");
+  if (!mount) return;
+  mount.innerHTML = PUB_FACTS.map((f) => `
+    <div class="fact-card">
+      <b>${escapeHtml(f.value)}</b>
+      <p>${escapeHtml(f.text)}</p>
+      <a href="${escapeHtml(safeUrl(f.source.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(f.source.title)}</a>
+    </div>`).join("");
+}
+
+function renderPublishing(publishing) {
+  const sub = publishing?.subscription;
+  const apc = publishing?.apc;
+  if (sub?.status === "ok" && apc?.status === "ok") {
+    const ejIndex = sub.years.indexOf(2024) >= 0 ? sub.years.indexOf(2024) : sub.years.length - 1;
+    const ej = sub.sectors?.all?.ejournal?.[ejIndex];
+    const apcTotal = apc.apc_yen.total[apc.apc_yen.total.length - 1];
+    if (ej && apcTotal) {
+      setText("#publishing-lede", `大学は「読む」ために購読料を、「出す」ためにAPC（論文掲載料）を出版社に払う。大学図書館の電子ジャーナル経費は${sub.years[ejIndex]}年度に${Math.round(ej / 100)}億円（調査報告値）。日本の責任著者論文のAPC支払推定額は${apc.latest_year}年に約${Math.round(apcTotal / 1e8)}億円（定価ベース推計）で、${apc.years[0]}年の${(apcTotal / apc.apc_yen.total[0]).toFixed(1)}倍になった。`);
+    }
+  }
+  renderPubPillars(publishing);
+  renderPubPublishers(publishing);
+  renderPubInsts(publishing);
+  renderPubOpenalex(publishing);
+  renderPubContracts(publishing);
+  renderPubFacts();
+}
+
 /* ================================================================= ledger */
 
-function renderLedger(indicators, finance) {
+function renderLedger(indicators, finance, publishing) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -1372,6 +1586,10 @@ function renderLedger(indicators, finance) {
   push(ind.industry_academia); push(ind.joint_research); push(ind.kakenhi);
   push(ind.gov_support_business); push(ind.plan_budget);
   push(finance?.national); push(finance?.private); push(finance?.private?.sector); push(finance?.institutes);
+  push(publishing?.subscription); push(publishing?.apc); push(publishing?.openalex);
+  if (publishing?.contracts?.status === "ok") {
+    entries.push({ title: "国立大学法人等の契約公表（各法人サイト・随意契約公表/落札公示）", url: "", status: "ok" });
+  }
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -1387,13 +1605,16 @@ async function init() {
   initRail();
   let indicators = null;
   let finance = null;
+  let publishing = null;
   try {
-    const [indicatorsResult, financeResult] = await Promise.allSettled([
+    const [indicatorsResult, financeResult, publishingResult] = await Promise.allSettled([
       fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/publishing.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
     ]);
     indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
     finance = financeResult.status === "fulfilled" ? financeResult.value : null;
+    publishing = publishingResult.status === "fulfilled" ? publishingResult.value : null;
   } catch (error) {
     console.error(error);
   }
@@ -1417,7 +1638,8 @@ async function init() {
   renderInstitutes(finance);
   renderSectorLines(finance);
   initAnatomy(finance);
-  renderLedger(indicators, finance);
+  renderPublishing(publishing);
+  renderLedger(indicators, finance, publishing);
 }
 
 init().catch((error) => {
