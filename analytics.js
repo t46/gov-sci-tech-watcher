@@ -763,14 +763,12 @@ function initFlows(indicators, analytics) {
 function renderLive(updates) {
   const feed = $("#live-feed");
   if (!feed) return;
-  const items = (updates?.items || [])
-    .filter((item) => item.published_at)
-    .sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)))
-    .slice(0, 12);
+  const items = [...(updates?.items || [])]
+    .sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
   if (!items.length) { feed.innerHTML = '<p class="data-empty">シグナルを取得できませんでした。</p>'; return; }
   const now = Date.now();
   feed.innerHTML = items.map((item) => {
-    const fresh = now - new Date(item.published_at).getTime() < 1000 * 60 * 60 * 24 * 4;
+    const fresh = item.published_at && now - new Date(item.published_at).getTime() < 1000 * 60 * 60 * 24 * 4;
     return `
       <div class="signal-row${fresh ? " is-fresh" : ""}">
         <span class="signal-date">${shortDate(item.published_at)}</span>
@@ -782,7 +780,7 @@ function renderLive(updates) {
       </div>`;
   }).join("");
   if (!REDUCED && gsap) {
-    gsap.from(".signal-row", { opacity: 0, y: 14, duration: 0.5, stagger: 0.05, ease: "power2.out", scrollTrigger: { trigger: feed, start: "top 82%" } });
+    gsap.from(feed.querySelectorAll(".signal-row:nth-child(-n+14)"), { opacity: 0, y: 14, duration: 0.5, stagger: 0.05, ease: "power2.out", scrollTrigger: { trigger: feed, start: "top 82%" } });
   }
   const board = $("#source-board");
   if (board) {
@@ -794,7 +792,7 @@ function renderLive(updates) {
       board.insertAdjacentHTML("beforeend", `<div class="board-row"><b>最終巡回</b><span>${new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(generated)}</span></div>`);
     }
   }
-  setText("#live-lede", `政府公式ソースを3時間ごとに巡回し、${fmtInt((updates?.items || []).length)}件の政策シグナルを観測している。`);
+  setText("#live-lede", `内閣府・文部科学省などの政府公式ページから3時間ごとに取得した更新、全${fmtInt((updates?.items || []).length)}件。`);
 }
 
 /* ================================================================ ledger */
@@ -817,7 +815,9 @@ function renderLedger(indicators, analytics, updates) {
   for (const source of analytics?.reality?.sources || []) {
     entries.push({ title: source.title, url: source.url, status: source.status === "ok" ? "ok" : "unavailable" });
   }
-  entries.push({ title: `政府公式フィード ${((updates?.sources) || []).length}系統（内閣府・文科省・CSTI）`, url: "sources.html", status: "ok" });
+  for (const source of updates?.sources || []) {
+    entries.push({ title: `政府公式フィード — ${source.name}`, url: source.url, status: source.status === "ok" ? "ok" : "unavailable" });
+  }
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => e.title && !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
