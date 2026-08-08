@@ -118,7 +118,7 @@ function renderWindows(indicators, analytics, updates) {
     ticker("#win-money", total, (v) => fmtCho(v));
     setText("#win-money-note", `研究開発費 ${funding.year_label || ""} / うち政府負担 ${fmtCho(gov)}`);
   }
-  /* ④ 論文 */
+  /* ④ 研究 */
   const share = seriesMap(indicators?.papers, "share").jp || [];
   if (share.length) {
     const peak = share.reduce((a, b) => (b[1] > a[1] ? b : a));

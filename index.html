@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学技術観測室。政策・予算の最新情報、研究人材、研究資金、論文の4分野を一次データで観測する。" />
+    <meta name="description" content="日本の科学技術観測室。政策・予算の最新情報を更新し、人・お金・研究の3つの観点から日本の科学を観察する。" />
     <meta name="theme-color" content="#06090f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
     <title>SCIENCE SIGNAL — 日本の科学技術観測室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260810a" />
+    <link rel="stylesheet" href="analytics.css?v=20260812a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -22,7 +22,7 @@
         <a href="signals.html">最新情報</a>
         <a href="people.html">人</a>
         <a href="money.html">お金</a>
-        <a href="papers.html">論文</a>
+        <a href="papers.html">研究</a>
       </nav>
       <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">観測データを取得中</span></div>
     </header>
@@ -35,8 +35,8 @@
         <div class="hero-grid" aria-hidden="true"></div>
         <div class="hero-copy">
           <p class="eyebrow"><span></span>SCIENCE SIGNAL / OBSERVATORY</p>
-          <h1 id="hero-title">日本の<span style="white-space: nowrap">科学技術</span><span style="white-space: nowrap">観測室。</span></h1>
-          <p class="hero-lede" id="hero-lede">政策・予算の最新情報、人、お金、論文。日本の科学を動かす4つの流れを、一次データだけで観測する。</p>
+          <h1 id="hero-title">日本の<span style="white-space: nowrap">科学技術</span><span style="white-space: nowrap">観測室</span></h1>
+          <p class="hero-lede" id="hero-lede">政策・予算の最新情報を更新。日本の科学を、人、お金、研究の3つの観点から観察。</p>
           <div class="hero-readouts" id="hero-readouts">
             <div class="readout"><span class="ro-label">研究開発費 / GDP</span><strong class="ro-value" id="ro-gerd">—</strong><span class="ro-note" id="ro-gerd-note">取得中</span></div>
             <div class="readout"><span class="ro-label">論文数（年間）</span><strong class="ro-value" id="ro-papers">—</strong><span class="ro-note" id="ro-papers-note">取得中</span></div>
@@ -52,7 +52,6 @@
         <div class="ch-head">
           <p class="ch-no">01 / FOUR WINDOWS</p>
           <h2 id="windows-title">4つの観測窓</h2>
-          <p class="ch-lede">それぞれの窓が、独立した観測ページに続く。</p>
         </div>
         <div class="win-grid">
           <a class="win" href="signals.html">
@@ -81,11 +80,11 @@
           </a>
           <a class="win" href="papers.html">
             <span class="win-no">04</span>
-            <h3>論文<small>PAPERS</small></h3>
+            <h3>研究<small>RESEARCH</small></h3>
             <strong class="win-value" id="win-papers">—</strong>
             <span class="win-note" id="win-papers-note">論文数・注目論文シェア・分野構成・機関</span>
             <div class="win-spark" id="win-papers-spark"></div>
-            <span class="win-cta">論文の観測へ →</span>
+            <span class="win-cta">研究の観測へ →</span>
           </a>
         </div>
       </section>
@@ -106,6 +105,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="hub.js?v=20260810a" defer></script>
+    <script src="hub.js?v=20260812a" defer></script>
   </body>
 </html>

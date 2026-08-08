@@ -1,4 +1,4 @@
-/* SCIENCE SIGNAL / PAPERS — 論文（研究成果）の観測ページ。obs-core.js の後に読み込む。 */
+/* SCIENCE SIGNAL / RESEARCH — 研究の観測ページ。obs-core.js の後に読み込む。 */
 "use strict";
 
 /* ================================================================ 01 RACE */
@@ -295,7 +295,7 @@ async function init() {
   const [indicatorsResult] = await Promise.allSettled([fetchJson("data/indicators.json")]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   if (!indicators) {
-    setText("#header-status", "論文データを取得できません");
+    setText("#header-status", "研究データを取得できません");
     return;
   }
   $("#header-status-dot")?.classList.add("is-live");
@@ -308,7 +308,7 @@ async function init() {
     setText("#papers-lede", `日本が世界の論文に占める割合、${peak[0]}年から${last[0]}年。論文数・注目論文・分野構成・機関の40年。`);
     setText("#header-status", `観測中 — 7か国×${shareValues[0][0]}–${last[0]}年 / 3系統の一次データ`);
   } else {
-    setText("#header-status", "観測中 — 論文データ");
+    setText("#header-status", "観測中 — 研究データ");
   }
 
   initRace(indicators);
@@ -321,5 +321,5 @@ async function init() {
 
 init().catch((error) => {
   console.error(error);
-  setText("#header-status", "論文データを取得できません");
+  setText("#header-status", "研究データを取得できません");
 });

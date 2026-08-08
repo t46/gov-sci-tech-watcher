@@ -955,6 +955,37 @@ function initAnatomy(finance) {
     e.sector === "国立" ? "agg-natl" : e.sector === "私立" ? "agg-priv"
       : e.sector === "大学共同利用" ? "agg-kyodo" : e.funder ? "agg-fund" : "agg-inst");
 
+  /* ---- 個別ビュー内の構成ドーナツ ---- */
+  const donutSvg = (slices, total, size) => {
+    const r = size / 2;
+    const arcGen = d3.arc().innerRadius(r * 0.58).outerRadius(r - 1.5).cornerRadius(1);
+    const arcs = d3.pie().value((d) => d.value).sort(null).padAngle(0.014)(slices);
+    const paths = arcs.map((a) => {
+      const [lx, ly] = arcGen.centroid(a);
+      const label = a.data.value / total >= 0.06
+        ? `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="#06090f" font-size="9" font-family="IBM Plex Mono" font-weight="600">${a.data.pct}%</text>`
+        : "";
+      return `<path d="${arcGen(a)}" fill="${a.data.color}"></path>${label}`;
+    }).join("");
+    return `<svg viewBox="${-r} ${-r} ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="構成比の円グラフ">
+      <g>${paths}</g>
+      <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" fill="var(--text)" font-size="10" font-family="IBM Plex Mono" font-weight="600">${escapeHtml(oku(total))}</text>
+    </svg>`;
+  };
+  const donutLegend = (slices) => `<div class="donut-legend">${
+    slices.map((s) => `<span><i style="background:${s.color}"></i>${escapeHtml(s.label)}<b>${s.pct}%</b></span>`).join("")
+  }</div>`;
+  const donutBlock = (title, slices, total) => {
+    if (!total || !slices.length) return "";
+    /* 最大剰余法で整数%の合計を構成比の合計に一致させる（独立丸めだと99%や101%になる） */
+    const exact = slices.map((s) => (s.value / total) * 100);
+    const pcts = exact.map(Math.floor);
+    const rest = Math.round(exact.reduce((a, b) => a + b, 0)) - pcts.reduce((a, b) => a + b, 0);
+    exact.map((v, i) => [v - pcts[i], i]).sort((a, b) => b[0] - a[0]).slice(0, Math.max(0, rest)).forEach(([, i]) => { pcts[i] += 1; });
+    slices.forEach((s, i) => { s.pct = pcts[i]; });
+    return `<div class="donut-block"><h5>${escapeHtml(title)}</h5><div class="donut-wrap">${donutSvg(slices, total, 132)}${donutLegend(slices)}</div></div>`;
+  };
+
   /* ---- 構造マップ（横=公費依存度、縦=経常収益 log） ---- */
   const hover = hoverBox("#glyph-hover");
   const hoverHtml = (d) => `<b>${escapeHtml(d.label)}</b><br>${escapeHtml(d.sector)}・${escapeHtml(d.year)}<br>経常収益 ${okuShort(d.revenue)}円 ／ 公費 ${Math.round(d.publicShare * 100)}%`;
@@ -1237,6 +1268,20 @@ function initAnatomy(finance) {
           <span class="a-value">${oku(value)}<small>${total ? fmtPct((value / total) * 100, 0) : ""}</small></span>
         </div>`).join("");
     };
+    const revenueSlices = BUCKETS
+      .map((b) => ({ label: b.label, value: entity.buckets[b.key], color: b.color }))
+      .filter((s) => s.value != null && s.value > 0);
+    const revenueDonut = donutBlock("収益構成", revenueSlices, entity.revenue);
+    const knownExpense = entity.expenseItems.filter(([, v]) => v != null && v > 0).sort((a, b) => b[1] - a[1]);
+    const top5Expense = knownExpense.slice(0, 5);
+    const expenseOverflow = d3.sum(knownExpense.slice(5), ([, v]) => v);
+    const expenseBaseResidual = entity.expenseTotal != null ? Math.max(0, entity.expenseTotal - d3.sum(knownExpense, ([, v]) => v)) : 0;
+    const expenseResidual = expenseBaseResidual + expenseOverflow;
+    const expenseSlices = top5Expense.map(([label, value], i) => ({ label, value, color: CMP_COLORS[i] }));
+    if (expenseResidual > 0) expenseSlices.push({ label: entity.expenseResidualLabel, value: expenseResidual, color: "#46536b" });
+    /* 費用の内訳項目が無い法人（研究機関の一部）は残差1切れの円になり誤解を招くため出さない */
+    const expenseDonut = top5Expense.length ? donutBlock("費用構成", expenseSlices, entity.expenseTotal) : "";
+    const donutsHtml = (revenueDonut || expenseDonut) ? `<div class="anatomy-donuts">${revenueDonut}${expenseDonut}</div>` : "";
     let trendSvg = "";
     if (entity.trend?.revenue) {
       const points = entity.trend.years.map((year, index) => ({ year, revenue: entity.trend.revenue[index], grants: entity.trend.grants?.[index] })).filter((p) => p.revenue != null);
@@ -1319,7 +1364,7 @@ function initAnatomy(finance) {
         <button type="button" class="cmp-add" ${inTray || tray.length >= 6 ? "disabled" : ""}>${inTray ? "✓ 比較トレイに追加済み" : tray.length >= 6 ? "比較トレイが上限（6件）" : "＋ 比較に追加"}</button>
       </div>
       <div class="anatomy-grid">
-        <div class="anatomy-col"><h4>収益の内訳</h4>${rows(entity.revenueItems, entity.revenue, "その他収益")}</div>
+        <div class="anatomy-col"><h4>収益の内訳</h4>${rows(entity.revenueItems, entity.revenue, "その他収益")}${donutsHtml}</div>
         <div class="anatomy-col"><h4>費用の内訳</h4>${rows(entity.expenseItems, entity.expenseTotal, entity.expenseResidualLabel)}${vsHtml}${trendSvg}</div>
       </div>
       ${entity.note ? `<p class="method-note">${escapeHtml(entity.note)}</p>` : ""}`;

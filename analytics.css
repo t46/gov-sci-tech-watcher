@@ -411,6 +411,18 @@ canvas { display: block; }
 .a-row .a-value small { color: var(--faint); margin-left: 4px; }
 .anatomy-trend { margin-top: 18px; }
 .anatomy-trend h4 { font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--faint); margin-bottom: 8px; }
+.anatomy-donuts { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--grid); }
+.donut-block { min-width: 0; }
+.donut-block h5 { font: 600 10px var(--mono); letter-spacing: 0.12em; color: var(--faint); margin-bottom: 10px; }
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.donut-wrap svg { max-width: 100%; height: auto; }
+.donut-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; font: 400 10px var(--mono); color: var(--dim); }
+.donut-legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.donut-legend i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.donut-legend b { color: var(--text); font-weight: 500; }
+@media (max-width: 760px) {
+  .anatomy-donuts { grid-template-columns: 1fr; }
+}
 
 /* 09 academic publishing */
 .pub-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
