@@ -245,6 +245,106 @@ def national_block() -> dict[str, object]:
     }
 
 
+# ------------------------------------------------------------------ institutes
+
+def pdf_text(blob: bytes) -> str:
+    from pypdf import PdfReader  # lazy import; only needed for institute PDFs
+
+    reader = PdfReader(BytesIO(blob))
+    pages = []
+    for page in reader.pages:
+        try:
+            pages.append(page.extract_text() or "")
+        except Exception:  # noqa: BLE001 — skip unreadable pages
+            pages.append("")
+    return "\n".join(pages)
+
+
+def repair_shifted_ascii(text: str) -> str:
+    """Fix PDFs whose ASCII range is shifted by +0x3DFE (e.g. JAMSTEC)."""
+    if not re.search(r"[㸮-㸷]", text):
+        return text
+    return "".join(chr(ord(ch) - 0x3DFE) if 0x3E1E <= ord(ch) <= 0x3E7C else ch for ch in text)
+
+
+def pdf_metric(text: str, label: str, line_start: bool = False) -> int | None:
+    """First occurrence of `label` followed by a number, whitespace-insensitive.
+
+    line_start=True anchors the label to a line head — needed for labels that
+    are substrings of longer ones (資産合計 inside 流動資産合計).
+    """
+    despaced = re.sub(r"[ \t　]", "", repair_shifted_ascii(text))
+    anchor = r"^" if line_start else ""
+    pattern = anchor + re.escape(label) + r"[^0-9△▲\-]{0,20}?([△▲\-]?[0-9][0-9,]*)"
+    match = re.search(pattern, despaced, re.M)
+    if not match:
+        return None
+    raw = match.group(1)
+    negative = raw[0] in "△▲-"
+    value = int(raw.lstrip("△▲-").replace(",", ""))
+    return -value if negative else value
+
+
+INSTITUTE_METRICS = {
+    "revenue_total": ("経常収益合計", False),
+    "expense_total": ("経常費用合計", False),
+    "grants": ("運営費交付金収益", False),
+    "assets": ("資産合計", True),  # 行頭固定 — 流動資産合計等への誤マッチを防ぐ
+}
+
+INSTITUTES = [
+    {
+        "id": "riken", "label": "理化学研究所",
+        "index": "https://www.riken.jp/about/disclosure/zaigen/",
+        "template": "https://www.riken.jp/medialibrary/riken/about/info/zaigen/zaimu-{year}-1.pdf",
+        "years": list(range(2019, 2026)),
+        "extra": {"subsidies": "研究補助金収益", "donations": "寄附金収益"},
+    },
+    {
+        "id": "aist", "label": "産業技術総合研究所",
+        "index": "https://www.aist.go.jp/aist_j/information/outline/zaimu/index.html",
+        "template": "https://www.aist.go.jp/pdf/aist_j/zaimu/r{reiwa}kakutei.pdf",
+        "years": list(range(2019, 2026)),
+        "extra": {"research_revenue": "研究収益", "ip_revenue": "知的所有権収益"},
+    },
+]
+
+
+def institutes_block() -> dict[str, object]:
+    results = []
+    for config in INSTITUTES:
+        values: dict[int, dict[str, int]] = {}
+        for year in config["years"]:
+            url = config["template"].format(year=year, reiwa=year - 2018)
+            text = None
+            for _attempt in range(2):
+                try:
+                    text = pdf_text(fetch(url))
+                    break
+                except Exception:
+                    continue
+            if text is None:
+                continue
+            entry: dict[str, int] = {}
+            specs = {**INSTITUTE_METRICS, **{key: (label, False) for key, label in config.get("extra", {}).items()}}
+            for key, (label, line_start) in specs.items():
+                value = pdf_metric(text, label, line_start)
+                if value is not None:
+                    entry[key] = value
+            if entry.get("revenue_total"):
+                values[year] = entry
+        if values:
+            results.append({"id": config["id"], "label": config["label"], "index_url": config["index"], "values": values})
+    if not results:
+        raise ValueError("no institute statements parsed")
+    return {
+        "status": "ok", "unit": "円",
+        "source": {"title": "国立研究開発法人 財務諸表（各法人の公式開示）", "url": "https://www.riken.jp/about/disclosure/zaigen/"},
+        "note": "独立行政法人会計基準に基づく損益計算書・貸借対照表から抽出。運営費交付金は損益計算書の収益化額（交付額とは異なる）。",
+        "institutes": results,
+    }
+
+
 def stub_block(title: str, url: str, note: str) -> dict[str, object]:
     return {"status": "unavailable", "unit": None, "source": {"title": title, "url": url}, "note": note}
 
@@ -269,7 +369,7 @@ def main() -> int:
         "generated_at": now_iso(),
         "national": run_block("national", national_block),
         "private": stub_block("学校法人（私立大学）事業活動収支", "https://www.shigaku.go.jp/", "私立大学の財務データは接続作業中。"),
-        "institutes": stub_block("国立研究開発法人 財務諸表", "https://www.riken.jp/about/disclosure/zaigen/", "研究所の財務データは接続作業中。"),
+        "institutes": run_block("institutes", institutes_block),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(output, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
