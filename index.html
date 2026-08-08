@@ -3,26 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本政府の科学技術政策と予算に関する公式更新を、ひとつのタイムラインで追うためのウォッチャー。" />
-    <meta name="theme-color" content="#102335" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23102335'/%3E%3Cpath d='M8 24V15h4v9H8Zm6 0V9h4v15h-4Zm6 0V5h4v19h-4Z' fill='%2327d9be'/%3E%3C/svg%3E" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <meta name="description" content="日本政府の科学技術政策と予算に関する公式更新を、路線図として追うためのウォッチャー。" />
+    <meta name="theme-color" content="#f7f2e6" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23f7f2e6'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23a24f2e' stroke-width='3'/%3E%3C/svg%3E" />
     <title>SCIENCE SIGNAL — 日本の科学技術政策ウォッチャー</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260807" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
     <div class="site-shell">
       <header class="site-header">
-        <a class="brand" href="./" aria-label="SCIENCE SIGNAL トップ">
-          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-          <span><strong>SCIENCE</strong><em>SIGNAL</em></span>
-        </a>
+        <a class="brand" href="./" aria-label="SCIENCE SIGNAL トップ"><span class="brand-mark" aria-hidden="true"></span>SCIENCE SIGNAL</a>
         <nav class="header-nav" aria-label="メインナビゲーション">
-          <a class="active" href="./">新着更新</a>
+          <a class="active" href="./">新着シグナル</a>
           <a href="analytics.html">システム・アトラス</a>
-          <a href="analytics.html#signal-lens">政策・予算</a>
           <a href="sources.html">情報源</a>
         </nav>
         <div class="header-status"><span class="status-dot" aria-hidden="true"></span><span id="header-status">公式ソースを確認中</span></div>
@@ -30,33 +24,46 @@
 
       <main id="main">
         <section class="hero" aria-labelledby="page-title">
-          <div class="hero-grid" aria-hidden="true"></div>
-          <div class="hero-copy">
-            <p class="eyebrow"><span class="eyebrow-line"></span>GOVERNMENT SCIENCE / JAPAN</p>
-            <h1 id="page-title">原典まで、<br /><span>最短距離で。</span></h1>
-            <p class="hero-lede">内閣府・文部科学省など、政府公式サイトの更新を定期取得。科学技術政策と予算の動きを追い、科学を支えるシステム全体を読み解く入口です。</p>
-            <div class="hero-meta"><span class="live-pulse"></span><span id="hero-meta">最新データを読み込んでいます</span></div>
+          <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>HOW JAPAN'S SCIENCE SYSTEM MOVES</p>
+          <h1 id="page-title">制度、予算、発信。<br /><span>路線でつながるシグナル。</span></h1>
+          <p class="hero-lede">内閣府・文部科学省などの公式更新を、政策過程のどの段階の文書かで「路線」に分けて記録します。重要度による順位づけは行いません。線をクリックすると、その路線の更新だけに絞り込めます。</p>
+
+          <div class="diagram-wrap">
+            <svg viewBox="0 0 1180 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="内閣府から審議会・大学・研究機関を経て、審議・予算・発信の3路線に分かれる概念図">
+              <path class="route l1" data-line="l1" d="M 90 60 L 280 60 L 380 150 L 620 150 L 720 60 L 980 60"/>
+              <path class="route l2" data-line="l2" d="M 90 150 L 220 150 L 320 240 L 620 240 L 720 150 L 1040 150"/>
+              <path class="route l3" data-line="l3" d="M 620 150 L 720 230 L 900 230 L 1000 150 L 1120 150"/>
+              <circle class="signal-pulse l1" r="5"><animateMotion dur="9s" repeatCount="indefinite" path="M 90 60 L 280 60 L 380 150 L 620 150 L 720 60 L 980 60"/></circle>
+              <circle class="signal-pulse l2" r="5"><animateMotion dur="7s" repeatCount="indefinite" path="M 90 150 L 220 150 L 320 240 L 620 240 L 720 150 L 1040 150"/></circle>
+              <g><circle class="station-dot" cx="90" cy="60" r="7"/><text class="station-lbl" x="90" y="42" text-anchor="middle">内閣府</text></g>
+              <g><circle class="station-dot" cx="380" cy="150" r="8"/><text class="station-lbl" x="380" y="132" text-anchor="middle">審議会・WG</text></g>
+              <g><circle class="station-dot" cx="620" cy="150" r="9"/><text class="station-lbl" x="620" y="132" text-anchor="middle">大学・研究機関</text><text class="station-sub" x="620" y="182" text-anchor="middle">結節点</text></g>
+              <g><circle class="station-dot" cx="900" cy="230" r="7"/><text class="station-lbl" x="900" y="212" text-anchor="middle">評価・検証</text></g>
+              <g><circle class="station-dot" cx="980" cy="60" r="7"/><text class="station-lbl" x="980" y="42" text-anchor="middle">制度改定</text></g>
+              <g><circle class="station-dot" cx="1040" cy="150" r="7"/><text class="station-lbl" x="1040" y="132" text-anchor="middle">公募・支援</text></g>
+            </svg>
           </div>
-          <div class="hero-signal" aria-label="更新データの概要">
-            <div class="signal-label">SIGNAL / 01</div>
-            <div class="signal-number" id="hero-count">—</div>
-            <div class="signal-caption">科学技術関連の<br />公式更新</div>
-            <div class="signal-rule"><span id="hero-rule"></span></div>
-            <div class="signal-foot"><span>更新頻度</span><strong>3H</strong><span class="signal-arrow">↗</span></div>
+
+          <div class="hero-bottom">
+            <div class="legend" id="line-legend" role="group" aria-label="路線でフィルターする">
+              <button type="button" class="legend-btn l1 is-active" data-line="l1"><span class="sw" aria-hidden="true"></span>審議・制度<span class="legend-count" data-count="l1">—</span></button>
+              <button type="button" class="legend-btn l2 is-active" data-line="l2"><span class="sw" aria-hidden="true"></span>予算・支援<span class="legend-count" data-count="l2">—</span></button>
+              <button type="button" class="legend-btn l3 is-active" data-line="l3"><span class="sw" aria-hidden="true"></span>発信・検証<span class="legend-count" data-count="l3">—</span></button>
+            </div>
+            <div class="board"><span class="board-n"><span id="hero-count">—</span> SIGNALS</span><span class="board-cap">確認済みの公式更新<span id="hero-meta">最終取得を確認中</span></span></div>
           </div>
         </section>
 
         <section class="overview" aria-label="データの概要">
-          <div class="overview-intro"><span class="section-kicker">THE BRIEF</span><h2>いま、何が動いているか。</h2></div>
-          <div class="overview-stat"><span class="stat-label">掲載中の更新</span><strong id="stat-total">—</strong><span class="stat-note">件</span></div>
           <div class="overview-stat"><span class="stat-label">情報源</span><strong id="stat-sources">—</strong><span class="stat-note">政府機関</span></div>
-          <div class="overview-stat accent-stat"><span class="stat-label">最終取得</span><strong id="stat-updated">—</strong><span class="stat-note">JST</span></div>
+          <div class="overview-stat"><span class="stat-label">稼働中</span><strong id="stat-ok">—</strong><span class="stat-note">/ 全フィード</span></div>
+          <div class="overview-stat"><span class="stat-label">最終取得</span><strong id="stat-updated">—</strong><span class="stat-note">JST</span></div>
         </section>
 
         <div class="content-layout">
           <section class="feed-section" id="updates" aria-labelledby="feed-title">
             <div class="section-heading">
-              <div><span class="section-kicker">POLICY MOVEMENT</span><h2 id="feed-title">新着シグナル</h2></div>
+              <div><span class="section-kicker">STATIONS</span><h2 id="feed-title">新着シグナル</h2></div>
               <span class="result-count" id="result-count">—件</span>
             </div>
             <div class="filters" aria-label="更新を絞り込む">
@@ -68,26 +75,26 @@
             <div id="feed-list" class="feed-list" aria-live="polite" aria-busy="true">
               <div class="loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>公式フィードから取得した更新を表示しています…</span></div>
             </div>
-            <div id="empty-state" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">◌</span><h3>該当する更新がありません</h3><p>検索語やフィルターを変えて、もう一度お試しください。</p></div>
+            <div id="empty-state" class="empty-state" hidden><span class="empty-mark" aria-hidden="true">◌</span><h3>該当する更新がありません</h3><p>検索語やフィルター、路線の選択を変えて、もう一度お試しください。</p></div>
           </section>
 
           <aside class="side-column">
-            <section class="side-card pulse-card" id="focus-areas" aria-labelledby="pulse-title">
-              <div class="side-card-header"><div><span class="section-kicker">FOCUS AREAS</span><h2 id="pulse-title">注目の領域</h2></div><span class="side-index">02</span></div>
-              <div id="category-list" class="category-list"><div class="mini-loading"></div></div>
-              <p class="side-note">取得した更新の分類を集計。数字は現在表示中のデータに連動します。</p>
-            </section>
             <section class="side-card source-card" id="source-status" aria-labelledby="source-title">
-              <div class="side-card-header"><div><span class="section-kicker">PROVENANCE</span><h2 id="source-title">情報源の状態</h2></div><span class="source-check" aria-label="確認済み">✓</span></div>
+              <div class="side-card-header"><div><span class="section-kicker">PROVENANCE</span><h2 id="source-title">運行状況</h2></div><span class="side-index">01</span></div>
               <div id="source-list" class="source-list"><div class="mini-loading"></div></div>
               <a class="text-link" href="sources.html">取得仕様と出典について <span aria-hidden="true">↗</span></a>
+            </section>
+            <section class="side-card about-card" aria-labelledby="about-title">
+              <div class="side-card-header"><div><span class="section-kicker">READING GUIDE</span><h2 id="about-title">読み方</h2></div><span class="side-index">02</span></div>
+              <p><strong>路線</strong>は文書が政策過程のどの段階にあるかを示します。重要度のランキングではありません。</p>
+              <p>本文は<strong>原典から取得したまま</strong>表示します。要約や解釈を、事実の代わりとしては扱いません。</p>
             </section>
           </aside>
         </div>
 
         <section class="sources-detail" id="sources-detail" aria-labelledby="sources-detail-title">
           <div><span class="section-kicker">METHOD / CONTEXT</span><h2 id="sources-detail-title">更新と実態を、分けて見る。</h2></div>
-          <div class="detail-copy"><p>このサイトは、各省庁が公開する公式RSSと公式ページをGitHub Actionsで3時間おきに確認し、科学技術・研究・予算に関係する更新を静的JSONへ反映します。</p><p>システム・アトラスでは、政策の動きと、研究費・研究者の移動を別々に表示します。概念図は関係を読むための図、統計図は定義された数値です。両者を混同せず、必要なら原典へ戻れます。</p></div>
+          <div class="detail-copy"><p>各省庁が公開する公式RSSと公式ページをGitHub Actionsで3時間おきに確認し、科学技術・研究・予算に関係する更新を静的JSONへ反映します。</p><p>システム・アトラスでは、政策の動きと、研究費・研究者の移動を別々に表示します。概念図は関係を読むための図、統計図は定義された数値です。</p></div>
           <div class="detail-badge"><span>READ THE SIGNAL</span><strong>動きと実態を、同じ地図で。</strong></div>
         </section>
       </main>
@@ -98,7 +105,6 @@
     <dialog id="detail-dialog" class="detail-dialog" aria-labelledby="dialog-title">
       <div class="dialog-inner"><button class="dialog-close" id="dialog-close" type="button" aria-label="詳細を閉じる">×</button><span class="section-kicker" id="dialog-source">SOURCE</span><h2 id="dialog-title">更新の抜粋</h2><div class="dialog-meta" id="dialog-meta"></div><div class="dialog-source-body"><div class="dialog-label">取得した本文の抜粋 <span>原文は公式ページ</span></div><div id="dialog-body" class="article-body"></div></div><div id="dialog-content-note" class="dialog-content-note"></div><div id="dialog-tags" class="tag-row"></div><div class="dialog-actions"><a id="dialog-link" class="dialog-link" href="#" target="_blank" rel="noopener noreferrer">原典を開く <span aria-hidden="true">↗</span></a><button id="dialog-copy" class="dialog-copy" type="button">共有リンクをコピー</button></div></div>
     </dialog>
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script src="app.js" defer></script>
+    <script src="app.js?v=20260807" defer></script>
   </body>
 </html>

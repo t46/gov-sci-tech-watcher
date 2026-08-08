@@ -1,4 +1,12 @@
-const state = { items: [], sources: [], filters: { search: "", category: "all", source: "all" } };
+const LINE_GROUPS = {
+  "会議・審議": "l1", "基本計画": "l1",
+  "予算資料": "l2", "公募・支援": "l2",
+  "発表・報告": "l3", "評価・検証": "l3", "統計・白書": "l3",
+};
+const LINE_NAMES = { l1: "審議・制度", l2: "予算・支援", l3: "発信・検証" };
+const lineOf = (item) => LINE_GROUPS[item?.document_type] || "l1";
+
+const state = { items: [], sources: [], filters: { search: "", category: "all", source: "all", lines: new Set(["l1", "l2", "l3"]) } };
 const $ = (selector) => document.querySelector(selector);
 
 const formatDate = (iso, withTime = false) => {
@@ -27,7 +35,7 @@ function visibleItems() {
   const query = state.filters.search.trim().toLocaleLowerCase("ja");
   return state.items.filter((item) => {
     const matchesQuery = !query || [item.title, item.summary, item.source, item.category, ...(item.tags || [])].join(" ").toLocaleLowerCase("ja").includes(query);
-    return matchesQuery && (state.filters.category === "all" || item.category === state.filters.category) && (state.filters.source === "all" || item.source === state.filters.source);
+    return matchesQuery && state.filters.lines.has(lineOf(item)) && (state.filters.category === "all" || item.category === state.filters.category) && (state.filters.source === "all" || item.source === state.filters.source);
   });
 }
 
@@ -39,23 +47,22 @@ function renderFeed() {
   list.innerHTML = items.length ? items.map((item) => {
     const sourceHref = itemUrl(item);
     const contentState = item.content_status === "extracted" ? "本文取得済み" : "原典で確認";
-    return `<div class="feed-item-shell"><a class="feed-item" href="${escapeHtml(sourceHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(item.title)}。公式ページまたはPDFを開く"><div class="timeline-marker" aria-hidden="true"></div><div class="feed-main"><div class="feed-topline"><span class="item-source">${escapeHtml(item.source)}</span><span class="item-type">${escapeHtml(item.category || "科学技術政策")}</span><span class="item-type document-type">${escapeHtml(item.document_type || "公式更新")}</span></div><h3 class="item-title">${escapeHtml(item.title)}</h3><div class="feed-signal-row"><span class="content-state">${contentState}</span><span class="item-hint">クリックで原典を開く ↗</span></div></div><div class="feed-side"><time class="item-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time></div></a><button class="feed-preview" type="button" data-preview-id="${escapeHtml(item.id)}">抜粋を見る</button></div>`;
+    const line = lineOf(item);
+    return `<div class="station"><a class="station-cover" href="${escapeHtml(sourceHref)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(item.title)}。公式ページまたはPDFを開く"></a><div class="dot-outer"><span class="dot-inner ${line}"></span></div><div class="station-main"><div class="smeta"><span class="linetag ${line}">${escapeHtml(LINE_NAMES[line])}</span><span class="item-source">${escapeHtml(item.source)}</span></div><h3 class="item-title">${escapeHtml(item.title)}</h3><div class="station-foot"><span class="content-state">${contentState}</span><span class="item-hint">クリックで原典を開く ↗</span><button class="station-preview" type="button" data-preview-id="${escapeHtml(item.id)}">抜粋を見る</button></div></div><div class="station-side"><time class="item-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time></div></div>`;
   }).join("") : "";
-  list.querySelectorAll(".feed-preview").forEach((button) => {
-    button.addEventListener("click", (event) => { event.stopPropagation(); openDetail(button.dataset.previewId); });
+  list.querySelectorAll(".station-preview").forEach((button) => {
+    button.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); openDetail(button.dataset.previewId); });
   });
 }
 
-function renderCategories() {
-  const counts = state.items.reduce((result, item) => { const key = item.category || "科学技術政策"; result[key] = (result[key] || 0) + 1; return result; }, {});
-  const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const max = rows[0]?.[1] || 1;
-  $("#category-list").innerHTML = rows.length ? rows.map(([name, count]) => `<div class="category-row"><span class="category-name">${escapeHtml(name)}</span><span class="category-value">${count}</span><div class="category-bar"><span style="width:${Math.round((count / max) * 100)}%"></span></div></div>`).join("") : `<p class="side-note">分類できる更新がまだありません。</p>`;
+function renderLegendCounts() {
+  const counts = state.items.reduce((result, item) => { const line = lineOf(item); result[line] = (result[line] || 0) + 1; return result; }, {});
+  document.querySelectorAll(".legend-count").forEach((element) => { element.textContent = String(counts[element.dataset.count] || 0); });
 }
 
 function renderSources() {
   const sourceItems = state.items.reduce((result, item) => { result[item.source_id] = (result[item.source_id] || 0) + 1; return result; }, {});
-  $("#source-list").innerHTML = state.sources.length ? state.sources.map((source) => `<div class="source-row"><div><div class="source-name">${escapeHtml(source.name)}</div><div class="source-kind">${escapeHtml(source.kind || "公式配信")}${source.items !== undefined ? ` / ${sourceItems[source.id] || 0}件掲載` : ""}</div></div><span class="source-status ${source.status === "error" ? "error" : ""}">${source.status === "error" ? "取得エラー" : "稼働中"}</span></div>`).join("") : `<p class="side-note">情報源の状態を取得できませんでした。</p>`;
+  $("#source-list").innerHTML = state.sources.length ? state.sources.map((source) => `<div class="source-row"><div><div class="source-name">${escapeHtml(source.name)}</div><div class="source-kind">${escapeHtml(source.kind || "公式配信")}${source.items !== undefined ? ` / ${sourceItems[source.id] || 0}件掲載` : ""}</div></div><span class="source-status ${source.status === "error" ? "error" : ""}">${source.status === "error" ? "取得エラー" : "運行中"}</span></div>`).join("") : `<p class="side-note">情報源の状態を取得できませんでした。</p>`;
 }
 
 function updateItemQuery(itemId) {
@@ -68,7 +75,7 @@ function updateItemQuery(itemId) {
 function openDetail(itemId, { updateUrl = true } = {}) {
   const item = state.items.find((candidate) => candidate.id === itemId);
   if (!item) return;
-  setText("#dialog-source", `${item.source} / ${item.category || "科学技術政策"}`);
+  setText("#dialog-source", `${item.source} / ${LINE_NAMES[lineOf(item)]}`);
   setText("#dialog-title", item.title);
   setText("#dialog-meta", `${formatDate(item.published_at, true)} 公開　·　${item.document_type || "公式更新"}　·　${item.document_role || "公式の事実や進捗を伝える"}`);
   const body = asList(item.body_blocks, []);
@@ -83,11 +90,37 @@ function openDetail(itemId, { updateUrl = true } = {}) {
   const dialog = $("#detail-dialog"); if (typeof dialog.showModal === "function") dialog.showModal(); else window.open(safeUrl(item.url), "_blank", "noopener");
 }
 
+function setLineDiagramState() {
+  const active = state.filters.lines;
+  document.querySelectorAll(".route").forEach((path) => {
+    const line = path.dataset.line;
+    path.classList.toggle("is-dim", active.size < 3 && !active.has(line));
+  });
+  document.querySelectorAll(".legend-btn").forEach((button) => {
+    button.classList.toggle("is-active", active.has(button.dataset.line));
+  });
+}
+
 function bindInteractions() {
   $("#search").addEventListener("input", (event) => { state.filters.search = event.target.value; renderFeed(); });
   $("#category-filter").addEventListener("change", (event) => { state.filters.category = event.target.value; renderFeed(); });
   $("#source-filter").addEventListener("change", (event) => { state.filters.source = event.target.value; renderFeed(); });
-  $("#reset-filters").addEventListener("click", () => { state.filters = { search: "", category: "all", source: "all" }; $("#search").value = ""; $("#category-filter").value = "all"; $("#source-filter").value = "all"; renderFeed(); });
+  $("#reset-filters").addEventListener("click", () => {
+    state.filters = { search: "", category: "all", source: "all", lines: new Set(["l1", "l2", "l3"]) };
+    $("#search").value = ""; $("#category-filter").value = "all"; $("#source-filter").value = "all";
+    setLineDiagramState(); renderFeed();
+  });
+  document.querySelectorAll(".legend-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const line = button.dataset.line;
+      if (state.filters.lines.has(line)) state.filters.lines.delete(line); else state.filters.lines.add(line);
+      if (!state.filters.lines.size) state.filters.lines = new Set(["l1", "l2", "l3"]);
+      setLineDiagramState(); renderFeed();
+    });
+  });
+  document.querySelectorAll(".route").forEach((path) => {
+    path.addEventListener("click", () => { state.filters.lines = new Set([path.dataset.line]); setLineDiagramState(); renderFeed(); });
+  });
   $("#dialog-close").addEventListener("click", () => $("#detail-dialog").close());
   $("#dialog-copy").addEventListener("click", async (event) => {
     const button = event.currentTarget;
@@ -111,12 +144,17 @@ async function loadData() {
     const payload = await response.json();
     state.items = Array.isArray(payload.items) ? payload.items : [];
     state.sources = Array.isArray(payload.sources) ? payload.sources : [];
-    populateFilters(); renderFeed(); renderCategories(); renderSources();
-    setText("#header-status", `${state.sources.filter((source) => source.status === "ok").length}/${state.sources.length} ソース稼働中`);
+    populateFilters(); renderFeed(); renderLegendCounts(); renderSources();
+    const okCount = state.sources.filter((source) => source.status === "ok").length;
+    setText("#header-status", `${okCount}/${state.sources.length} ソース稼働中`);
     $(".status-dot").classList.add("is-live");
-    setText("#hero-count", String(state.items.length).padStart(2, "0")); setText("#stat-total", state.items.length.toLocaleString("ja-JP")); setText("#stat-sources", state.sources.length.toString().padStart(2, "0"));
+    setText("#hero-count", String(state.items.length).padStart(3, "0"));
+    setText("#stat-sources", state.sources.length.toString().padStart(2, "0"));
+    setText("#stat-ok", `${okCount}`);
     const generatedAt = payload.generated_at ? formatDate(payload.generated_at, true) : "未取得";
-    setText("#hero-meta", `最終取得 ${generatedAt} / JST`); setText("#stat-updated", generatedAt.includes(" ") ? generatedAt.split(" ").at(-1) : generatedAt); setText("#footer-year", String(new Date().getFullYear()));
+    setText("#hero-meta", `最終取得 ${generatedAt} / JST`);
+    setText("#stat-updated", generatedAt.includes(" ") ? generatedAt.split(" ").at(-1) : generatedAt);
+    setText("#footer-year", String(new Date().getFullYear()));
     const requestedItem = new URLSearchParams(window.location.search).get("item");
     if (requestedItem) openDetail(requestedItem, { updateUrl: false });
   } catch (error) {

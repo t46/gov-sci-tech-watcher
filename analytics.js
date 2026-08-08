@@ -9,27 +9,37 @@ const setText = (selector, value) => { const element = $(selector); if (element)
 const formatDate = (value) => { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? String(value).slice(0, 10) : new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date); };
 const emptyChart = (selector, message) => { const element = $(selector); if (element) element.innerHTML = `<p class="data-empty">${escapeHtml(message)}</p>`; };
 
-function renderOpeningMap() {
+const THREADS = [
+  { key: "l1", var: "--ai", centerY: 110, amp: 44, period: 260, phase: 0 },
+  { key: "l2", var: "--bengara", centerY: 172, amp: 44, period: 300, phase: 1.1 },
+  { key: "l3", var: "--yamabuki", centerY: 234, amp: 38, period: 340, phase: 2.4 },
+];
+const threadY = (thread, x) => thread.centerY + thread.amp * Math.sin((x / thread.period) * 2 * Math.PI + thread.phase);
+
+function renderWeave() {
   const element = $("#opening-map");
   if (!element || !d3) return;
-  const width = 760;
-  const height = 500;
-  const nodes = [
-    { id: "rules", x: 380, y: 80, label: "政府・ルール", sub: "POLICY", color: "var(--coral)" },
-    { id: "resources", x: 160, y: 220, label: "資金", sub: "RESOURCES", color: "var(--blue)" },
-    { id: "people", x: 600, y: 220, label: "人", sub: "PEOPLE", color: "var(--green)" },
-    { id: "research", x: 260, y: 385, label: "大学・企業・研究機関", sub: "RESEARCH", color: "var(--violet)" },
-    { id: "knowledge", x: 540, y: 385, label: "知識・成果", sub: "KNOWLEDGE", color: "var(--yellow)" },
-  ];
-  const edges = [["rules", "resources"], ["rules", "people"], ["resources", "research"], ["people", "research"], ["research", "knowledge"], ["knowledge", "rules"]];
-  const byId = new Map(nodes.map((node) => [node.id, node]));
-  const svg = d3.select(element).html("").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "政府のルール、資金、人、研究、知識が循環する科学システムの概念図");
-  svg.append("g").selectAll("path").data(edges).join("path").attr("class", "concept-edge").attr("d", ([sourceId, targetId]) => { const source = byId.get(sourceId); const target = byId.get(targetId); const dx = target.x - source.x; const dy = target.y - source.y; return `M${source.x},${source.y} Q${source.x + dx * .5 + dy * .16},${source.y + dy * .5 - dx * .16} ${target.x},${target.y}`; });
-  const groups = svg.append("g").selectAll("g").data(nodes).join("g").attr("transform", (node) => `translate(${node.x},${node.y})`);
-  groups.append("circle").attr("class", "concept-node").attr("r", (node) => node.id === "research" ? 44 : 38).style("fill", (node) => node.color);
-  groups.append("text").attr("class", "concept-label").attr("text-anchor", "middle").attr("y", 4).text((node) => node.label);
-  groups.append("text").attr("class", "concept-sub").attr("text-anchor", "middle").attr("y", 61).text((node) => node.sub);
-  svg.append("text").attr("class", "concept-tag").attr("x", 380).attr("y", 470).attr("text-anchor", "middle").text("A SYSTEM OF RELATIONS / NOT A SINGLE INDUSTRY");
+  const width = 1180;
+  const height = 300;
+  const style = getComputedStyle(document.documentElement);
+  const svg = d3.select(element).html("").append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "審議・制度、予算・支援、発信・検証という3本の糸が交わり結び目をつくる図");
+  const line = d3.line().x((point) => point[0]).y((point) => point[1]).curve(d3.curveBasis);
+  svg.append("g").selectAll("path").data(THREADS).join("path")
+    .attr("class", (thread) => `thread ${thread.key}`)
+    .attr("stroke-width", 10)
+    .attr("d", (thread) => line(d3.range(-20, width + 21, 8).map((x) => [x, threadY(thread, x)])));
+  const knotX = [width * 0.24, width * 0.5, width * 0.76];
+  const knots = knotX.map((x, index) => {
+    const ys = THREADS.map((thread) => threadY(thread, x));
+    const y = d3.mean(ys);
+    return { x, y, number: index + 1 };
+  });
+  const knotGroups = svg.append("g").selectAll("g").data(knots).join("g").attr("transform", (knot) => `translate(${knot.x},${knot.y})`);
+  knotGroups.append("circle").attr("class", "knot-ring").attr("r", 13);
+  knotGroups.append("text").attr("class", "knot-number").attr("text-anchor", "middle").attr("y", 4).text((knot) => knot.number);
+  svg.append("text").attr("class", "thread-label").attr("x", 4).attr("y", threadY(THREADS[0], -4) - 18).attr("fill", style.getPropertyValue("--ai")).text("審議・制度");
+  svg.append("text").attr("class", "thread-label").attr("x", 4).attr("y", threadY(THREADS[1], -4) + 30).attr("fill", style.getPropertyValue("--bengara")).text("予算・支援");
+  svg.append("text").attr("class", "thread-label").attr("x", 4).attr("y", threadY(THREADS[2], -4) + 34).attr("fill", style.getPropertyValue("--yamabuki")).text("発信・検証");
 }
 
 const systemNodes = [
@@ -79,7 +89,7 @@ function renderSignals(items) {
   if (!element) return;
   const sorted = [...(items || [])].filter((item) => safeUrl(item.url)).sort((a, b) => new Date(b.published_at || 0) - new Date(a.published_at || 0)).slice(0, 9);
   if (!sorted.length) { element.innerHTML = `<p class="data-empty">公式更新がありません。</p>`; return; }
-  element.innerHTML = sorted.map((item) => `<a class="signal-item" href="${escapeHtml(safeUrl(item.url))}" target="_blank" rel="noopener noreferrer"><time class="signal-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time><span class="signal-body"><span class="signal-tags"><span>${escapeHtml(item.category || "未分類")}</span><span>${escapeHtml(item.document_type || "文書")}</span></span><h3>${escapeHtml(item.title)}</h3><span class="signal-source">${escapeHtml(item.source || "政府公式")}</span></span><span class="signal-arrow" aria-hidden="true">↗</span></a>`).join("");
+  element.innerHTML = sorted.map((item, index) => `<a class="signal-item" href="${escapeHtml(safeUrl(item.url))}" target="_blank" rel="noopener noreferrer"><span class="signal-knot-no" aria-hidden="true">${index < 3 ? index + 1 : ""}</span><time class="signal-date" datetime="${escapeHtml(item.published_at || "")}">${formatDate(item.published_at)}</time><span class="signal-body"><span class="signal-tags"><span>${escapeHtml(item.category || "未分類")}</span><span>${escapeHtml(item.document_type || "文書")}</span></span><h3>${escapeHtml(item.title)}</h3><span class="signal-source">${escapeHtml(item.source || "政府公式")}</span></span><span class="signal-arrow" aria-hidden="true">↗</span></a>`).join("");
 }
 
 function renderPolicyPulse(monthly) {
@@ -148,14 +158,14 @@ function renderPeopleFlow(links) {
 function initRail() {
   const links = [...document.querySelectorAll("[data-section-link]")].map((link) => ({ link, section: document.getElementById(link.dataset.sectionLink) })).filter((item) => item.section);
   if ("IntersectionObserver" in window) { const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) links.forEach((item) => item.link.classList.toggle("is-active", item.section === entry.target)); }), { rootMargin: "-24% 0px -65% 0px", threshold: 0 }); links.forEach((item) => observer.observe(item.section)); }
-  const update = () => { const max = document.documentElement.scrollHeight - window.innerHeight; const progress = max > 0 ? Math.min(100, window.scrollY / max * 100) : 0; const bar = $("#scroll-progress"); if (bar) bar.style.setProperty("--progress", `${progress}%`); if (bar) bar.style.background = `linear-gradient(to right, var(--coral) ${progress}%, var(--rule) ${progress}%)`; };
+  const update = () => { const max = document.documentElement.scrollHeight - window.innerHeight; const progress = max > 0 ? Math.min(100, window.scrollY / max * 100) : 0; const bar = $("#scroll-progress"); if (bar) bar.style.setProperty("--progress", `${progress}%`); if (bar) bar.style.background = `linear-gradient(to right, var(--bengara) ${progress}%, var(--rule) ${progress}%)`; };
   window.addEventListener("scroll", update, { passive: true }); update();
 }
 
 function render(payload, updates) {
   const policy = payload.policy || {}; const reality = payload.reality || {}; const money = reality.money || {}; const people = reality.people || {};
   setText("#header-status", `${number(policy.item_count)}件の公式更新 / ${reality.survey_year || "—"}年統計`); setText("#opening-meta", `更新 ${formatDate(payload.generated_at)} / 統計 ${reality.survey_year || "—"}`); setText("#footer-year", new Date().getFullYear());
-  renderOpeningMap(); renderSignals(updates.items); renderPolicyPulse(policy.monthly_activity); renderDocumentRoles(policy.document_type_counts); renderSystemMap(); renderExpenditure(money.rows); renderPeopleFlow(people.links); initRail();
+  renderWeave(); renderSignals(updates.items); renderPolicyPulse(policy.monthly_activity); renderDocumentRoles(policy.document_type_counts); renderSystemMap(); renderExpenditure(money.rows); renderPeopleFlow(people.links); initRail();
 }
 
 async function init() {
