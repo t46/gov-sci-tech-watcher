@@ -593,9 +593,188 @@ function renderPlanBars(indicators) {
   setText("#plan-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 
+/* ============================================================ 07 finance */
+
+function renderNatlScatter(finance) {
+  const mount = $("#natl-scatter");
+  const block = finance?.national;
+  if (!mount || !block || block.status !== "ok") { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const years = block.years || [];
+  const yearIndex = years.length - 1;
+  const latestYear = years[yearIndex];
+  const rows = (block.corporations || []).map((corp) => {
+    const revenue = corp.metrics.revenue_total?.[yearIndex];
+    const grants = corp.metrics.grants?.[yearIndex];
+    if (!revenue || grants == null) return null;
+    return { label: corp.label, revenue, grants, dependency: (grants / revenue) * 100, hospital: (corp.metrics.hospital?.[yearIndex] || 0) > 0 };
+  }).filter(Boolean);
+  const width = mount.clientWidth || 1000, height = Math.max(420, Math.min(560, width * 0.5));
+  const margin = { top: 30, right: 40, bottom: 48, left: 56 };
+  const x = d3.scaleLog().domain(d3.extent(rows, (r) => r.revenue)).range([margin.left, width - margin.right]).nice();
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.dependency) * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "国立大学法人の経常収益と運営費交付金依存度の散布図");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${v}%`).tickSize(-(width - margin.left - margin.right))));
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(5, (v) => `${Math.round(v / 1e5).toLocaleString("ja-JP")}億`).tickSize(-(height - margin.top - margin.bottom))));
+  svg.append("text").attr("x", width - margin.right).attr("y", height - 12).attr("text-anchor", "end")
+    .attr("font-size", 10).attr("fill", "#8b96ab").text(`経常収益（${latestYear}年度・対数軸）→`);
+  svg.append("text").attr("x", margin.left).attr("y", margin.top - 12)
+    .attr("font-size", 10).attr("fill", "#8b96ab").text("↑ 運営費交付金依存度（交付金収益 ÷ 経常収益）");
+  const big = new Set([...rows].sort((a, b) => b.revenue - a.revenue).slice(0, 7).map((r) => r.label));
+  const dots = svg.append("g").selectAll("circle").data(rows).join("circle")
+    .attr("cx", (r) => x(r.revenue)).attr("cy", (r) => y(r.dependency))
+    .attr("r", (r) => Math.max(2.6, Math.sqrt(r.revenue) / 2400))
+    .attr("fill", (r) => (big.has(r.label) ? "rgba(255,181,69,0.55)" : "rgba(79,216,255,0.35)"))
+    .attr("stroke", (r) => (big.has(r.label) ? "#ffb545" : "rgba(79,216,255,0.7)")).attr("stroke-width", 0.9);
+  svg.append("g").selectAll("text").data(rows.filter((r) => big.has(r.label))).join("text")
+    .attr("x", (r) => x(r.revenue) + 9).attr("y", (r) => y(r.dependency) + 4)
+    .attr("font-size", 10.5).attr("font-weight", 600).attr("fill", "#ffb545")
+    .text((r) => r.label.replace("国立大学機構", "機構"));
+  const hover = hoverBox("#natl-hover");
+  dots.on("pointerenter", (event, r) => {
+    hover.show(`<b>${escapeHtml(r.label)}</b><br>経常収益 ${okuFromThousand(r.revenue)}<br>交付金依存度 ${fmtPct(r.dependency)}`, event, mount);
+  }).on("pointerleave", () => hover.hide());
+  if (!REDUCED && gsap) {
+    gsap.from(dots.nodes(), { attr: { r: 0 }, duration: 0.9, ease: "power3.out", stagger: 0.004, scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+  const median = d3.median(rows, (r) => r.dependency);
+  setText("#finance-lede", `国立大学法人${rows.length}法人の${latestYear}年度の経常収益と運営費交付金依存度。依存度の中央値は${fmtPct(median)}。規模が大きいほど病院収益・外部資金で依存度が下がる構造が見える。`);
+  setText("#natl-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+}
+
+function renderPrivBars(finance) {
+  const mount = $("#priv-bars");
+  const block = finance?.private;
+  if (!mount || !block || block.status !== "ok") { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const SEGMENTS = [
+    { key: "tuition", label: "学生納付金", color: "#4fd8ff" },
+    { key: "subsidies", label: "補助金", color: "#5ad8a1" },
+    { key: "donations", label: "寄付金", color: "#ffb545" },
+    { key: "commissioned", label: "受託事業", color: "#8d7fb0" },
+    { key: "other", label: "その他", color: "#46536b" },
+  ];
+  const rows = (block.universities || []).map((u) => {
+    const m = u.metrics;
+    const known = (m.tuition || 0) + (m.subsidies || 0) + (m.donations || 0) + (m.commissioned || 0);
+    return { label: u.label, total: m.revenue_total, segments: { ...m, other: Math.max(0, m.revenue_total - known) } };
+  }).sort((a, b) => b.total - a.total);
+  const width = mount.clientWidth || 560, height = rows.length * 30 + 60;
+  const margin = { top: 24, right: 76, bottom: 8, left: 92 };
+  const x = d3.scaleLinear().domain([0, rows[0].total]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.label)).range([margin.top, height - margin.bottom]).padding(0.32);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "主要私立大学の事業活動収入の構成の積み上げ横棒グラフ");
+  for (const row of rows) {
+    let cursor = 0;
+    for (const seg of SEGMENTS) {
+      const value = row.segments[seg.key] || 0;
+      if (value <= 0) continue;
+      svg.append("rect").attr("x", x(cursor)).attr("y", y(row.label)).attr("height", y.bandwidth())
+        .attr("width", Math.max(0.5, x(value) - x(0))).attr("fill", seg.color).attr("opacity", 0.85)
+        .append("title").text(`${row.label} ${seg.label} ${(value / 1e8).toFixed(0)}億円`);
+      cursor += value;
+    }
+    svg.append("text").attr("x", margin.left - 6).attr("y", y(row.label) + y.bandwidth() / 2 + 4)
+      .attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#e9eef7").text(row.label.replace("大学", ""));
+    svg.append("text").attr("x", x(row.total) + 5).attr("y", y(row.label) + y.bandwidth() / 2 + 4)
+      .attr("font-size", 10).attr("fill", "#8b96ab").text(`${Math.round(row.total / 1e8).toLocaleString("ja-JP")}億`);
+  }
+  const legend = svg.append("g").attr("transform", `translate(${margin.left},12)`);
+  let lx = 0;
+  for (const seg of SEGMENTS) {
+    legend.append("rect").attr("x", lx).attr("y", -8).attr("width", 9).attr("height", 9).attr("fill", seg.color);
+    legend.append("text").attr("x", lx + 13).attr("y", 0).attr("font-size", 9.5).attr("fill", "#8b96ab").text(seg.label);
+    lx += 13 + seg.label.length * 10 + 18;
+  }
+  setText("#priv-source", `出典: ${block.source?.title || ""}（${block.fiscal_year || ""}）。${block.note || ""}`);
+}
+
+function renderInstLines(finance) {
+  const mount = $("#inst-lines");
+  const block = finance?.institutes;
+  if (!mount || !block || block.status !== "ok") { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const palette = { riken: "#ffb545", aist: "#4fd8ff" };
+  const width = mount.clientWidth || 560, height = Math.max(320, width * 0.58);
+  const margin = { top: 24, right: 120, bottom: 32, left: 52 };
+  const points = [];
+  for (const inst of block.institutes || []) {
+    for (const [year, entry] of Object.entries(inst.values)) {
+      points.push({ id: inst.id, year: +year, revenue: entry.revenue_total, grants: entry.grants });
+    }
+  }
+  const x = d3.scaleLinear().domain(d3.extent(points, (p) => p.year)).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, d3.max(points, (p) => p.revenue) * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "理研と産総研の経常収益・運営費交付金の推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${Math.round(v / 1e8)}億`).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  for (const inst of block.institutes || []) {
+    const series = Object.entries(inst.values).map(([year, entry]) => ({ year: +year, revenue: entry.revenue_total, grants: entry.grants })).sort((a, b) => a.year - b.year);
+    const color = palette[inst.id] || "#8b96ab";
+    svg.append("path").attr("d", d3.line().x((p) => x(p.year)).y((p) => y(p.revenue)).curve(d3.curveMonotoneX)(series.filter((p) => p.revenue != null)))
+      .attr("fill", "none").attr("stroke", color).attr("stroke-width", 2.2);
+    svg.append("path").attr("d", d3.line().x((p) => x(p.year)).y((p) => y(p.grants)).curve(d3.curveMonotoneX)(series.filter((p) => p.grants != null)))
+      .attr("fill", "none").attr("stroke", color).attr("stroke-width", 1.1).attr("stroke-dasharray", "3 4").attr("opacity", 0.7);
+    const last = series[series.length - 1];
+    svg.append("text").attr("x", x(last.year) + 7).attr("y", y(last.revenue) + 4)
+      .attr("fill", color).attr("font-size", 11).attr("font-weight", 600).text(`${{ riken: "理研", aist: "産総研" }[inst.id] || inst.label} ${Math.round(last.revenue / 1e8)}億`);
+    svg.append("text").attr("x", x(last.year) + 7).attr("y", y(last.grants) + 4)
+      .attr("fill", color).attr("font-size", 9).attr("opacity", 0.75).text(`交付金 ${Math.round(last.grants / 1e8)}億`);
+  }
+  setText("#inst-source", `出典: ${block.source?.title || ""}。実線=経常収益、点線=運営費交付金収益。${block.note || ""}`);
+}
+
+function renderSectorLines(finance) {
+  const mount = $("#sector-lines");
+  const sector = finance?.private?.sector;
+  const table7 = sector?.table7;
+  if (!mount || !table7?.years) { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const columns = table7.columns || [];
+  const series = columns.map((label, index) => ({
+    label,
+    values: Object.entries(table7.years).map(([year, values]) => [+year, values[index]]).filter(([, v]) => v != null).sort((a, b) => a[0] - b[0]),
+  }));
+  const palette = { "事業活動収入（帰属収入）": "#ffb545", "学生納付金": "#4fd8ff", "補助金": "#5ad8a1", "人件費": "#e0797a", "教育研究経費": "#8d7fb0" };
+  const width = mount.clientWidth || 1000, height = Math.max(380, Math.min(500, width * 0.42));
+  const margin = { top: 26, right: 150, bottom: 34, left: 52 };
+  const x = d3.scaleLinear().domain(d3.extent(series.flatMap((s) => s.values.map(([y_]) => y_)))).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, d3.max(series.flatMap((s) => s.values.map(([, v]) => v))) * 1.06]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "私立大学セクターの収入と支出の長期推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${(v / 1e6).toFixed(1)}兆`).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(MOBILE ? 5 : 10).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  for (const s of series) {
+    const color = palette[s.label] || "#8b96ab";
+    const isMain = s.label.startsWith("事業活動収入");
+    const path = svg.append("path")
+      .attr("d", d3.line().x(([yr]) => x(yr)).y(([, v]) => y(v)).curve(d3.curveMonotoneX)(s.values))
+      .attr("fill", "none").attr("stroke", color).attr("stroke-width", isMain ? 2.4 : 1.4).attr("opacity", isMain ? 1 : 0.8);
+    if (!REDUCED && gsap) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+      gsap.to(path.node(), { strokeDashoffset: 0, duration: 2, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 78%" } });
+    }
+    const last = s.values[s.values.length - 1];
+    svg.append("text").attr("x", x(last[0]) + 7).attr("y", y(last[1]) + 4)
+      .attr("fill", color).attr("font-size", isMain ? 11.5 : 10).attr("font-weight", isMain ? 600 : 400)
+      .text(`${s.label.replace("（帰属収入）", "")} ${(last[1] / 1e6).toFixed(1)}兆`);
+  }
+  setText("#sector-source", `出典: ${sector.source?.title || ""}。単位は兆円（原資料は百万円）。${sector.note || ""}`);
+}
+
 /* ================================================================= ledger */
 
-function renderLedger(indicators) {
+function renderLedger(indicators, finance) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -607,6 +786,7 @@ function renderLedger(indicators) {
   push(ind.funding_flow); push(ind.gov_spending_dest); push(ind.ministry_budget);
   push(ind.industry_academia); push(ind.joint_research); push(ind.kakenhi);
   push(ind.gov_support_business); push(ind.plan_budget);
+  push(finance?.national); push(finance?.private); push(finance?.private?.sector); push(finance?.institutes);
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -634,12 +814,18 @@ async function init() {
   setText("#footer-year", String(new Date().getFullYear()));
   initRail();
   let indicators = null;
+  let finance = null;
   try {
-    const response = await fetch("data/indicators.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`indicators: ${response.status}`);
-    indicators = (await response.json()).indicators;
+    const [indicatorsResult, financeResult] = await Promise.allSettled([
+      fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+    ]);
+    indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
+    finance = financeResult.status === "fulfilled" ? financeResult.value : null;
   } catch (error) {
     console.error(error);
+  }
+  if (!indicators) {
     setText("#header-status", "資金データを取得できません");
     return;
   }
@@ -654,7 +840,11 @@ async function init() {
   renderKakenhi(indicators);
   renderSupportScatter(indicators);
   renderPlanBars(indicators);
-  renderLedger(indicators);
+  renderNatlScatter(finance);
+  renderPrivBars(finance);
+  renderInstLines(finance);
+  renderSectorLines(finance);
+  renderLedger(indicators, finance);
 }
 
 init().catch((error) => {

@@ -345,6 +345,38 @@ def institutes_block() -> dict[str, object]:
     }
 
 
+# -------------------------------------------------------------------- private
+
+PRIVATE_MANUAL = ROOT / "data" / "private_finance_fy2025.json"
+PRIVATE_SECTOR = ROOT / "data" / "private_sector_series.json"
+
+
+def private_block() -> dict[str, object]:
+    """主要私立16大学（学校法人）＋私大連加盟法人セクター集計。
+
+    個別法人の数値は各法人の公式開示PDF（事業活動収支計算書）から抽出した
+    チェックイン済みデータを読む。年次更新時は抽出をやり直してファイルを更新する。
+    """
+    manual = json.loads(PRIVATE_MANUAL.read_text(encoding="utf-8"))
+    universities = [entry for entry in manual["universities"] if entry.get("metrics")]
+    block: dict[str, object] = {
+        "status": "ok", "unit": manual.get("unit", "円"),
+        "fiscal_year": manual.get("fiscal_year"),
+        "source": {"title": "各学校法人の財務情報公開（事業活動収支計算書）", "url": "https://www.shidairen.or.jp/publications/"},
+        "note": f'{manual.get("accounting_note", "")} {manual.get("method", "")}'.strip(),
+        "universities": universities,
+    }
+    if PRIVATE_SECTOR.exists():
+        sector = json.loads(PRIVATE_SECTOR.read_text(encoding="utf-8"))
+        block["sector"] = {
+            "source": {"title": "日本私立大学連盟「加盟大学財務状況の推移」", "url": "https://www.shidairen.or.jp/publications/"},
+            "note": "私大連加盟法人の集計。表7の2014年度以前は帰属収入ベース（消費収支計算書）。",
+            "table5": sector.get("table5"),
+            "table7": sector.get("table7"),
+        }
+    return block
+
+
 def stub_block(title: str, url: str, note: str) -> dict[str, object]:
     return {"status": "unavailable", "unit": None, "source": {"title": title, "url": url}, "note": note}
 
@@ -368,7 +400,7 @@ def main() -> int:
         "schema_version": 1,
         "generated_at": now_iso(),
         "national": run_block("national", national_block),
-        "private": stub_block("学校法人（私立大学）事業活動収支", "https://www.shigaku.go.jp/", "私立大学の財務データは接続作業中。"),
+        "private": run_block("private", private_block),
         "institutes": run_block("institutes", institutes_block),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
