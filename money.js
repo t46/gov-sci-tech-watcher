@@ -772,6 +772,202 @@ function renderSectorLines(finance) {
   setText("#sector-source", `出典: ${sector.source?.title || ""}。単位は兆円（原資料は百万円）。${sector.note || ""}`);
 }
 
+/* ========================================================== 08 anatomy */
+
+const BUCKETS = [
+  { key: "public", label: "公費（交付金・補助金）", color: "#4fd8ff" },
+  { key: "tuition", label: "学生納付金", color: "#ffb545" },
+  { key: "hospital", label: "附属病院", color: "#e0797a" },
+  { key: "external", label: "外部資金（受託・共同・寄付）", color: "#5ad8a1" },
+  { key: "other", label: "その他", color: "#59687f" },
+];
+
+function buildEntities(finance) {
+  const entities = [];
+  const national = finance?.national;
+  if (national?.status === "ok") {
+    const years = national.years || [];
+    const yi = years.length - 1;
+    for (const corp of national.corporations || []) {
+      const value = (key) => { const v = corp.metrics[key]?.[yi]; return v != null ? v * 1000 : null; };  // 千円→円
+      const revenue = value("revenue_total");
+      if (!revenue) continue;
+      const buckets = {
+        public: (value("grants") || 0) + (value("subsidies") || 0),
+        tuition: value("tuition") || 0,
+        hospital: value("hospital") || 0,
+        external: (value("commissioned") || 0) + (value("joint") || 0) + (value("donations") || 0),
+      };
+      buckets.other = Math.max(0, revenue - buckets.public - buckets.tuition - buckets.hospital - buckets.external);
+      entities.push({
+        id: `n-${corp.id}`, label: corp.label, sector: "国立", year: `${years[yi]}年度`, revenue, buckets,
+        revenueItems: [
+          ["運営費交付金", value("grants")], ["学生納付金", value("tuition")], ["附属病院", value("hospital")],
+          ["受託研究", value("commissioned")], ["共同研究", value("joint")], ["寄付金", value("donations")], ["補助金等", value("subsidies")],
+        ],
+        expenseTotal: value("expense_total"),
+        expenseItems: [["人件費", value("personnel")], ["研究経費", value("research")], ["教育経費", value("education")], ["一般管理費", value("admin")]],
+        expenseResidualLabel: "診療経費・その他",
+        net: value("net"), assets: value("assets"),
+        trend: { years, revenue: corp.metrics.revenue_total?.map((v) => (v != null ? v * 1000 : null)), grants: corp.metrics.grants?.map((v) => (v != null ? v * 1000 : null)) },
+      });
+    }
+  }
+  const priv = finance?.private;
+  if (priv?.status === "ok") {
+    for (const uni of priv.universities || []) {
+      const m = uni.metrics;
+      const buckets = {
+        public: m.subsidies || 0,
+        tuition: m.tuition || 0,
+        hospital: 0,
+        external: (m.commissioned || 0) + (m.donations || 0),
+      };
+      buckets.other = Math.max(0, m.revenue_total - buckets.public - buckets.tuition - buckets.hospital - buckets.external);
+      entities.push({
+        id: `p-${uni.id}`, label: uni.label, sector: "私立", year: priv.fiscal_year || "", revenue: m.revenue_total, buckets,
+        revenueItems: [["学生納付金", m.tuition], ["経常費等補助金", m.subsidies], ["寄付金", m.donations], ["受託事業", m.commissioned]],
+        expenseTotal: m.expense_total,
+        expenseItems: [["人件費", m.personnel], ["教育研究経費", m.edu_research]],
+        expenseResidualLabel: "管理経費ほか",
+        net: null, assets: null,
+        note: uni.note || (buckets.other > m.revenue_total * 0.3 ? "「その他」には付属病院収入等を含む。" : ""),
+        trend: null,
+      });
+    }
+  }
+  return entities;
+}
+
+function glyphSvg(entity, selected) {
+  const shares = BUCKETS.map((b) => (entity.buckets[b.key] || 0) / entity.revenue);
+  const R = Math.max(9, Math.min(31, Math.sqrt(entity.revenue / 1e9) * 2.1));
+  const size = 66;
+  const cx = size / 2, cy = size / 2;
+  const petals = BUCKETS.map((bucket, index) => {
+    const share = shares[index];
+    if (share <= 0.004) return "";
+    const radius = Math.max(2, R * Math.sqrt(share) * 1.9);
+    const a0 = (index / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 + 0.09;
+    const a1 = ((index + 1) / BUCKETS.length) * Math.PI * 2 - Math.PI / 2 - 0.09;
+    const x0 = cx + Math.cos(a0) * radius, y0 = cy + Math.sin(a0) * radius;
+    const x1 = cx + Math.cos(a1) * radius, y1 = cy + Math.sin(a1) * radius;
+    return `<path d="M${cx},${cy} L${x0.toFixed(1)},${y0.toFixed(1)} A${radius.toFixed(1)},${radius.toFixed(1)} 0 0 1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" fill="${bucket.color}" opacity="${selected ? 0.95 : 0.78}"/>`;
+  }).join("");
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="1.4" fill="#8b96ab"/>${petals}</svg>`;
+}
+
+function initAnatomy(finance) {
+  const gallery = $("#glyph-gallery");
+  const panel = $("#anatomy-panel");
+  if (!gallery || !panel) return;
+  const entities = buildEntities(finance);
+  if (!entities.length) { gallery.innerHTML = '<p class="data-empty">財務データを取得できませんでした。</p>'; return; }
+  let selectedId = (entities.find((e) => e.label === "東京大学") || entities[0]).id;
+  let sortKey = "revenue";
+
+  const legend = $("#glyph-legend");
+  if (legend) legend.innerHTML = BUCKETS.map((b) => `<span><i style="background:${b.color}"></i>${b.label}</span>`).join("");
+
+  const sortValue = (entity) => {
+    if (sortKey === "revenue") return entity.revenue;
+    return (entity.buckets[sortKey] || 0) / entity.revenue;
+  };
+
+  function renderGallery() {
+    const sorted = [...entities].sort((a, b) => sortValue(b) - sortValue(a));
+    gallery.innerHTML = sorted.map((entity) => {
+      const selected = entity.id === selectedId;
+      const shortLabel = entity.label.replace(/大学$/, "").replace("国立大学機構", "機構");
+      const pct = sortKey === "revenue" ? `${(entity.revenue / 1e8).toFixed(0)}億円` : fmtPct(((entity.buckets[sortKey] || 0) / entity.revenue) * 100);
+      return `<button class="glyph${selected ? " is-selected" : ""}" role="option" aria-selected="${selected}" data-id="${entity.id}" title="${escapeHtml(entity.label)}（${escapeHtml(entity.sector)}） ${pct}">${glyphSvg(entity, selected)}<small>${escapeHtml(shortLabel)}</small></button>`;
+    }).join("");
+    if (!REDUCED && gsap) {
+      gsap.from(gallery.children, { opacity: 0, scale: 0.6, duration: 0.5, stagger: 0.004, ease: "power2.out" });
+    }
+  }
+
+  function renderPanel() {
+    const entity = entities.find((e) => e.id === selectedId);
+    if (!entity) return;
+    const oku = (v) => (v == null ? "—" : `${(v / 1e8).toLocaleString("ja-JP", { maximumFractionDigits: v < 1e9 ? 1 : 0 })}億円`);
+    const rows = (items, total, residualLabel) => {
+      const known = items.filter(([, v]) => v != null && v > 0);
+      const residual = total != null ? Math.max(0, total - d3.sum(known, ([, v]) => v)) : null;
+      const all = [...known.sort((a, b) => b[1] - a[1])];
+      if (residual && residual > total * 0.005) all.push([residualLabel, residual, true]);
+      const max = d3.max(all, ([, v]) => v) || 1;
+      return all.map(([label, value, isResidual]) => `
+        <div class="a-row">
+          <span class="a-label">${escapeHtml(label)}</span>
+          <span class="a-bar"><i style="width:${Math.max(1, (value / max) * 100)}%;background:${isResidual ? "#46536b" : "#4fd8ff"};opacity:${isResidual ? 0.6 : 0.75}"></i></span>
+          <span class="a-value">${oku(value)}<small>${total ? fmtPct((value / total) * 100, 0) : ""}</small></span>
+        </div>`).join("");
+    };
+    let trendSvg = "";
+    if (entity.trend?.revenue) {
+      const points = entity.trend.years.map((year, index) => ({ year, revenue: entity.trend.revenue[index], grants: entity.trend.grants?.[index] })).filter((p) => p.revenue != null);
+      if (points.length > 1) {
+        const w = 320, h = 74, pad = 8;
+        const x = d3.scaleLinear().domain(d3.extent(points, (p) => p.year)).range([pad, w - 58]);
+        const y = d3.scaleLinear().domain([0, d3.max(points, (p) => p.revenue) * 1.06]).range([h - pad, pad]);
+        const line = (key) => points.filter((p) => p[key] != null).map((p, i) => `${i ? "L" : "M"}${x(p.year).toFixed(1)},${y(p[key]).toFixed(1)}`).join("");
+        const last = points[points.length - 1];
+        trendSvg = `<div class="anatomy-trend"><h4>経常収益と交付金の推移（${points[0].year}–${last.year}）</h4>
+          <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+            <path d="${line("revenue")}" fill="none" stroke="#ffb545" stroke-width="2"/>
+            <path d="${line("grants")}" fill="none" stroke="#4fd8ff" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <text x="${x(last.year) + 5}" y="${y(last.revenue) + 3}" fill="#ffb545" font-size="9" font-family="IBM Plex Mono">${(last.revenue / 1e8).toFixed(0)}億</text>
+            ${last.grants != null ? `<text x="${x(last.year) + 5}" y="${y(last.grants) + 3}" fill="#4fd8ff" font-size="9" font-family="IBM Plex Mono">交付金${(last.grants / 1e8).toFixed(0)}億</text>` : ""}
+          </svg></div>`;
+      }
+    }
+    panel.innerHTML = `
+      <div class="anatomy-head">
+        <h3>${escapeHtml(entity.label)}</h3>
+        <span class="anatomy-tag">${escapeHtml(entity.sector)}</span>
+        <span class="anatomy-tag" style="border-color:transparent">${escapeHtml(entity.year)}</span>
+        <div class="anatomy-stats">
+          <span>収益<b>${oku(entity.revenue)}</b></span>
+          <span>費用<b>${oku(entity.expenseTotal)}</b></span>
+          ${entity.net != null ? `<span>当期総利益<b style="color:${entity.net < 0 ? "#e0797a" : "#5ad8a1"}">${entity.net < 0 ? "△" : ""}${oku(Math.abs(entity.net))}</b></span>` : ""}
+          ${entity.assets != null ? `<span>総資産<b>${oku(entity.assets)}</b></span>` : ""}
+        </div>
+      </div>
+      <div class="anatomy-grid">
+        <div class="anatomy-col"><h4>収益の内訳</h4>${rows(entity.revenueItems, entity.revenue, "その他収益")}</div>
+        <div class="anatomy-col"><h4>費用の内訳</h4>${rows(entity.expenseItems, entity.expenseTotal, entity.expenseResidualLabel)}${trendSvg}</div>
+      </div>
+      ${entity.note ? `<p class="method-note">${escapeHtml(entity.note)}</p>` : ""}`;
+  }
+
+  gallery.addEventListener("click", (event) => {
+    const button = event.target.closest(".glyph");
+    if (!button) return;
+    selectedId = button.dataset.id;
+    $$("#glyph-gallery .glyph").forEach((g) => {
+      const on = g.dataset.id === selectedId;
+      g.classList.toggle("is-selected", on);
+      g.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    renderPanel();
+  });
+  $$("#glyph-sort button").forEach((button) => {
+    button.addEventListener("click", () => {
+      sortKey = button.dataset.sort;
+      $$("#glyph-sort button").forEach((b) => b.classList.toggle("is-active", b === button));
+      renderGallery();
+    });
+  });
+
+  renderGallery();
+  renderPanel();
+  const natl = entities.filter((e) => e.sector === "国立").length;
+  const priv = entities.length - natl;
+  setText("#anatomy-lede", `国立${natl}法人＋主要私立${priv}法人の収入構成を、ひとつずつ「かたち」にした。花弁の向きが財源、大きさが割合、全体の大きさが収益規模。かたちが似ている法人は、財務構造が似ている。クリックで内訳まで開く。`);
+  setText("#anatomy-source", "出典: 国立=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。");
+}
+
 /* ================================================================= ledger */
 
 function renderLedger(indicators, finance) {
@@ -844,6 +1040,7 @@ async function init() {
   renderPrivBars(finance);
   renderInstLines(finance);
   renderSectorLines(finance);
+  initAnatomy(finance);
   renderLedger(indicators, finance);
 }
 

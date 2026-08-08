@@ -261,6 +261,51 @@ canvas { display: block; }
 .money-cell .m-bar i { position: absolute; inset: 0 auto 0 0; background: var(--jp); box-shadow: 0 0 10px rgba(255, 181, 69, 0.6); }
 .money-cell .m-note { display: block; margin-top: 9px; font: 400 10px var(--mono); color: var(--faint); }
 
+/* ---------------------------------------------------------------- anatomy */
+.glyph-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; font: 500 11px var(--mono); color: var(--dim); }
+.glyph-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.glyph-legend i { width: 10px; height: 10px; border-radius: 50%; }
+.glyph-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.toolbar-label { font: 500 11px var(--mono); color: var(--faint); margin-right: 4px; }
+.glyph-toolbar button {
+  padding: 6px 13px; font: 500 11px var(--mono);
+  color: var(--dim); border: 1px solid var(--hair);
+  transition: color 0.25s, border-color 0.25s, background 0.25s;
+}
+.glyph-toolbar button:hover { color: var(--text); }
+.glyph-toolbar button.is-active { color: #14100a; background: var(--jp); border-color: var(--jp); }
+.glyph-gallery { display: flex; flex-wrap: wrap; gap: 2px; align-items: end; }
+.glyph {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: end;
+  padding: 4px 2px 3px; border: 1px solid transparent; background: none; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.glyph:hover, .glyph.is-selected { border-color: var(--hair); background: rgba(255, 181, 69, 0.05); }
+.glyph.is-selected { border-color: var(--jp); }
+.glyph svg { display: block; overflow: visible; }
+.glyph small { display: block; margin-top: 2px; font: 400 8.5px var(--mono); color: var(--faint); max-width: 74px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glyph.is-selected small, .glyph:hover small { color: var(--text); }
+.anatomy-panel { margin-top: 26px; border: 1px solid var(--hair); background: var(--panel); padding: 24px 26px; }
+.anatomy-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px; border-bottom: 1px solid var(--grid); padding-bottom: 14px; }
+.anatomy-head h3 { font-family: var(--mincho); font-size: 24px; }
+.anatomy-tag { font: 600 10px var(--mono); padding: 2px 8px; border: 1px solid var(--dim); color: var(--dim); }
+.anatomy-stats { margin-left: auto; display: flex; gap: 22px; font: 400 11px var(--mono); color: var(--dim); }
+.anatomy-stats b { display: block; font: 600 17px var(--mono); color: var(--text); font-variant-numeric: tabular-nums; }
+.anatomy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; margin-top: 20px; }
+.anatomy-col h4 { font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--faint); margin-bottom: 12px; }
+.a-row { display: grid; grid-template-columns: 96px 1fr 76px; gap: 10px; align-items: center; padding: 5px 0; }
+.a-row .a-label { font-size: 11.5px; color: var(--dim); }
+.a-row .a-bar { position: relative; height: 10px; background: var(--grid); overflow: hidden; }
+.a-row .a-bar i { position: absolute; inset: 0 auto 0 0; }
+.a-row .a-value { font: 400 11px var(--mono); color: var(--text); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.a-row .a-value small { color: var(--faint); margin-left: 4px; }
+.anatomy-trend { margin-top: 18px; }
+.anatomy-trend h4 { font: 600 11px var(--mono); letter-spacing: 0.14em; color: var(--faint); margin-bottom: 8px; }
+@media (max-width: 860px) {
+  .anatomy-grid { grid-template-columns: 1fr; }
+  .anatomy-stats { margin-left: 0; width: 100%; }
+}
+
 /* ---------------------------------------------------------------- console */
 .console { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; }
 .console-feed { border-top: 1px solid var(--hair); }
