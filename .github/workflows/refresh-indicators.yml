@@ -28,12 +28,14 @@ jobs:
           ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
         run: uv run python scripts/fetch_indicators.py
+      - name: Fetch finance statements
+        run: uv run python scripts/fetch_finance.py
       - name: Commit refreshed indicators
         run: |
           git config user.name "gov-sci-tech-watcher[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main
-          git add data/indicators.json
+          git add data/indicators.json data/finance.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_ENV"
           else
