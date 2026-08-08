@@ -944,11 +944,26 @@ function initAnatomy(finance) {
   for (const e of entities) e.publicShare = Math.max(0, Math.min(1, (e.buckets.public || 0) / e.revenue));
   const aggregates = buildAggregates(entities);
   for (const a of aggregates) a.publicShare = Math.max(0, Math.min(1, (a.buckets.public || 0) / a.revenue));
-  const byId = new Map([...entities, ...aggregates].map((e) => [e.id, e]));
+  const averages = aggregates.filter((a) => a.count > 1).map((a) => {
+    const buckets = {};
+    for (const bucket of BUCKETS) buckets[bucket.key] = (a.buckets[bucket.key] || 0) / a.count;
+    return {
+      ...a, buckets,
+      id: `${a.id}-avg`, isAvg: true,
+      label: a.label.includes("全体") ? a.label.replace("全体", "平均（1法人あたり）") : `${a.label} 平均（1法人あたり）`,
+      short: a.short.includes("計") ? a.short.replace("計", "平均") : `${a.short} 平均`,
+      revenue: a.revenue / a.count,
+      expenseTotal: a.expenseTotal != null ? a.expenseTotal / a.count : null,
+      assets: a.assets != null ? a.assets / a.count : null,
+    };
+  });
+  const byId = new Map([...entities, ...aggregates, ...averages].map((e) => [e.id, e]));
   let selectedId = (entities.find((e) => e.label === "東京大学") || entities[0]).id;
   let filterKey = "all";
   let query = "";
+  let vsId = null;
   const tray = [];
+  const SECTOR_NAMES = { "国立": "国立大学法人", "私立": "私立大学", "研究開発法人": "国立研究開発法人", "大学共同利用": "大学共同利用機関法人" };
 
   const legend = $("#glyph-legend");
   if (legend) legend.innerHTML = BUCKETS.map((b) => `<span><i style="background:${b.color}"></i>${b.label}</span>`).join("");
@@ -982,7 +997,7 @@ function initAnatomy(finance) {
       .domain([d3.min(entities, (e) => e.revenue) * 0.7, d3.max(entities, (e) => e.revenue) * 1.35])
       .range([height - margin.bottom, margin.top]);
     entities.forEach((e) => {
-      e.r = Math.max(4.6, Math.min(narrow ? 20 : 28, Math.sqrt(e.revenue / 1e9) * (narrow ? 1.2 : 1.65)));
+      e.r = Math.max(5.2, Math.min(narrow ? 20 : 29, Math.sqrt(e.revenue / 1e9) * (narrow ? 1.25 : 1.8)));
       e.cr = e.r * 1.12 + 2;
       e.x = e.x0 = x(e.publicShare);
       e.y = e.y0 = y(e.revenue);
@@ -1058,16 +1073,52 @@ function initAnatomy(finance) {
   }
 
   function refreshMap() {
-    if (!nodes) return;
-    nodes.each(function (d) {
-      const on = matches(d);
-      const g = d3.select(this);
-      const trayIndex = tray.indexOf(d.id);
-      g.attr("opacity", on ? 1 : 0.07).style("pointer-events", on ? "auto" : "none");
-      g.select(".mg-ring").attr("stroke", d.id === selectedId ? "#ffb545" : trayIndex >= 0 ? CMP_COLORS[trayIndex] : "transparent");
-      g.select(".mg-label")
-        .style("display", on && (d.labelDefault || d.id === selectedId || trayIndex >= 0 || Boolean(query)) ? null : "none")
-        .attr("fill", d.id === selectedId ? "#ffb545" : "#8b96ab");
+    if (nodes) {
+      nodes.each(function (d) {
+        const on = matches(d);
+        const g = d3.select(this);
+        const trayIndex = tray.indexOf(d.id);
+        g.attr("opacity", on ? 1 : 0.07).style("pointer-events", on ? "auto" : "none");
+        g.select(".mg-ring").attr("stroke", d.id === selectedId ? "#ffb545" : trayIndex >= 0 ? CMP_COLORS[trayIndex] : "transparent");
+        g.select(".mg-label")
+          .style("display", on && (d.labelDefault || d.id === selectedId || trayIndex >= 0 || Boolean(query)) ? null : "none")
+          .attr("fill", d.id === selectedId ? "#ffb545" : "#8b96ab");
+      });
+    }
+    refreshDir();
+  }
+
+  /* ---- 法人の一覧（名前で選ぶ） ---- */
+  const dirMount = $("#inst-dir");
+  function buildDir() {
+    if (!dirMount) return;
+    const order = ["国立", "私立", "研究開発法人", "大学共同利用"];
+    dirMount.innerHTML = order.map((sector) => {
+      const list = entities.filter((e) => e.sector === sector).sort((a, b) => b.revenue - a.revenue);
+      if (!list.length) return "";
+      return `<div class="dir-group"><h4>${escapeHtml(SECTOR_NAMES[sector])}<small>${list.length}法人・経常収益順</small></h4><div class="dir-cols">${
+        list.map((e) => `<button type="button" class="dir-item" data-id="${escapeHtml(String(e.id))}"><span>${escapeHtml(e.label)}</span><small>${okuShort(e.revenue)}</small></button>`).join("")
+      }</div></div>`;
+    }).join("");
+    dirMount.addEventListener("click", (event) => {
+      const item = event.target.closest(".dir-item");
+      if (!item) return;
+      if (select(item.dataset.id)) panel.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+    });
+  }
+  function refreshDir() {
+    if (!dirMount) return;
+    dirMount.querySelectorAll(".dir-item").forEach((item) => {
+      const e = byId.get(item.dataset.id);
+      if (!e) return;
+      const trayIndex = tray.indexOf(e.id);
+      item.style.display = matches(e) ? "" : "none";
+      item.classList.toggle("is-selected", e.id === selectedId);
+      item.style.borderLeftColor = e.id === selectedId ? "#ffb545" : trayIndex >= 0 ? CMP_COLORS[trayIndex] : "transparent";
+    });
+    dirMount.querySelectorAll(".dir-group").forEach((group) => {
+      const any = Array.from(group.querySelectorAll(".dir-item")).some((item) => item.style.display !== "none");
+      group.style.display = any ? "" : "none";
     });
   }
 
@@ -1229,11 +1280,54 @@ function initAnatomy(finance) {
       }
     }
     const agg = aggFor(entity);
-    const vsHtml = agg ? `
-      <div class="anatomy-vs"><h4>構成の比較 — セクター全体と</h4>
-        <div class="vs-row"><span>${escapeHtml(entity.short || entity.label)}</span><span class="cmp-stack">${stack100(entity)}</span></div>
-        <div class="vs-row"><span>${escapeHtml(agg.short)}</span><span class="cmp-stack">${stack100(agg)}</span></div>
-      </div>` : "";
+    const defaultVs = (agg && byId.get(`${agg.id}-avg`)) || agg || null;
+    const target = (vsId && vsId !== entity.id && byId.get(vsId)) || defaultVs;
+    let vsHtml = "";
+    if (target) {
+      const opt = (t) => `<option value="${escapeHtml(String(t.id))}"${t.id === target.id ? " selected" : ""}>${escapeHtml(t.short || t.label)}</option>`;
+      const options = `<optgroup label="全体平均（1法人あたり）">${averages.map(opt).join("")}</optgroup>`
+        + `<optgroup label="全体合計">${aggregates.map(opt).join("")}</optgroup>`
+        + ["国立", "私立", "研究開発法人", "大学共同利用"].map((sector) => {
+          const list = entities.filter((e) => e.sector === sector && e.id !== entity.id).sort((a, b) => b.revenue - a.revenue);
+          return list.length ? `<optgroup label="${escapeHtml(SECTOR_NAMES[sector])}">${list.map(opt).join("")}</optgroup>` : "";
+        }).join("");
+      const eName = entity.short || entity.label;
+      const tName = target.short || target.label;
+      const stat = (label, a, b) => `<div class="vs-stat"><span>${label}</span><b>${a}</b><b>${b}</b></div>`;
+      let vsTrend = "";
+      const seriesOf = (m) => (m.trend?.revenue
+        ? m.trend.years.map((yr, k) => ({ yr: +yr, v: m.trend.revenue[k] })).filter((p) => p.v != null) : []);
+      const pe = seriesOf(entity), pt = seriesOf(target);
+      if (pe.length > 1 && pt.length > 1) {
+        const w = 320, h = 74, pad = 8;
+        const all = [...pe, ...pt];
+        const xs = d3.scaleLinear().domain(d3.extent(all, (p) => p.yr)).range([pad, w - 58]);
+        const ys = d3.scaleLog().domain([d3.min(all, (p) => p.v) * 0.85, d3.max(all, (p) => p.v) * 1.15]).range([h - pad, pad]);
+        const line = (pts) => pts.map((p, k) => `${k ? "L" : "M"}${xs(p.yr).toFixed(1)},${ys(p.v).toFixed(1)}`).join("");
+        vsTrend = `<div class="anatomy-trend"><h4>経常収益の推移（対数）</h4>
+          <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+            <path d="${line(pe)}" fill="none" stroke="#ffb545" stroke-width="2"/>
+            <path d="${line(pt)}" fill="none" stroke="#4fd8ff" stroke-width="1.4"/>
+            <text x="${(xs(pe[pe.length - 1].yr) + 5).toFixed(1)}" y="${(ys(pe[pe.length - 1].v) + 3).toFixed(1)}" fill="#ffb545" font-size="9" font-family="IBM Plex Mono">${okuShort(pe[pe.length - 1].v)}</text>
+            <text x="${(xs(pt[pt.length - 1].yr) + 5).toFixed(1)}" y="${(ys(pt[pt.length - 1].v) + 3).toFixed(1)}" fill="#4fd8ff" font-size="9" font-family="IBM Plex Mono">${okuShort(pt[pt.length - 1].v)}</text>
+          </svg></div>`;
+      }
+      vsHtml = `
+      <div class="anatomy-vs">
+        <h4>比較対象<select class="vs-select" aria-label="比較対象を選ぶ">${options}</select></h4>
+        <div class="vs-row"><span style="color:#ffb545">${escapeHtml(eName)}</span><span class="cmp-stack">${stack100(entity)}</span></div>
+        <div class="vs-row"><span style="color:#4fd8ff">${escapeHtml(tName)}</span><span class="cmp-stack">${stack100(target)}</span></div>
+        <div class="vs-stats">
+          <div class="vs-stat vs-head"><span></span><b style="color:#ffb545">${escapeHtml(eName)}</b><b style="color:#4fd8ff">${escapeHtml(tName)}</b></div>
+          ${stat("経常収益", oku(entity.revenue), oku(target.revenue))}
+          ${stat("経常費用", oku(entity.expenseTotal), oku(target.expenseTotal))}
+          ${stat("総資産", oku(entity.assets), oku(target.assets))}
+          ${stat("公費依存度", fmtPct(entity.publicShare * 100, 1), fmtPct(target.publicShare * 100, 1))}
+          ${stat("対象年度", escapeHtml(entity.year), escapeHtml(target.year))}
+        </div>
+        ${vsTrend}
+      </div>`;
+    }
     const inTray = tray.includes(entity.id);
     panel.innerHTML = `
       <div class="anatomy-head">
@@ -1258,6 +1352,10 @@ function initAnatomy(finance) {
     const add = event.target.closest(".cmp-add");
     if (add && !add.disabled) addToTray(selectedId);
   });
+  panel.addEventListener("change", (event) => {
+    const selectEl = event.target.closest(".vs-select");
+    if (selectEl) { vsId = selectEl.value || null; renderPanel(); }
+  });
 
   $$("#glyph-filter button[data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1273,12 +1371,13 @@ function initAnatomy(finance) {
 
   anatomySelect = (id) => select(id);
 
+  buildDir();
   buildMap();
   renderTray();
   renderCompare();
   renderPanel();
   const count = (sector) => entities.filter((e) => e.sector === sector).length;
-  setText("#anatomy-lede", `国立大学${count("国立")}法人・主要私立${count("私立")}法人・国立研究開発法人${count("研究開発法人")}機関・大学共同利用機関法人${count("大学共同利用")}法人、計${entities.length}法人をひとつの平面に置いた。右にあるほど公費頼み、上にあるほど収益が大きい。花弁の向きが財源、大きさが割合。クリックで内訳が開き、「比較に追加」で最大6法人・セクター全体集計と並べて比較できる。`);
+  setText("#anatomy-lede", `国立大学${count("国立")}法人・主要私立${count("私立")}法人・国立研究開発法人${count("研究開発法人")}機関・大学共同利用機関法人${count("大学共同利用")}法人、計${entities.length}法人。マップは右にあるほど公費頼み、上にあるほど収益が大きい。マップの花か下の一覧名をクリックすると内訳が開き、詳細ではセクター平均・任意の1法人と比較できる。「比較に追加」で最大6法人も並ぶ。`);
   setText("#anatomy-source", "出典: 国立大=NIAD 法人別概要財務諸表（2024年度・千円を円換算）、私立=各学校法人の開示（2025年度）、研究機関=国立研究開発法人・大学共同利用機関法人の各法人開示の財務諸表（最新年度）。会計基準が異なるため（国立大学法人会計基準/学校法人会計基準/独立行政法人会計基準）、区分は概念的に対応付けたもの。私立の附属病院収入は内訳非開示のため「その他」に含まれる。「計」は取得済み法人の単純合計で、年度は法人により異なる。");
 }
 
