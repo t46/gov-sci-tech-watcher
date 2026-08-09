@@ -41,7 +41,7 @@ COUNTRY_LABELS = {
     "jp": "日本", "us": "米国", "de": "ドイツ", "fr": "フランス",
     "gb": "英国", "cn": "中国", "kr": "韓国", "eu27": "EU-27",
     "jp_oecd": "日本（OECD推計）", "jp_hc": "日本（HC）", "jp_fte": "日本（FTE）",
-    "us_broad": "米国（全博士号）", "world": "全世界",
+    "us_broad": "米国（全博士号）", "world": "全世界", "jp_old": "日本（旧定義）",
 }
 
 NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
@@ -197,6 +197,294 @@ def block_phd_degrees() -> dict[str, object]:
         "source": nistep_source("3-4-4", "主要国の博士号取得者数の推移"),
         "note": "米国は研究博士（Research doctorate）。年度定義は国により異なる。",
         "series": to_series_list(series),
+    }
+
+
+def block_phd_advance_rate() -> dict[str, object]:
+    """表3-2-4: 修士課程修了者の進学率（専攻別、1981–2024年度）."""
+    rows = read_sheet(nistep_table("3-2-04"), "xl/worksheets/sheet2.xml")
+    fields = {"C": "人文科学", "D": "社会科学", "E": "理学", "F": "工学", "G": "農学", "H": "保健", "I": "その他"}
+    entries = []
+    for index in sorted(row for row in rows if row >= 4):
+        year_text = rows[index].get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            break
+        entry: dict[str, object] = {"year": int(year_text)}
+        total = number(rows[index].get("B"))
+        if total is not None:
+            entry["total"] = round(total, 1)
+        entry["fields"] = {}
+        for column, label in fields.items():
+            value = number(rows[index].get(column))
+            if value is not None:
+                entry["fields"][label] = round(value, 1)  # type: ignore[index]
+        entries.append(entry)
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("3-2-4", "修士課程修了者の進学率（専攻別）"),
+        "note": "各年3月時点の修士課程修了者のうち大学院等に進学した者の割合。専修学校・外国の学校等への入学は除く。原資料は文部科学省 学校基本調査。",
+        "rows": entries,
+    }
+
+
+def _faculty_age_section(rows: dict[int, dict[str, str]], start_row: int) -> list[dict[str, object]]:
+    """(A)全大学 section of 表2-2-16/2-2-17: 年度＋年齢階層別割合（列I-L）＋総数（列F）."""
+    fields = {"I": "25-39歳", "J": "40-49歳", "K": "50-59歳", "L": "60歳以上"}
+    entries = []
+    for index in sorted(row for row in rows if row >= start_row):
+        year_text = rows[index].get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            break
+        entry: dict[str, object] = {"year": int(year_text), "fields": {}}
+        for column, label in fields.items():
+            value = number(rows[index].get(column))
+            if value is not None:
+                entry["fields"][label] = round(value, 1)  # type: ignore[index]
+        total = number(rows[index].get("F"))
+        if total is not None:
+            entry["total"] = int(total)
+        entries.append(entry)
+    return entries
+
+
+def block_faculty_age() -> dict[str, object]:
+    """表2-2-16（全教員）・表2-2-17（採用教員）: 大学の年齢階層構成の推移（全大学、1986–2022年度）."""
+    all_rows = _faculty_age_section(read_sheet(nistep_table("2-2-16"), "xl/worksheets/sheet2.xml"), 6)
+    hire_rows = _faculty_age_section(read_sheet(nistep_table("2-2-17"), "xl/worksheets/sheet2.xml"), 6)
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("2-2-16・2-2-17", "大学の本務教員・採用教員の年齢階層構成（全大学）"),
+        "note": "採用とは他機関等の職業等から本務教員として異動した者を指す（放送大学は私立大学に含む）。原資料は文部科学省 学校教員統計調査。年度は概ね3年間隔。",
+        "hire_rows": hire_rows,
+        "all_rows": all_rows,
+    }
+
+
+def block_female_researchers() -> dict[str, object]:
+    """表2-1-12: 日本の女性研究者数・割合の推移（1981–2024年）＋表2-1-10: 国際比較（HC値）."""
+    trend_rows = read_sheet(nistep_table("2-1-12"), "xl/worksheets/sheet2.xml")
+    series: list[list[object]] = []
+    counts: list[list[object]] = []
+    for index in sorted(row for row in trend_rows if row >= 6):
+        values = trend_rows[index]
+        for year_col, count_col, share_col in (("A", "B", "D"), ("F", "G", "I")):
+            year_text = values.get(year_col, "")
+            if not re.fullmatch(r"\d{4}", year_text):
+                continue
+            share = number(values.get(share_col))
+            count = number(values.get(count_col))
+            if share is not None:
+                series.append([int(year_text), round(share, 2)])
+            if count is not None:
+                counts.append([int(year_text), int(count)])
+    series.sort(key=lambda pair: pair[0])
+    counts.sort(key=lambda pair: pair[0])
+
+    intl_rows = read_sheet(nistep_table("2-1-10"), "xl/worksheets/sheet2.xml")
+    intl: list[dict[str, object]] = []
+    for index in sorted(row for row in intl_rows if row >= 5):
+        values = intl_rows[index]
+        name = values.get("A", "")
+        share = number(values.get("G"))
+        year_text = values.get("H", "")
+        if name and share is not None and re.fullmatch(r"\d{4}", year_text):
+            intl.append({"country": name, "share": round(share, 1), "year": int(year_text)})
+    intl.sort(key=lambda entry: entry["share"])
+
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("2-1-12・2-1-10", "女性研究者数・割合の推移／国際比較（HC値）"),
+        "note": "2001年までは研究本務者、2002年以降はHC（実数）。国際比較は国により基準年が異なる（2017–2024年）。米国・中国はOECD統計に掲載なし。原資料は総務省 科学技術研究調査、OECD Main Science and Technology Indicators。",
+        "series": series,
+        "counts": counts,
+        "intl": intl,
+    }
+
+
+PHD_FIELD_LABELS = ["理学", "工学", "農学", "保健", "人文社会科学", "その他", "合計"]
+
+
+def block_phd_degrees_field() -> dict[str, object]:
+    """表3-4-5: 日本の博士号取得者数の推移（専攻別、1981–2022年度。公表が2年遅れる）。15年区切りの複数ブロック構成。"""
+    rows = read_sheet(nistep_table("3-4-05"), "xl/worksheets/sheet2.xml")
+    year_cols: dict[str, int] = {}
+    series: dict[str, list[list[object]]] = {}
+    for index in sorted(rows):
+        values = rows[index]
+        label = values.get("A", "")
+        if label == "年度":
+            year_cols = {column: int(text) for column, text in values.items() if column != "A" and re.fullmatch(r"\d{4}", text)}
+            continue
+        if label in PHD_FIELD_LABELS and values.get("B") == "人数" and year_cols:
+            for column, year in year_cols.items():
+                value = number(values.get(column))
+                if value is not None:
+                    series.setdefault(label, []).append([year, int(value)])
+    years = sorted({year for points in series.values() for year, _ in points})
+    entries = []
+    for year in years:
+        entry: dict[str, object] = {"year": year, "fields": {}}
+        for label, points in series.items():
+            match = next((v for y, v in points if y == year), None)
+            if match is None:
+                continue
+            if label == "合計":
+                entry["total"] = match
+            else:
+                entry["fields"][label] = match  # type: ignore[index]
+        entries.append(entry)
+    return {
+        "status": "ok", "unit": "人",
+        "source": nistep_source("3-4-5", "日本の博士号取得者数の推移（専攻別）"),
+        "note": "「保健」は医学・歯学・薬学・保健学、「その他」は教育・芸術・家政を含む。1986年度までは広島大学教育研究センター調べ、1987年度以降は文部科学省調べ。",
+        "rows": entries,
+    }
+
+
+def block_researchers_density() -> dict[str, object]:
+    """表2-1-4: 主要国の人口1万人当たりの研究者数の推移（1981–2023年）."""
+    rows = read_sheet(nistep_table("2-1-04"), "xl/worksheets/sheet2.xml")
+    columns = {"B": "jp_old", "D": "jp_hc", "F": "jp_fte", "H": "us", "J": "de", "L": "fr", "N": "gb", "P": "cn", "R": "kr", "T": "eu27"}
+    series = year_series(rows, 5, "A", columns)
+    return {
+        "status": "ok", "unit": "人/1万人",
+        "source": nistep_source("2-1-4", "主要国の人口1万人当たりの研究者数の推移"),
+        "note": "日本は2001年まで旧定義（jp_old）、2002年以降はHC/FTE。他国はOECD統計（FTE中心）で測定方法が異なる。",
+        "series": to_series_list(series),
+    }
+
+
+FACULTY_TENURE_FIELDS = {27: "全大学", 28: "人文・社会科学", 29: "理学", 30: "工学", 31: "農学", 32: "保健", 33: "その他"}
+
+
+def block_faculty_tenure() -> dict[str, object]:
+    """表2-2-15: 大学等における任期有り研究者の比率（全大学・分野別、2024年3月31日時点の単年断面）."""
+    rows = read_sheet(nistep_table("2-2-15"), "xl/worksheets/sheet2.xml")
+    entries = []
+    for index, label in FACULTY_TENURE_FIELDS.items():
+        values = rows.get(index, {})
+        total = number(values.get("B"))
+        fixed_term = number(values.get("D"))
+        share = number(values.get("E"))
+        if share is None:
+            continue
+        entries.append({
+            "label": label,
+            "total": int(total) if total is not None else None,
+            "fixed_term": int(fixed_term) if fixed_term is not None else None,
+            "share": round(share * 100, 1),
+        })
+    return {
+        "status": "ok", "unit": "%", "year_label": "2024年度（2024年3月31日時点）",
+        "source": nistep_source("2-2-15", "大学等における任期有り研究者の状況（全大学・分野別）"),
+        "note": "単年（2024年）の断面。任期有り研究者比率＝任期有り研究者数÷（教員及びその他の研究員数）、HC(実数)。原資料は総務省 科学技術研究調査。",
+        "rows": entries,
+    }
+
+
+def block_stem_phd_outcomes() -> dict[str, object]:
+    """表3-3-3 (A)理工系: 理工系博士課程修了者の進路（1981–2024年度）。無期/有期雇用の内訳は2012年度以降のみ。"""
+    rows = read_sheet(nistep_table("3-3-03"), "xl/worksheets/sheet2.xml")
+    entries = []
+    for index in sorted(row for row in rows if row >= 6):
+        year_text = rows[index].get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            break
+        values = rows[index]
+        entry: dict[str, object] = {"year": int(year_text)}
+        field_map = {"graduates": "B", "advance": "C", "employed_no_term": "D", "employed_fixed_term": "E", "other": "F", "unknown": "G"}
+        for key, column in field_map.items():
+            value = number(values.get(column))
+            if value is not None:
+                entry[key] = int(value)
+        entries.append(entry)
+    return {
+        "status": "ok", "unit": "人",
+        "source": nistep_source("3-3-3", "理工系博士課程修了者の進路（理工系計＝理学系＋工学系）"),
+        "note": "「employed_no_term」は2011年度以前は就職者総数（無期/有期の区分なし）、2012年度以降は無期雇用者数。「employed_fixed_term」（有期雇用者数）は2012年度修了者以降のみ判明。原資料は文部科学省 学校基本調査。",
+        "rows": entries,
+    }
+
+
+CORPORATE_PHD_INDUSTRIES = [
+    "全産業", "製造業", "医薬品製造業", "化学工業", "石油製品･石炭製品製造業", "鉄鋼業",
+    "業務用機械器具製造業", "電子部品・デバイス・電子回路製造業", "電気機械器具製造業",
+    "情報通信機械器具製造業", "輸送用機械器具製造業", "その他の製造業",
+    "非製造業", "情報サービス業", "学術研究 ,専門・技術サービス業", "その他の非製造業",
+]
+
+
+def block_corporate_phd_hiring() -> dict[str, object]:
+    """表2-1-18: 企業の新規採用研究者に占める博士号保持者の割合（産業分類別、2016–2023年度）."""
+    rows = read_sheet(nistep_table("2-1-18"), "xl/worksheets/sheet2.xml")
+    year_bases: dict[str, int] = {}
+    data: dict[str, dict[int, dict[str, object]]] = {}
+    for index in sorted(rows):
+        values = rows[index]
+        if values.get("A") == "年度":
+            year_bases = {column: int(text) for column, text in values.items() if column != "A" and re.fullmatch(r"\d{4}", text)}
+            continue
+        label = values.get("A", "")
+        if label in CORPORATE_PHD_INDUSTRIES and year_bases:
+            for base_column, year in year_bases.items():
+                base_index = _column_index(base_column)
+                hires = number(values.get(base_column))
+                phd = number(values.get(_column_letter(base_index + 1)))
+                share = number(values.get(_column_letter(base_index + 2)))
+                if share is None:
+                    continue
+                data.setdefault(label, {})[year] = {
+                    "hires": int(hires) if hires is not None else None,
+                    "phd": int(phd) if phd is not None else None,
+                    "share": round(share * 100, 2),
+                }
+    industries = [
+        {"label": name, "values": [{"year": year, **points[year]} for year in sorted(points)]}
+        for name, points in data.items()
+    ]
+    return {
+        "status": "ok", "unit": "%",
+        "source": nistep_source("2-1-18", "企業の新規採用研究者における博士号保持者（産業分類別）"),
+        "note": "各年度の新規採用研究者に占める博士号保持者の割合。原資料は総務省 科学技術研究調査。",
+        "industries": industries,
+    }
+
+
+def block_intl_grad_students() -> dict[str, object]:
+    """表3-5-1 (A)日本: 外国人大学院生数の推移（国・地域別、2001–2024年）."""
+    rows = read_sheet(nistep_table("3-5-01"), "xl/worksheets/sheet2.xml")
+    data: dict[str, dict[int, int]] = {}
+    year_cols: dict[str, int] = {}
+    in_japan = False
+    for index in sorted(rows):
+        values = rows[index]
+        label = values.get("A", "")
+        if label == "(A)日本":
+            in_japan = True
+            continue
+        if label == "(B)米国":
+            break
+        if not in_japan:
+            continue
+        if label == "No.":
+            year_cols = {column: int(text) for column, text in values.items() if column not in ("A", "B") and re.fullmatch(r"\d{4}", text)}
+            continue
+        country = values.get("B", "")
+        if country and year_cols:
+            series = data.setdefault(country, {})
+            for column, year in year_cols.items():
+                value = number(values.get(column))
+                if value is not None:
+                    series[year] = int(value)
+    total = sorted(data.pop("全体", {}).items())
+    countries = [{"label": name, "values": sorted(points.items())} for name, points in data.items()]
+    countries.sort(key=lambda entry: -entry["values"][-1][1] if entry["values"] else 0)
+    return {
+        "status": "ok", "unit": "人",
+        "source": nistep_source("3-5-1", "日本の外国人大学院生数の推移（国・地域別）"),
+        "note": "在籍する外国人大学院生数。台湾は2001–2012年は非公表（'-'）扱いのため欠落。原資料は文部科学省「学校基本調査」等。",
+        "total": total,
+        "countries": countries,
     }
 
 
@@ -731,6 +1019,15 @@ def main() -> int:
         "researchers": run_block("researchers", block_researchers),
         "phd_enrollment": run_block("phd_enrollment", block_phd_enrollment),
         "phd_degrees": run_block("phd_degrees", block_phd_degrees),
+        "phd_advance_rate": run_block("phd_advance_rate", block_phd_advance_rate),
+        "phd_degrees_field": run_block("phd_degrees_field", block_phd_degrees_field),
+        "faculty_age": run_block("faculty_age", block_faculty_age),
+        "female_researchers": run_block("female_researchers", block_female_researchers),
+        "researchers_density": run_block("researchers_density", block_researchers_density),
+        "faculty_tenure": run_block("faculty_tenure", block_faculty_tenure),
+        "stem_phd_outcomes": run_block("stem_phd_outcomes", block_stem_phd_outcomes),
+        "corporate_phd_hiring": run_block("corporate_phd_hiring", block_corporate_phd_hiring),
+        "intl_grad_students": run_block("intl_grad_students", block_intl_grad_students),
         "papers": run_block("papers", block_paper_share),
         "field_share": run_block("field_share", block_field_share),
         "funding_flow": run_block("funding_flow", block_funding_flow),

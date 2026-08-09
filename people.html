@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の研究人材の観測。博士号取得者の国際比較、博士課程入学者の推移、研究者のセクター間移動を一次データで描く。" />
+    <meta name="description" content="日本の研究人材の観測。博士号取得者の国際比較、博士課程入学者の推移、大学教員の年齢構成と女性研究者比率、研究者のセクター間移動を一次データで描く。" />
     <meta name="theme-color" content="#06090f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
     <title>人 — SCIENCE SIGNAL 日本の科学技術観測室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260812a" />
+    <link rel="stylesheet" href="analytics.css?v=20260813a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -29,7 +29,8 @@
 
     <nav class="chapter-rail" aria-label="章ナビゲーション">
       <a href="#ch-phd" data-rail="ch-phd"><i>00</i><span>博士の曲線</span></a>
-      <a href="#ch-flows" data-rail="ch-flows"><i>01</i><span>研究者の移動</span></a>
+      <a href="#ch-career" data-rail="ch-career"><i>01</i><span>キャリアの構造</span></a>
+      <a href="#ch-flows" data-rail="ch-flows"><i>02</i><span>研究者の移動</span></a>
     </nav>
 
     <main id="main">
@@ -58,12 +59,70 @@
             <p class="method-note" id="phd-stream-source">出典を確認中</p>
           </figure>
         </div>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">C</span>修士課程修了者の進学率 — 専攻別 1981–2024年度</figcaption>
+          <div class="fig-body" id="phd-advance"></div>
+          <p class="method-note" id="phd-advance-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">D</span>日本の博士号取得者数 — 専攻別 1981–2022年度</figcaption>
+          <div class="fig-body" id="phd-degrees-field"></div>
+          <p class="method-note" id="phd-degrees-field-source">出典を確認中</p>
+        </figure>
       </section>
 
-      <!-- 01 · MOBILITY -->
+      <!-- 01 · CAREER STRUCTURE -->
+      <section class="chapter" id="ch-career" aria-labelledby="career-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / CAREER STRUCTURE</p>
+          <h2 id="career-title">キャリアの構造</h2>
+          <p class="ch-lede" id="career-lede">大学教員の年齢構成と、女性研究者の比率。研究職に入る／とどまる条件がどう変わってきたか。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>大学の採用教員 — 年齢階層構成 1986–2022年度</figcaption>
+            <div class="fig-body" id="faculty-age"></div>
+            <p class="method-note" id="faculty-age-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>女性研究者比率の推移 1981–2024年</figcaption>
+            <div class="fig-body" id="female-trend"></div>
+            <p class="method-note" id="female-trend-source">出典を確認中</p>
+          </figure>
+        </div>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">C</span>女性研究者比率の国際比較</figcaption>
+          <div class="fig-body" id="female-intl"></div>
+          <p class="method-note" id="female-intl-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">D</span>人口1万人当たりの研究者数、国際比較 1981–2023年</figcaption>
+          <div class="fig-body" id="researcher-density"></div>
+          <p class="method-note" id="researcher-density-source">出典を確認中</p>
+        </figure>
+        <div class="duo" style="margin-top: 56px">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">E</span>大学等の任期付き研究者の比率 — 分野別（2024年の単年断面）</figcaption>
+            <div class="fig-body" id="faculty-tenure"></div>
+            <p class="method-note" id="faculty-tenure-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">F</span>企業の新規採用研究者に占める博士号保持者の割合</figcaption>
+            <div class="fig-body" id="corporate-phd"></div>
+            <p class="method-note" id="corporate-phd-source">出典を確認中</p>
+          </figure>
+        </div>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">G</span>理工系博士課程修了者の進路 1981–2024年度</figcaption>
+          <div class="fig-body" id="stem-outcomes"></div>
+          <p class="method-note" id="stem-outcomes-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 02 · MOBILITY -->
       <section class="chapter" id="ch-flows" aria-labelledby="flows-title">
         <div class="ch-head">
-          <p class="ch-no">01 / RESEARCHER MOBILITY</p>
+          <p class="ch-no">02 / RESEARCHER MOBILITY</p>
           <h2 id="flows-title">セクター間の研究者の移動</h2>
           <p class="ch-lede" id="flows-lede">研究者の移動（実測値）を光の軌道として描く。粒子1つ＝研究者50人。</p>
         </div>
@@ -72,6 +131,11 @@
           <div class="flow-detail" id="flow-detail" aria-live="polite">セクターに触れると、流れの内訳を表示</div>
         </div>
         <p class="method-note" id="flows-source">出典を確認中</p>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>外国人大学院生数の推移 — 国・地域別 2001–2024年</figcaption>
+          <div class="fig-body" id="intl-students"></div>
+          <p class="method-note" id="intl-students-source">出典を確認中</p>
+        </figure>
       </section>
 
       <footer class="obs-footer">
@@ -90,6 +154,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="people.js?v=20260810a" defer></script>
+    <script src="people.js?v=20260813a" defer></script>
   </body>
 </html>
