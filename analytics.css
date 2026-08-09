@@ -555,3 +555,8 @@ a.signal-title:hover { color: var(--jp); }
   .scroll-cue i { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }
+
+/* 02 theme shift */
+.theme-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; }
+.theme-legend .tl { display: flex; align-items: center; gap: 6px; font: 400 11px var(--mono); color: var(--dim); }
+.theme-legend .tl i { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }

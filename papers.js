@@ -253,6 +253,155 @@ function initTerrain(indicators) {
   window.addEventListener("resize", () => render(), { passive: true });
 }
 
+/* ================================================================ 03 THEME SHIFT */
+
+const THEME_COLORS = {
+  "農学・生物科学": "#5ad8a1",
+  "人文科学": "#c9a5df",
+  "生化学・遺伝学・分子生物学": "#b58fc9",
+  "経営学・会計学": "#d98f6b",
+  "化学工学": "#6f9fc4",
+  "化学": "#5b8dbb",
+  "計算機科学": "#8d7fb0",
+  "意思決定科学": "#9aa8c9",
+  "歯学": "#e0a0a0",
+  "地球惑星科学": "#3fae8a",
+  "経済学・計量経済学・金融": "#cfa15a",
+  "エネルギー": "#d9c25a",
+  "工学": "#7f96c9",
+  "環境科学": "#6fdfae",
+  "保健医療専門職": "#e0b48a",
+  "免疫学・微生物学": "#d97fa0",
+  "材料科学": "#5fb3c9",
+  "数学": "#a7b4cc",
+  "医学": "#e0a06a",
+  "神経科学": "#ff8f6b",
+  "看護学": "#e0c0d0",
+  "薬理学・毒性学・製剤学": "#b0a8e0",
+  "物理学・天文学": "#4fd8ff",
+  "心理学": "#d0a0e0",
+  "社会科学": "#8fa8d0",
+  "獣医学": "#a0c98f",
+  "その他": "#46536b",
+};
+const THEME_TOP_N_DESKTOP = 11;
+const THEME_TOP_N_MOBILE = 8;
+
+function initThemes(topics) {
+  const mount = $("#themes-stream");
+  const legend = $("#themes-legend");
+  if (!mount || !topics || topics.status !== "ok" || !Array.isArray(topics.years) || !topics.years.length
+    || !Array.isArray(topics.fields) || !topics.fields.length
+    || !topics.fields.every((f) => Array.isArray(f.counts) && f.counts.length === topics.years.length)) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  const years = topics.years;
+  const totals = years.map((_, i) => topics.fields.reduce((sum, f) => sum + (f.counts[i] || 0), 0));
+  const ranked = [...topics.fields].sort((a, b) => d3.sum(b.counts) - d3.sum(a.counts));
+  const topN = MOBILE ? THEME_TOP_N_MOBILE : THEME_TOP_N_DESKTOP;
+  const top = ranked.slice(0, topN);
+  const rest = ranked.slice(topN);
+
+  const bands = top.map((f) => ({
+    key: f.name_ja,
+    values: years.map((y, i) => [y, totals[i] ? (f.counts[i] / totals[i]) * 100 : 0]),
+  }));
+  if (rest.length) {
+    bands.push({
+      key: "その他",
+      values: years.map((y, i) => [y, totals[i] ? (d3.sum(rest, (f) => f.counts[i] || 0) / totals[i]) * 100 : 0]),
+    });
+  }
+
+  function render() {
+    mount.innerHTML = "";
+    const rows = years.map((year, i) => {
+      const row = { year };
+      for (const band of bands) row[band.key] = band.values[i][1];
+      return row;
+    });
+    const keys = bands.map((b) => b.key);
+    const width = mount.clientWidth || 900, height = Math.max(360, Math.min(520, width * 0.46));
+    const margin = { top: 26, right: 24, bottom: 34, left: 24 };
+    const stack = d3.stack().keys(keys).offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut);
+    const series = stack(rows);
+    const x = d3.scaleLinear().domain(d3.extent(years)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear()
+      .domain([d3.min(series.flat(2)), d3.max(series.flat(2))])
+      .range([height - margin.bottom, margin.top]);
+    const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+      .attr("aria-label", "日本の研究テーマ構成の変遷（ストリームグラフ）");
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x).ticks(MOBILE ? 5 : 9).tickFormat(d3.format("d"))).select(".domain").remove();
+    const area = d3.area().x((d) => x(d.data.year)).y0((d) => y(d[0])).y1((d) => y(d[1])).curve(d3.curveBasis);
+    const paths = svg.append("g").selectAll("path").data(series).join("path")
+      .attr("d", area)
+      .attr("fill", (d) => THEME_COLORS[d.key] || "#64748f")
+      .attr("opacity", 0.85)
+      .attr("stroke", "#06090f").attr("stroke-width", 0.6);
+    if (!REDUCED && gsap) {
+      gsap.from(paths.nodes(), { opacity: 0, y: 18, duration: 0.9, stagger: 0.04, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 78%" } });
+    }
+    for (const s of series) {
+      let best = null;
+      for (const d of s) {
+        const thickness = Math.abs(y(d[0]) - y(d[1]));
+        if (!best || thickness > best.thickness) best = { d, thickness };
+      }
+      if (best && best.thickness > 22) {
+        svg.append("text")
+          .attr("x", x(best.d.data.year)).attr("y", (y(best.d[0]) + y(best.d[1])) / 2 + 3)
+          .attr("text-anchor", "middle").attr("font-size", Math.min(12, 8 + best.thickness * 0.06))
+          .attr("fill", "rgba(6,9,15,0.85)").attr("font-weight", 600)
+          .attr("pointer-events", "none")
+          .text(s.key.split("・")[0].split("/")[0]);
+      }
+    }
+    const hover = $("#themes-hover");
+    svg.on("pointermove", (event) => {
+      const [mx, my] = d3.pointer(event);
+      const year = Math.round(x.invert(mx));
+      const hit = series.find((s) => {
+        const d = s.find((p) => p.data.year === year) || s[s.length - 1];
+        return d && my >= y(d[1]) && my <= y(d[0]);
+      });
+      if (hit && hover) {
+        const d = hit.find((p) => p.data.year === year);
+        const value = d ? d.data[hit.key] : null;
+        hover.innerHTML = `<b>${escapeHtml(hit.key)}</b><br>${year}年 ${value != null ? fmtPct(value) : "—"}`;
+        const bounds = mount.getBoundingClientRect();
+        hover.style.left = `${Math.min(event.clientX - bounds.left + 14, bounds.width - 180)}px`;
+        hover.style.top = `${event.clientY - bounds.top - 20}px`;
+        hover.classList.add("is-on");
+      } else if (hover) hover.classList.remove("is-on");
+    }).on("pointerleave", () => hover?.classList.remove("is-on"));
+  }
+
+  render();
+  if (legend) {
+    legend.innerHTML = bands.map((b) => `<div class="tl"><i style="background:${THEME_COLORS[b.key] || "#64748f"}"></i>${escapeHtml(b.key)}</div>`).join("");
+  }
+  setText("#themes-source", `出典: ${topics.source?.title || "OpenAlex"}。${topics.note || ""}`);
+
+  /* 全26分野の中で、初年と最終年のシェア差が最も大きい分野を一言で示す */
+  const firstTotal = totals[0], lastTotal = totals[totals.length - 1];
+  if (firstTotal && lastTotal) {
+    let biggest = null;
+    for (const f of topics.fields) {
+      const a = (f.counts[0] / firstTotal) * 100;
+      const b = (f.counts[f.counts.length - 1] / lastTotal) * 100;
+      const delta = b - a;
+      if (!biggest || Math.abs(delta) > Math.abs(biggest.delta)) biggest = { name: f.name_ja, a, b, delta };
+    }
+    if (biggest) {
+      setText("#themes-lede-fact", `${biggest.name}のシェアは${years[0]}年${fmtPct(biggest.a)}から${years[years.length - 1]}年${fmtPct(biggest.b)}へ。`);
+    }
+  }
+
+  window.addEventListener("resize", () => render(), { passive: true });
+}
+
 function renderInstitutions(indicators) {
   const mount = $("#inst-pack");
   const block = indicators?.openalex;
@@ -292,8 +441,9 @@ function renderInstitutions(indicators) {
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult] = await Promise.allSettled([fetchJson("data/indicators.json")]);
+  const [indicatorsResult, topicsResult] = await Promise.allSettled([fetchJson("data/indicators.json"), fetchJson("data/topics.json")]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
+  const topics = topicsResult.status === "fulfilled" ? topicsResult.value : null;
   if (!indicators) {
     setText("#header-status", "研究データを取得できません");
     return;
@@ -314,8 +464,15 @@ async function init() {
   initRace(indicators);
   initTerrain(indicators);
   renderInstitutions(indicators);
+  try {
+    initThemes(topics);
+  } catch (error) {
+    console.error(error);
+    const mount = $("#themes-stream");
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+  }
   renderLedgerEntries([
-    blockEntry(indicators.papers), blockEntry(indicators.field_share), blockEntry(indicators.openalex),
+    blockEntry(indicators.papers), blockEntry(indicators.field_share), blockEntry(indicators.openalex), blockEntry(topics, "OpenAlex API"),
   ].filter(Boolean));
 }
 

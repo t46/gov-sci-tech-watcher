@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260812a" />
+    <link rel="stylesheet" href="analytics.css?v=20260813a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -30,6 +30,7 @@
     <nav class="chapter-rail" aria-label="章ナビゲーション">
       <a href="#ch-race" data-rail="ch-race"><i>00</i><span>40年の競争</span></a>
       <a href="#ch-fields" data-rail="ch-fields"><i>01</i><span>分野の地形</span></a>
+      <a href="#ch-themes" data-rail="ch-themes"><i>02</i><span>テーマの変遷</span></a>
     </nav>
 
     <main id="main">
@@ -83,6 +84,21 @@
         </div>
       </section>
 
+      <!-- 02 · THEME SHIFT -->
+      <section class="chapter" id="ch-themes" aria-labelledby="themes-title">
+        <div class="ch-head">
+          <p class="ch-no">02 / THEME SHIFT 1980–2025</p>
+          <h2 id="themes-title">研究テーマの変遷</h2>
+          <p class="ch-lede">予算はテーマ別に測られていない。ここにあるのは、日本の論文がどのテーマで書かれてきたか——研究成果の側のテーマ構成である。<span id="themes-lede-fact"></span></p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="themes-stream"></div>
+          <div class="terrain-hover" id="themes-hover" aria-hidden="true"></div>
+          <div class="theme-legend" id="themes-legend" aria-hidden="true"></div>
+          <p class="method-note" id="themes-source">出典を確認中</p>
+        </figure>
+      </section>
+
       <footer class="obs-footer">
         <div class="ledger" id="ledger">
           <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
@@ -99,6 +115,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="papers.js?v=20260812a" defer></script>
+    <script src="papers.js?v=20260813a" defer></script>
   </body>
 </html>
