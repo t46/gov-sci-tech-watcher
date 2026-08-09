@@ -572,4 +572,10 @@ a.signal-title:hover { color: var(--jp); }
 /* 02 theme shift */
 .theme-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 16px; }
 .theme-legend .tl { display: flex; align-items: center; gap: 6px; font: 400 11px var(--mono); color: var(--dim); }
+
+/* economy yardstick */
+.econ-yardstick { padding-top: 50px; padding-bottom: 60px; border-top: 1px solid var(--hair); }
+@media (max-width: 760px) {
+  .econ-yardstick { padding-top: 40px; padding-bottom: 44px; }
+}
 .theme-legend .tl i { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }

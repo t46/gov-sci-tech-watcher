@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260813a" />
+    <link rel="stylesheet" href="analytics.css?v=20260815a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -283,6 +283,27 @@
         </figure>
       </section>
 
+      <!-- ECONOMIC YARDSTICK (章レール外・控えめな扱い) -->
+      <section class="chapter econ-yardstick" aria-labelledby="econ-title">
+        <div class="ch-head">
+          <p class="ch-no">ECONOMIC YARDSTICK</p>
+          <h2 id="econ-title">経済の物差し — 物価と為替</h2>
+          <p class="ch-lede" id="econ-lede">このページの金額はすべて名目値。それを読むための背景として、日本の物価水準と円ドル為替を置いておく。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>消費者物価指数（総合・全国、2020年=100）<span id="econ-cpi-range">1970–2025</span></figcaption>
+            <div class="fig-body" id="econ-cpi"></div>
+            <p class="method-note" id="econ-cpi-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>円ドル為替（年平均）<span id="econ-fx-range">1960–2025</span></figcaption>
+            <div class="fig-body" id="econ-fx"></div>
+            <p class="method-note" id="econ-fx-source">出典を確認中</p>
+          </figure>
+        </div>
+      </section>
+
       <footer class="obs-footer">
         <div class="ledger" id="ledger">
           <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
@@ -298,7 +319,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-    <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="money.js?v=20260813a" defer></script>
+    <script src="obs-core.js?v=20260815a" defer></script>
+    <script src="money.js?v=20260815a" defer></script>
   </body>
 </html>

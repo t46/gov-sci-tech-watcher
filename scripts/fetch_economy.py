@@ -135,7 +135,7 @@ def block_cpi() -> dict[str, object]:
         "base_year": 2020,
         "year_range": [calendar_year[0][0], calendar_year[-1][0]],
         "source": {"title": CPI_SHEET_TITLE, "url": CPI_SHEET_PAGE},
-        "note": "全国・総合。calendar_year=暦年（1〜12月）平均、fiscal_year=年度（4月〜翌3月）平均。直近年は年度平均が未確定のため欠落することがある。",
+        "note": "全国・総合。暦年（1〜12月）平均と年度（4月〜翌3月）平均の両方を保持。直近年は年度平均が未確定のため欠落することがある。",
         "calendar_year": calendar_year,
         "fiscal_year": fiscal_year,
     }
@@ -159,7 +159,7 @@ def block_fx_usdjpy() -> dict[str, object]:
         "unit": "円/ドル（年平均）",
         "year_range": [series[0][0], series[-1][0]],
         "source": {"title": FX_TITLE, "url": FX_PAGE},
-        "note": "期間平均（year average）の公的為替レート。1960〜1971年は固定相場（1ドル=360円）。",
+        "note": "期間平均（year average）の公的為替レート。1960〜1970年は固定相場（1ドル=360円）、1971年は変動相場への移行年。",
         "calendar_year": series,
     }
 

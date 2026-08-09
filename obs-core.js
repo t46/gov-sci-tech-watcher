@@ -84,7 +84,9 @@ function initRail() {
       }
     }
   }, { rootMargin: "-38% 0px -52% 0px" });
-  $$(".chapter").forEach((section) => observer.observe(section));
+  /* レール項目を持つ章だけ監視する（レール外の補助セクションが現在位置表示を消さないように） */
+  const railIds = new Set(links.map((link) => link.dataset.rail));
+  $$(".chapter").forEach((section) => { if (railIds.has(section.id)) observer.observe(section); });
 }
 
 /* entries: [{title, url, status}] — 各ページが自分の出典だけを渡す */

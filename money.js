@@ -1859,9 +1859,107 @@ function renderFundingCsti(funders) {
   setText("#funding-csti-source", `出典: ${block.source?.title || ""}（${year.pdf_url}）。${block.note || ""} 全制度合計${fmtInt(year.initial_total)}百万円（前年度当初${fmtInt(year.prev_initial_total)}百万円、令和${year.reiwa_prev}年度補正込み${fmtInt(year.supplementary_total)}百万円）。府省庁別小計の上位: ${(year.ministries || []).slice(0, 3).map((m) => `${m.name} ${fmtInt(m.initial)}百万円`).join(" / ")}。`);
 }
 
+/* ===================================================== economic yardstick */
+
+/* 単一系列の折れ線。CPI・為替のように単位も値域も異なる指標を、同じ骨格で
+   描くための共通関数（pubLineChartは億円専用のためここでは使えない）。
+   markersで指定した年にだけ丸印と値ラベルを出す。 */
+function econLineChart(mount, rawValues, { color = "#ffb545", markers = [], valueFmt = (v) => `${v}`, axisFmt = (v) => `${Math.round(v)}` } = {}) {
+  mount.innerHTML = "";
+  const values = (rawValues || []).filter((p) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]));
+  if (!values.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return null; }
+  markers = Array.from(new Set(markers));
+  const width = mount.clientWidth || 560;
+  const height = Math.max(260, Math.min(340, width * 0.52));
+  const margin = { top: 22, right: 20, bottom: 30, left: 44 };
+  const [minYear, maxYear] = d3.extent(values, (p) => p[0]);
+  const x = d3.scaleLinear().domain([minYear, maxYear]).range([margin.left, width - margin.right]);
+  const [dataMin, dataMax] = d3.extent(values, (p) => p[1]);
+  const y = d3.scaleLinear().domain([Math.min(0, dataMin * 0.94), dataMax * 1.12]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", `${minYear}〜${maxYear}年の推移`);
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat(axisFmt).tickSize(-(width - margin.left - margin.right))));
+  const tickYears = Array.from(new Set([minYear, ...markers.filter((yr) => yr >= minYear && yr <= maxYear), maxYear])).sort((a, b) => a - b);
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickValues(tickYears).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const path = svg.append("path")
+    .attr("d", d3.line().x((p) => x(p[0])).y((p) => y(p[1])).curve(d3.curveMonotoneX)(values))
+    .attr("fill", "none").attr("stroke", color).attr("stroke-width", 2.2);
+  if (!REDUCED && gsap) {
+    const length = path.node().getTotalLength();
+    path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+    gsap.to(path.node(), { strokeDashoffset: 0, duration: 1.8, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+  const byYear = new Map(values);
+  const labelYs = [];
+  for (const yr of markers) {
+    const v = byYear.get(yr);
+    if (v == null) continue;
+    svg.append("circle").attr("cx", x(yr)).attr("cy", y(v)).attr("r", 3).attr("fill", color);
+    let ly = y(v) - 10;
+    while (labelYs.some((py) => Math.abs(py - ly) < 13)) ly -= 13;
+    labelYs.push(ly);
+    svg.append("text").attr("x", x(yr)).attr("y", Math.max(margin.top + 8, ly))
+      .attr("text-anchor", "middle").attr("fill", "#e9eef7").attr("font-size", 10.5).attr("font-weight", 600)
+      .text(valueFmt(v));
+  }
+  return svg;
+}
+
+function renderEconYardstick(economy) {
+  const cpiMount = $("#econ-cpi");
+  const fxMount = $("#econ-fx");
+  if (!cpiMount && !fxMount) return;
+  const cpi = economy?.cpi;
+  if (cpiMount) {
+    if (cpi?.status === "ok" && cpi.calendar_year?.length) {
+      try {
+        const last = cpi.calendar_year[cpi.calendar_year.length - 1];
+        econLineChart(cpiMount, cpi.calendar_year, {
+          color: "#ffb545",
+          markers: [1970, 1990, 2020, last?.[0]],
+          valueFmt: (v) => v.toFixed(1),
+          axisFmt: (v) => v.toFixed(0),
+        });
+        setText("#econ-cpi-range", `${cpi.calendar_year[0][0]}–${last[0]}`);
+        setText("#econ-cpi-source", `出典: ${cpi.source?.title || ""}。${cpi.note || ""}`);
+      } catch (error) {
+        console.error(error);
+        cpiMount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+      }
+    } else {
+      cpiMount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+      setText("#econ-cpi-source", "出典を取得できませんでした。");
+    }
+  }
+  const fx = economy?.fx_usdjpy;
+  if (fxMount) {
+    if (fx?.status === "ok" && fx.calendar_year?.length) {
+      try {
+        const last = fx.calendar_year[fx.calendar_year.length - 1];
+        econLineChart(fxMount, fx.calendar_year, {
+          color: "#4fd8ff",
+          markers: [1960, 1973, 2011, last?.[0]],
+          valueFmt: (v) => `${v.toFixed(1)}円`,
+          axisFmt: (v) => v.toFixed(0),
+        });
+        setText("#econ-fx-range", `${fx.calendar_year[0][0]}–${last[0]}`);
+        setText("#econ-fx-source", `出典: ${fx.source?.title || ""}。${fx.note || ""}`);
+      } catch (error) {
+        console.error(error);
+        fxMount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+      }
+    } else {
+      fxMount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+      setText("#econ-fx-source", "出典を取得できませんでした。");
+    }
+  }
+}
+
 /* ================================================================= ledger */
 
-function renderLedger(indicators, finance, publishing, funders) {
+function renderLedger(indicators, finance, publishing, funders, economy) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -1879,6 +1977,7 @@ function renderLedger(indicators, finance, publishing, funders) {
     entries.push({ title: "国立大学法人等の契約公表（各法人サイト・随意契約公表/落札公示）", url: "", status: "ok" });
   }
   push(funders?.dual_support); push(funders?.kakenhi_years); push(funders?.csti_programs);
+  push(economy?.cpi); push(economy?.fx_usdjpy);
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -1896,17 +1995,20 @@ async function init() {
   let finance = null;
   let publishing = null;
   let funders = null;
+  let economy = null;
   try {
-    const [indicatorsResult, financeResult, publishingResult, fundersResult] = await Promise.allSettled([
+    const [indicatorsResult, financeResult, publishingResult, fundersResult, economyResult] = await Promise.allSettled([
       fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/publishing.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/funders.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/economy.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
     ]);
     indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
     finance = financeResult.status === "fulfilled" ? financeResult.value : null;
     publishing = publishingResult.status === "fulfilled" ? publishingResult.value : null;
     funders = fundersResult.status === "fulfilled" ? fundersResult.value : null;
+    economy = economyResult.status === "fulfilled" ? economyResult.value : null;
   } catch (error) {
     console.error(error);
   }
@@ -1934,7 +2036,8 @@ async function init() {
   renderPublishing(publishing);
   safeCall("renderFundingDualStream", () => renderFundingDualStream(funders));
   safeCall("renderFundingCsti", () => renderFundingCsti(funders));
-  renderLedger(indicators, finance, publishing, funders);
+  safeCall("renderEconYardstick", () => renderEconYardstick(economy));
+  renderLedger(indicators, finance, publishing, funders, economy);
 }
 
 init().catch((error) => {

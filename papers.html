@@ -30,7 +30,7 @@
     <nav class="chapter-rail" aria-label="章ナビゲーション">
       <a href="#ch-race" data-rail="ch-race"><i>00</i><span>40年の競争</span></a>
       <a href="#ch-fields" data-rail="ch-fields"><i>01</i><span>分野の地形</span></a>
-      <a href="#ch-themes" data-rail="ch-themes"><i>02</i><span>テーマの変遷</span></a>
+      <a href="#ch-themes" data-rail="ch-themes"><i>02</i><span>下位分野の浮沈</span></a>
     </nav>
 
     <main id="main">
@@ -84,12 +84,12 @@
         </div>
       </section>
 
-      <!-- 02 · THEME SHIFT -->
+      <!-- 02 · THEME BUMP (subfield rank) -->
       <section class="chapter" id="ch-themes" aria-labelledby="themes-title">
         <div class="ch-head">
-          <p class="ch-no">02 / THEME SHIFT 1980–2025</p>
-          <h2 id="themes-title">研究テーマの変遷</h2>
-          <p class="ch-lede">予算はテーマ別に測られていない。ここにあるのは、日本の論文がどのテーマで書かれてきたか——研究成果の側のテーマ構成である。<span id="themes-lede-fact"></span></p>
+          <p class="ch-no">02 / SUBFIELD BUMP 1980–2025</p>
+          <h2 id="themes-title">研究テーマの変遷 — 下位分野の浮沈</h2>
+          <p class="ch-lede">01は8大分野で国の形を比べた。ここでは一段細かい下位分野（OpenAlex subfield、252分類）の解像度に降りて、日本の中で伸びたテーマと沈んだテーマを追う。論文という成果側の構成であり、予算配分ではない。<span id="themes-lede-fact"></span></p>
         </div>
         <figure class="fig fig-wide">
           <div class="fig-body" id="themes-stream"></div>
@@ -114,7 +114,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-    <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="papers.js?v=20260813a" defer></script>
+    <script src="obs-core.js?v=20260815a" defer></script>
+    <script src="papers.js?v=20260815a" defer></script>
   </body>
 </html>
