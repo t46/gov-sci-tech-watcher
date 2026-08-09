@@ -78,6 +78,6 @@ jobs:
           npm ci
           publish_dir="$RUNNER_TEMP/science-signal-site"
           mkdir -p "$publish_dir/data"
-          cp index.html analytics.html analytics.css obs-core.js hub.js signals.html signals.js people.html people.js papers.html papers.js money.html money.js gov.html gov.js _headers "$publish_dir/"
-          cp data/updates.json data/analytics.json data/indicators.json data/finance.json data/publishing.json data/topics.json data/funders.json data/economy.json data/phd_support.json data/gov.json "$publish_dir/data/"
+          cp index.html analytics.html analytics.css obs-core.js hub.js signals.html signals.js people.html people.js papers.html papers.js money.html money.js gov.html gov.js policy.html policy.js _headers _redirects "$publish_dir/"
+          cp data/updates.json data/analytics.json data/indicators.json data/finance.json data/publishing.json data/topics.json data/funders.json data/economy.json data/phd_support.json data/gov.json data/policy.json data/mobility.json "$publish_dir/data/"
           npx wrangler pages deploy "$publish_dir" --project-name science-signal --branch main --commit-message "refresh government updates"

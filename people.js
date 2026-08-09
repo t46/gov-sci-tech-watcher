@@ -1101,21 +1101,311 @@ function renderPhdLivingSupport(phdSupport) {
     `出典: ${block.source?.title || ""}。${block.note || ""} 内訳の合算は${fmtInt(segSum)}人（報告書の丸め表記は約16,000人。いずれも概数）。目標まで残り約${fmtInt(gap)}人（${block.target_note || ""}）`);
 }
 
+/* ================================================================ 03 GLOBAL MOBILITY */
+
+/* 1つの章の描画失敗が他の章を巻き込まないようにする（money.js と同じ隔離パターン）。
+   mobility.json自体の取得失敗はinit()側でこの章の全レンダラーをスキップするので、
+   ここはレンダラー内部の想定外エラーに対する最後の砦。 */
+function safeCall(name, fn) {
+  try {
+    fn();
+  } catch (error) {
+    console.error(`[people] ${name} failed`, error);
+  }
+}
+
+const MOB_DISPATCH_COLOR = "#ffb545";
+const MOB_INFLOW_COLOR = "#4fd8ff";
+/* 派遣・受入研究者数の対象範囲が変わった年度（軸上に小さなティックを打ち、脚注でまとめて説明する） */
+const MOB_DEF_CHANGE_YEARS = [2008, 2010, 2013, 2014];
+const MOB_REGION_SHORT = { "ヨーロッパ（含NIS諸国）": "ヨーロッパ" };
+
+function renderMobFlowsPanel(mountSel, dispatchSeriesRaw, inflowSeriesRaw, opts = {}) {
+  const mount = $(mountSel);
+  if (!mount) return;
+  mount.innerHTML = "";
+  /* nullが混ざるとd3.extent/d3.maxがNaNを返して軸が壊れるので、両方とも有限数の点だけを使う */
+  const isFinitePoint = ([yr, v]) => Number.isFinite(yr) && Number.isFinite(v);
+  const dispatchSeries = (dispatchSeriesRaw || []).filter(isFinitePoint);
+  const inflowSeries = (inflowSeriesRaw || []).filter(isFinitePoint);
+  if (!dispatchSeries.length || !inflowSeries.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 440, height = Math.max(260, width * 0.76);
+  const margin = { top: 22, right: 14, bottom: 30, left: 54 };
+  const years = dispatchSeries.map(([yr]) => yr);
+  const x = d3.scaleLinear().domain(d3.extent(years)).range([margin.left, width - margin.right]);
+  const maxV = Math.max(d3.max(dispatchSeries, (d) => d[1]), d3.max(inflowSeries, (d) => d[1]));
+  const y = d3.scaleLinear().domain([0, maxV * 1.12]).range([height - margin.bottom, margin.top]);
+  const yFmt = opts.yTickFormat || ((v) => fmtInt(v));
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", opts.ariaLabel || "延べ派遣・受入研究者数の推移");
+  const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickFormat(yFmt).tickSize(-(width - margin.left - margin.right)));
+  gy.select(".domain").remove();
+  gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+
+  /* 定義変更年の目盛（詳細はfigure全体の脚注でまとめて説明） */
+  for (const defYear of MOB_DEF_CHANGE_YEARS) {
+    if (defYear < years[0] || defYear > years[years.length - 1]) continue;
+    svg.append("line").attr("x1", x(defYear)).attr("x2", x(defYear))
+      .attr("y1", height - margin.bottom).attr("y2", height - margin.bottom + 5)
+      .attr("stroke", "#8b96ab").attr("stroke-width", 1.3);
+  }
+
+  const line = d3.line().x(([yr]) => x(yr)).y(([, v]) => y(v)).curve(d3.curveMonotoneX);
+  const area = d3.area().x(([yr]) => x(yr)).y0(y(0)).y1(([, v]) => y(v)).curve(d3.curveMonotoneX);
+  const series = [
+    { values: dispatchSeries, color: MOB_DISPATCH_COLOR, label: "派遣" },
+    { values: inflowSeries, color: MOB_INFLOW_COLOR, label: "受入" },
+  ];
+  for (const s of series) {
+    svg.append("path").attr("d", area(s.values)).attr("fill", s.color).attr("opacity", 0.08);
+    const path = svg.append("path").attr("d", line(s.values)).attr("fill", "none")
+      .attr("stroke", s.color).attr("stroke-width", 2.2).attr("opacity", 0.95);
+    if (!REDUCED && gsap) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+      gsap.to(path.node(), { strokeDashoffset: 0, duration: 1.7, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 82%" } });
+    }
+    const last = lastPoint(s.values);
+    svg.append("text").attr("x", x(last[0]) - 4).attr("y", y(last[1]) - 8).attr("text-anchor", "end")
+      .attr("font-size", 11).attr("font-weight", 600).attr("fill", s.color)
+      .text(`${s.label} ${fmtInt(last[1])}`);
+  }
+
+  /* コロナ急落の注釈（このデータで最も大きな出来事なので1回だけ描く。数値はJSONの実測値から算出） */
+  if (opts.covidYear) {
+    const beforePt = dispatchSeries.find(([yr]) => yr === opts.covidYear - 1);
+    const dropPt = dispatchSeries.find(([yr]) => yr === opts.covidYear);
+    if (beforePt && dropPt) {
+      const textY = Math.max(margin.top + 10, y(beforePt[1]) - 30);
+      svg.append("line").attr("class", "annot-line").attr("x1", x(opts.covidYear)).attr("x2", x(opts.covidYear))
+        .attr("y1", y(dropPt[1])).attr("y2", textY + 6);
+      /* 2020年は右端付近なので、右半分では終端アンカーで左向きに置いて切れないようにする */
+      const onRightHalf = x(opts.covidYear) > width / 2;
+      svg.append("text").attr("class", "annot-text")
+        .attr("x", onRightHalf ? x(opts.covidYear) - 8 : x(opts.covidYear) + 8)
+        .attr("text-anchor", onRightHalf ? "end" : "start")
+        .attr("y", textY)
+        .attr("font-size", 11.5).text(`${opts.covidYear}年度 ${fmtInt(beforePt[1])}→${fmtInt(dropPt[1])}人`);
+    }
+  }
+}
+
+function renderMobFlows(mobility) {
+  const mf = mobility?.mext_flows;
+  if (!mf || mf.status !== "ok") {
+    ["#mob-flows-short", "#mob-flows-midlong"].forEach((sel) => { const m = $(sel); if (m) m.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; });
+    return;
+  }
+  renderMobFlowsPanel("#mob-flows-short", mf.dispatch?.short, mf.inflow?.short, {
+    ariaLabel: "延べ海外派遣・延べ受入研究者数（短期・30日以内）の推移。2020年度にコロナ禍で急落した。",
+    covidYear: 2020,
+    yTickFormat: (v) => fmtMan(v),
+  });
+  renderMobFlowsPanel("#mob-flows-midlong", mf.dispatch?.mid_long, mf.inflow?.mid_long, {
+    ariaLabel: "延べ海外派遣・延べ受入研究者数（中・長期・30日超）の推移。短期の10分の1以下の規模。",
+    yTickFormat: (v) => fmtInt(v),
+  });
+
+  const dispatchTotal = mf.dispatch?.total || [];
+  const inflowTotal = mf.inflow?.total || [];
+  const midLong = mf.dispatch?.mid_long || [];
+  const last = lastPoint(dispatchTotal);
+  const lastInflow = lastPoint(inflowTotal);
+  const lastMidLong = lastPoint(midLong);
+  const pre2019Raw = dispatchTotal.find(([yr]) => yr === 2019);
+  /* 分母(2019年度実績)が正の有限数のときだけ回復率を計算する（0除算・NaN%を防ぐ） */
+  const pre2019 = pre2019Raw && Number.isFinite(pre2019Raw[1]) && pre2019Raw[1] > 0 ? pre2019Raw : null;
+  if (last && Number.isFinite(last[1]) && lastInflow && Number.isFinite(lastInflow[1]) && lastMidLong && Number.isFinite(lastMidLong[1])) {
+    const recovery = pre2019 ? Math.round((last[1] / pre2019[1]) * 100) : null;
+    const ledeEl = $("#global-lede");
+    if (ledeEl) {
+      /* 数値はすべてfmtInt経由の数値文字列なのでHTML挿入しても安全 */
+      ledeEl.innerHTML =
+        `${last[0]}年度の海外派遣は延べ${fmtInt(last[1])}人${pre2019 ? `で、コロナ前（${pre2019[0]}年度${fmtInt(pre2019[1])}人）の約${recovery}%まで回復` : ""}。受入は延べ${fmtInt(lastInflow[1])}人、中・長期派遣は延べ${fmtInt(lastMidLong[1])}人 — 第7期科学技術・イノベーション基本計画は2030年度までの累計3万人を目標に掲げる（<a href="policy.html">政策</a>）。`;
+    }
+  }
+
+  const defNote = (mf.definition_changes || []).map((d) => `${d.year}年度（${d.note}）`).join("、");
+  setText("#mob-flows-source",
+    `出典: ${mf.source?.title || ""}。単位: ${mf.unit || ""}。${mf.note || ""}${defNote ? ` 定義変更: ${defNote}。` : ""}`);
+}
+
+function drawMobRegionPanel(container, title, data, order, color, ariaLabel) {
+  const wrap = document.createElement("div");
+  wrap.className = "mob-quad-panel";
+  const titleEl = document.createElement("p");
+  titleEl.className = "mob-panel-title";
+  titleEl.textContent = title;
+  wrap.appendChild(titleEl);
+  const body = document.createElement("div");
+  body.className = "fig-body";
+  wrap.appendChild(body);
+  container.appendChild(wrap);
+
+  const val = (r) => (Number.isFinite(data[r]) ? data[r] : 0);
+  const maxVal = d3.max(order, val) || 1;
+  const width = 260, height = order.length * 27 + 12;
+  const margin = { top: 4, right: 46, bottom: 4, left: 62 };
+  const x = d3.scaleLinear().domain([0, maxVal * 1.15]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(order).range([margin.top, height - margin.bottom]).padding(0.3);
+  const svg = d3.select(body).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", ariaLabel);
+  const bars = svg.append("g").selectAll("rect").data(order).join("rect")
+    .attr("x", x(0)).attr("y", (r) => y(r)).attr("height", y.bandwidth())
+    .attr("width", (r) => Math.max(0, x(val(r)) - x(0)))
+    .attr("fill", color).attr("opacity", 0.85);
+  bars.append("title").text((r) => `${r}: ${fmtInt(val(r))}人`);
+  svg.append("g").selectAll("text.rlabel").data(order).join("text")
+    .attr("x", margin.left - 6).attr("y", (r) => y(r) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", "end").attr("font-size", 9.5).attr("fill", "#8b96ab")
+    .text((r) => MOB_REGION_SHORT[r] || r);
+  svg.append("g").selectAll("text.rvalue").data(order).join("text")
+    .attr("x", (r) => x(val(r)) + 5).attr("y", (r) => y(r) + y.bandwidth() / 2 + 3.5)
+    .attr("font-size", 9.5).attr("fill", "#e9eef7").text((r) => fmtInt(val(r)));
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { width: 0 }, duration: 0.8, ease: "power3.out", stagger: 0.03, scrollTrigger: { trigger: body, start: "top 88%" } });
+  }
+}
+
+function renderMobRegional(mobility) {
+  const mount = $("#mob-regional");
+  const mf = mobility?.mext_flows;
+  const rl = mf?.regional_latest;
+  if (!mount) return;
+  if (!mf || mf.status !== "ok" || !rl) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const regions = Object.keys(rl.dispatch_short || {});
+  if (!regions.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const finiteOrZero = (v) => (Number.isFinite(v) ? v : 0);
+  const combined = Object.fromEntries(regions.map((r) => [r,
+    finiteOrZero(rl.dispatch_short[r]) + finiteOrZero(rl.dispatch_mid_long[r]) + finiteOrZero(rl.inflow_short[r]) + finiteOrZero(rl.inflow_mid_long[r]),
+  ]));
+  const order = [...regions].sort((a, b) => combined[b] - combined[a]);
+  const panels = [
+    { key: "dispatch_short", title: "派遣・短期", data: rl.dispatch_short, totalSeries: mf.dispatch?.short, color: MOB_DISPATCH_COLOR, aria: "派遣（短期）の地域別内訳" },
+    { key: "dispatch_mid_long", title: "派遣・中長期", data: rl.dispatch_mid_long, totalSeries: mf.dispatch?.mid_long, color: MOB_DISPATCH_COLOR, aria: "派遣（中・長期）の地域別内訳" },
+    { key: "inflow_short", title: "受入・短期", data: rl.inflow_short, totalSeries: mf.inflow?.short, color: MOB_INFLOW_COLOR, aria: "受入（短期）の地域別内訳" },
+    { key: "inflow_mid_long", title: "受入・中長期", data: rl.inflow_mid_long, totalSeries: mf.inflow?.mid_long, color: MOB_INFLOW_COLOR, aria: "受入（中・長期）の地域別内訳" },
+  ];
+  /* 地域計は公表統計の総数と必ずしも一致しない（地域不明・その他を含むため）。
+     値はJSONから毎回動的に算出し、0や完全一致に見せない */
+  const diffParts = [];
+  for (const panel of panels) {
+    drawMobRegionPanel(mount, panel.title, panel.data || {}, order, panel.color, panel.aria);
+    const regionSum = d3.sum(regions, (r) => finiteOrZero((panel.data || {})[r]));
+    const totalPoint = (panel.totalSeries || []).find(([yr]) => yr === rl.fiscal_year);
+    if (totalPoint && Number.isFinite(totalPoint[1])) {
+      const diff = totalPoint[1] - regionSum;
+      if (diff !== 0) diffParts.push(`${panel.title}${fmtInt(Math.abs(diff))}人`);
+    }
+  }
+  setText("#mob-regional-source",
+    `出典: ${mf.source?.title || ""}。${rl.fiscal_year}年度の地域別内訳（直近年度のみ、過去分は非公表）。単位: ${mf.unit || ""}。地域は7区分×派遣/受入×短期/中長期の4区分の合計降順。${diffParts.length ? `地域計は総数と一致しない（地域不明・その他が${diffParts.join("、")}）。` : ""}`);
+}
+
+function renderMobBilateral(mobility) {
+  const mount = $("#mob-bilateral");
+  const block = mobility?.oecd_bilateral;
+  if (!mount) return;
+  if (!block || block.status !== "ok" || !(block.japan_outflows || []).length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const outMap = new Map(block.japan_outflows.map((d) => [d.country_code, d]));
+  const inMap = new Map(block.japan_inflows.map((d) => [d.country_code, d]));
+  const codes = new Set([...outMap.keys(), ...inMap.keys()]);
+  /* japan_outflows/japan_inflowsはそれぞれ独立した上位20か国リスト。片方にしか
+     登場しない国は「0人」ではなく「もう片方のランキング圏外（順位不明・非公表）」なので、
+     nullのまま保持して0本のバーと区別する（0埋めしない） */
+  const rows = [...codes].map((code) => {
+    const outRec = outMap.get(code);
+    const inRec = inMap.get(code);
+    const outflow = Number.isFinite(outRec?.persons) ? outRec.persons : null;
+    const inflow = Number.isFinite(inRec?.persons) ? inRec.persons : null;
+    return { name: outRec?.country_name_ja || inRec?.country_name_ja || code, outflow, inflow };
+  }).sort((a, b) => ((b.outflow ?? 0) + (b.inflow ?? 0)) - ((a.outflow ?? 0) + (a.inflow ?? 0)));
+  const top = rows.slice(0, 12);
+  if (!top.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+
+  mount.insertAdjacentHTML("beforebegin", `<div class="pub-legend">
+    <span><i style="background:${MOB_DISPATCH_COLOR}"></i>日本 → 海外</span>
+    <span><i style="background:${MOB_INFLOW_COLOR}"></i>海外 → 日本</span>
+  </div>`);
+
+  const width = mount.clientWidth || 900, height = Math.max(320, top.length * 30 + 46);
+  const margin = { top: 18, right: 60, bottom: 28, left: 60 };
+  const maxSide = d3.max(top, (r) => Math.max(r.outflow ?? 0, r.inflow ?? 0)) || 1;
+  const centerX = margin.left + (width - margin.left - margin.right) / 2;
+  const xOut = d3.scaleLinear().domain([0, maxSide * 1.1]).range([centerX, margin.left]);
+  const xIn = d3.scaleLinear().domain([0, maxSide * 1.1]).range([centerX, width - margin.right]);
+  const y = d3.scaleBand().domain(top.map((r) => r.name)).range([margin.top, height - margin.bottom]).padding(0.28);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "OECD推計による日本の研究者の国別移動、2010〜2024年累積。左が日本から海外への移動、右が海外から日本への移動。米国はほぼ拮抗し、中国は日本からの流出がやや上回る。片方の上位20位内にのみ入る国は、もう片方を「圏外」と表示する。");
+  svg.append("line").attr("x1", centerX).attr("x2", centerX).attr("y1", margin.top - 6).attr("y2", height - margin.bottom + 6).attr("stroke", "#4c5a72");
+  const barsOut = svg.append("g").selectAll("rect.mob-out").data(top.filter((r) => r.outflow != null)).join("rect")
+    .attr("x", (r) => xOut(r.outflow)).attr("y", (r) => y(r.name)).attr("height", y.bandwidth())
+    .attr("width", (r) => centerX - xOut(r.outflow)).attr("fill", MOB_DISPATCH_COLOR).attr("opacity", 0.85);
+  barsOut.append("title").text((r) => `${r.name}: 日本→海外 ${fmtInt(r.outflow)}人`);
+  const barsIn = svg.append("g").selectAll("rect.mob-in").data(top.filter((r) => r.inflow != null)).join("rect")
+    .attr("x", centerX).attr("y", (r) => y(r.name)).attr("height", y.bandwidth())
+    .attr("width", (r) => xIn(r.inflow) - centerX).attr("fill", MOB_INFLOW_COLOR).attr("opacity", 0.85);
+  barsIn.append("title").text((r) => `${r.name}: 海外→日本 ${fmtInt(r.inflow)}人`);
+  svg.append("g").selectAll("text.mob-blabel").data(top).join("text")
+    .attr("class", "mg-label").attr("x", centerX).attr("y", (r) => y(r.name) + y.bandwidth() / 2 + 3)
+    .attr("text-anchor", "middle").attr("font-size", 10).text((r) => r.name);
+  svg.append("g").selectAll("text.mob-ovalue").data(top).join("text")
+    .attr("x", (r) => (r.outflow != null ? xOut(r.outflow) - 6 : margin.left + 4))
+    .attr("y", (r) => y(r.name) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", (r) => (r.outflow != null ? "end" : "start"))
+    .attr("font-size", (r) => (r.outflow != null ? 10 : 9))
+    .attr("fill", (r) => (r.outflow != null ? MOB_DISPATCH_COLOR : "#4c5a72"))
+    .text((r) => (r.outflow != null ? fmtInt(r.outflow) : "上位20位外"));
+  svg.append("g").selectAll("text.mob-ivalue").data(top).join("text")
+    .attr("x", (r) => (r.inflow != null ? xIn(r.inflow) + 6 : width - margin.right - 4))
+    .attr("y", (r) => y(r.name) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", (r) => (r.inflow != null ? "start" : "end"))
+    .attr("font-size", (r) => (r.inflow != null ? 10 : 9))
+    .attr("fill", (r) => (r.inflow != null ? MOB_INFLOW_COLOR : "#4c5a72"))
+    .text((r) => (r.inflow != null ? fmtInt(r.inflow) : "上位20位外"));
+  if (!REDUCED && gsap) {
+    gsap.from([...barsOut.nodes(), ...barsIn.nodes()], { attr: { width: 0 }, duration: 0.85, ease: "power3.out", stagger: 0.03, scrollTrigger: { trigger: mount, start: "top 82%" } });
+  }
+
+  const totals = block.totals || {};
+  const net = (totals.outflow_total ?? 0) - (totals.inflow_total ?? 0);
+  setText("#mob-bilateral-source",
+    `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 2010〜2024年累積で、日本から海外への移動${fmtInt(totals.outflow_total ?? 0)}人に対し、海外から日本への移動${fmtInt(totals.inflow_total ?? 0)}人（差は${fmtInt(Math.abs(net))}人の${net >= 0 ? "出超" : "入超"}）。国別の値は日本→海外・海外→日本それぞれ独立の上位20か国のみ公表されており、片方の上位20位内にのみ入る国は「上位20位外」と表示している（0人という意味ではない）。上図Aの延べ渡航者数（同一人物の複数回渡航を含む渡航イベントの集計）とは測っているものが異なる — こちらは著者の所属国の変化を移動とみなした推計。`);
+}
+
+function renderMobFacultyChip(mobility) {
+  const chip = $("#mob-faculty-chip");
+  const block = mobility?.foreign_faculty;
+  if (!chip) return;
+  const point = block?.status === "ok" ? lastPoint(block.series || []) : null;
+  if (!block || block.status !== "ok" || !point) { chip.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  chip.innerHTML = `<b>${fmtInt(point.total)}<small>人</small></b><span>外国人本務教員数（大学）</span><small>${escapeHtml(point.survey_round || "")}・ストック値（在籍者数、フローではない）</small>`;
+  setText("#mob-faculty-source",
+    `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 男${fmtInt(point.male ?? 0)}人・女${fmtInt(point.female ?? 0)}人。`);
+}
+
 /* ================================================================ boot */
 
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/economy.json"),
     fetchJson("data/phd_support.json"),
+    fetchJson("data/mobility.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
   const economy = economyResult.status === "fulfilled" ? economyResult.value : null;
   const phdSupport = phdSupportResult.status === "fulfilled" ? phdSupportResult.value : null;
+  /* mobility.json取得失敗は03章のみに影響させる（他の章は独立して動く） */
+  const mobility = mobilityResult.status === "fulfilled" ? mobilityResult.value : null;
   if (!indicators && !analytics) {
     setText("#header-status", "人材データを取得できません");
     return;
@@ -1148,6 +1438,10 @@ async function init() {
   renderDcRealValue(phdSupport, economy);
   renderDcAcceptance(phdSupport);
   renderPhdLivingSupport(phdSupport);
+  safeCall("renderMobFlows", () => renderMobFlows(mobility));
+  safeCall("renderMobRegional", () => renderMobRegional(mobility));
+  safeCall("renderMobBilateral", () => renderMobBilateral(mobility));
+  safeCall("renderMobFacultyChip", () => renderMobFacultyChip(mobility));
 
   const hireRows = indicators?.faculty_age?.hire_rows || [];
   const femaleSeries = indicators?.female_researchers?.series || [];
@@ -1165,6 +1459,7 @@ async function init() {
     blockEntry(indicators?.stem_phd_outcomes), blockEntry(indicators?.corporate_phd_hiring),
     blockEntry(indicators?.intl_grad_students),
     blockEntry(economy?.cpi), blockEntry(phdSupport?.dc_acceptance), blockEntry(phdSupport?.living_support),
+    blockEntry(mobility?.mext_flows), blockEntry(mobility?.oecd_bilateral), blockEntry(mobility?.foreign_faculty),
     /* dc_stipend_history.source は複数出典の配列（国会会議録・Wayback保存ページ複数点）のため個別展開 */
     ...(phdSupport?.dc_stipend_history?.source || []).map((s) => ({ title: s.title, url: s.url, status: phdSupport.dc_stipend_history.status === "ok" ? "ok" : "unavailable" })),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),

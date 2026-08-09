@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の研究開発資金の流れを公的統計と公開資料で描く。負担部門から使用部門への22兆円、政府資金の42年、府省庁別予算、産学連携、国際比較、基本計画。" />
+    <meta name="description" content="日本の研究開発資金の流れを公的統計と公開資料で描く。負担部門から使用部門への22兆円、政府資金の42年、府省庁別予算、予算の全体像とサイクル、事業の星図、資金の行き先、契約の透明性、省庁の帳簿、産学連携、国際比較、基本計画。" />
     <meta name="theme-color" content="#06090f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
     <title>資金 — SCIENCE SIGNAL 日本の科学技術観測室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260817d" />
+    <link rel="stylesheet" href="analytics.css?v=20260819a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -20,7 +20,7 @@
       <nav class="obs-nav" aria-label="メインナビゲーション">
         <a href="./">観測室</a>
         <a href="signals.html">情報</a>
-        <a href="gov.html">行政</a>
+        <a href="policy.html">政策</a>
         <a href="people.html">人材</a>
         <a class="active" href="money.html">資金</a>
         <a href="papers.html">研究</a>
@@ -28,18 +28,29 @@
       <div class="obs-status"><span class="obs-status-dot" id="header-status-dot" aria-hidden="true"></span><span id="header-status">資金データを取得中</span></div>
     </header>
 
-    <nav class="chapter-rail" aria-label="章ナビゲーション">
+    <nav class="chapter-rail is-dense" aria-label="章ナビゲーション">
+      <span class="rail-group">全体</span>
       <a href="#ch-flow" data-rail="ch-flow"><i>00</i><span>資金の流れ</span></a>
+      <span class="rail-group">政府の予算</span>
       <a href="#ch-gov" data-rail="ch-gov"><i>01</i><span>政府資金の42年</span></a>
       <a href="#ch-ministry" data-rail="ch-ministry"><i>02</i><span>府省庁別予算</span></a>
-      <a href="#ch-plan" data-rail="ch-plan"><i>03</i><span>基本計画と予算</span></a>
-      <a href="#ch-funding" data-rail="ch-funding"><i>04</i><span>研究助成の構造</span></a>
-      <a href="#ch-kakenhi" data-rail="ch-kakenhi"><i>05</i><span>科研費</span></a>
-      <a href="#ch-sangaku" data-rail="ch-sangaku"><i>06</i><span>産学連携</span></a>
-      <a href="#ch-support" data-rail="ch-support"><i>07</i><span>企業支援の国際比較</span></a>
-      <a href="#ch-finance" data-rail="ch-finance"><i>08</i><span>大学・研究所の財務</span></a>
-      <a href="#ch-anatomy" data-rail="ch-anatomy"><i>09</i><span>財務の解剖</span></a>
-      <a href="#ch-publishing" data-rail="ch-publishing"><i>10</i><span>学術出版</span></a>
+      <a href="#ch-total" data-rail="ch-total"><i>03</i><span>予算の全体像</span></a>
+      <a href="#ch-cycle" data-rail="ch-cycle"><i>04</i><span>予算のサイクル</span></a>
+      <a href="#ch-plan" data-rail="ch-plan"><i>05</i><span>基本計画と予算</span></a>
+      <a href="#ch-projects" data-rail="ch-projects"><i>06</i><span>事業の星図</span></a>
+      <a href="#ch-network" data-rail="ch-network"><i>07</i><span>資金の行き先</span></a>
+      <a href="#ch-contracts" data-rail="ch-contracts"><i>08</i><span>契約の透明性</span></a>
+      <a href="#ch-books" data-rail="ch-books"><i>09</i><span>省庁の帳簿</span></a>
+      <span class="rail-group">研究助成</span>
+      <a href="#ch-funding" data-rail="ch-funding"><i>10</i><span>研究助成の構造</span></a>
+      <a href="#ch-kakenhi" data-rail="ch-kakenhi"><i>11</i><span>科研費</span></a>
+      <a href="#ch-sangaku" data-rail="ch-sangaku"><i>12</i><span>産学連携</span></a>
+      <a href="#ch-support" data-rail="ch-support"><i>13</i><span>企業支援の国際比較</span></a>
+      <span class="rail-group">財務</span>
+      <a href="#ch-finance" data-rail="ch-finance"><i>14</i><span>大学・研究所の財務</span></a>
+      <a href="#ch-anatomy" data-rail="ch-anatomy"><i>15</i><span>財務の解剖</span></a>
+      <span class="rail-group">出版</span>
+      <a href="#ch-publishing" data-rail="ch-publishing"><i>16</i><span>学術出版</span></a>
     </nav>
 
     <main id="main">
@@ -86,12 +97,46 @@
         </figure>
       </section>
 
-      <!-- 03 · BASIC PLAN BUDGET -->
+      <!-- 03 · BUDGET OVERVIEW (旧 gov.html ヒーローを通常章に変換して移設) -->
+      <section class="chapter" id="ch-total" aria-labelledby="total-title">
+        <div class="ch-head">
+          <p class="ch-no">03 / BUDGET OVERVIEW</p>
+          <h2 id="total-title">予算の全体像</h2>
+          <p class="ch-lede" id="total-lede">当初予算案の科学技術関係予算を取得中。</p>
+        </div>
+
+        <div class="gov-anatomy" id="total-anatomy" aria-live="polite">
+          <p class="gov-anatomy-title">予算の内訳を確認中</p>
+        </div>
+
+        <figure class="fig fig-wide" style="margin-top: 34px">
+          <figcaption><span class="fig-kicker">A</span>府省庁別 科学技術関係予算（当初予算）の推移 <span id="total-years-label"></span></figcaption>
+          <div class="fig-body" id="total-stream"></div>
+          <div class="terrain-hover" id="total-hover" aria-hidden="true"></div>
+          <p class="method-note" id="total-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 04 · BUDGET CYCLE (移設) -->
+      <section class="chapter" id="ch-cycle" aria-labelledby="cycle-title">
+        <div class="ch-head">
+          <p class="ch-no">04 / BUDGET CYCLE</p>
+          <h2 id="cycle-title">予算のサイクル</h2>
+          <p class="ch-lede" id="cycle-lede">8月の概算要求から3月の成立まで、1年の呼吸。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="cycle-ring"></div>
+          <p class="method-note" id="cycle-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 05 · S&T BASIC PLANS -->
       <section class="chapter" id="ch-plan" aria-labelledby="plan-title">
         <div class="ch-head">
-          <p class="ch-no">03 / S&amp;T BASIC PLANS 1996–2025</p>
+          <p class="ch-no">05 / S&amp;T BASIC PLANS 1996–2025</p>
           <h2 id="plan-title">科学技術基本計画と国の予算</h2>
           <p class="ch-lede" id="plan-lede">6期30年の基本計画のもとでの、当初予算と補正予算。</p>
+          <p class="method-note">各期の計画が掲げた目標と現在地は<a href="policy.html">政策</a>へ。</p>
         </div>
         <figure class="fig fig-wide">
           <div class="fig-body" id="plan-bars"></div>
@@ -100,10 +145,95 @@
         </figure>
       </section>
 
-      <!-- 04 · FUNDING STRUCTURE -->
+      <!-- 06 · PROJECT STAR MAP (移設) -->
+      <section class="chapter" id="ch-projects" aria-labelledby="projects-title">
+        <div class="ch-head">
+          <p class="ch-no">06 / PROJECTS <span id="projects-count-label"></span></p>
+          <h2 id="projects-title">事業の星図</h2>
+          <p class="ch-lede" id="projects-lede">当初予算案に計上された事業ひとつひとつを、府省庁ごとに散らす。</p>
+        </div>
+        <div class="glyph-toolbar" id="projects-filter" role="toolbar" aria-label="府省庁の絞り込み">
+          <span class="toolbar-label">府省庁:</span>
+          <button class="is-active" data-ministry="all">すべて</button>
+          <input type="search" id="projects-search" placeholder="事業名で検索" aria-label="事業名で検索" />
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body star-stage" id="star-stage">
+            <canvas id="projects-canvas"></canvas>
+            <div class="terrain-hover" id="projects-hover" aria-hidden="true"></div>
+          </div>
+          <p class="method-note" id="projects-source">出典を確認中</p>
+        </figure>
+        <div class="proj-card" id="projects-card" aria-live="polite">
+          <p class="data-empty">星（点）をクリック、またはタップすると事業の詳細を表示</p>
+        </div>
+      </section>
+
+      <!-- 07 · FUNDING NETWORK (移設) -->
+      <section class="chapter" id="ch-network" aria-labelledby="network-title">
+        <div class="ch-head">
+          <p class="ch-no">07 / PAYMENT NETWORK</p>
+          <h2 id="network-title">資金の行き先</h2>
+          <p class="ch-lede" id="network-lede">府省庁からの支出が、どの法人に流れているか。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="flow-stage" id="network-stage">
+            <canvas id="network-canvas"></canvas>
+            <div class="flow-detail" id="network-detail" aria-live="polite">支出先に触れると、内訳を表示</div>
+          </div>
+          <p class="method-note" id="network-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 08 · CONTRACT TRANSPARENCY (移設) -->
+      <section class="chapter" id="ch-contracts" aria-labelledby="contracts-title">
+        <div class="ch-head">
+          <p class="ch-no">08 / CONTRACT TRANSPARENCY</p>
+          <h2 id="contracts-title">契約の透明性</h2>
+          <p class="ch-lede" id="contracts-lede">入札者数1以上の契約のうち、応札が一者だけだった契約はどれだけあるか。</p>
+        </div>
+        <div class="gauge-row" id="contracts-gauges"></div>
+        <figure class="fig fig-wide" style="margin-top: 40px">
+          <figcaption><span class="fig-kicker">B</span>落札率の分布</figcaption>
+          <div class="fig-body" id="contracts-histogram"></div>
+          <p class="method-note" id="contracts-hist-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 40px">
+          <figcaption><span class="fig-kicker">C</span>府省庁別 一者応札率（科学技術関連契約）</figcaption>
+          <div class="fig-body" id="contracts-ministry"></div>
+          <p class="method-note" id="contracts-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 09 · MINISTRY BOOKS (移設) -->
+      <section class="chapter" id="ch-books" aria-labelledby="books-title">
+        <div class="ch-head">
+          <p class="ch-no">09 / MINISTRY BOOKS</p>
+          <h2 id="books-title">省庁の帳簿</h2>
+          <p class="ch-lede" id="books-lede">文部科学省の省庁別財務書類。貸借対照表と業務費用計算書。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">A</span>貸借対照表 — 資産 と 負債・純資産</figcaption>
+          <div class="fig-body" id="books-bs"></div>
+          <div class="terrain-hover" id="books-bs-hover" aria-hidden="true"></div>
+          <p class="method-note" id="books-bs-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>業務費用計算書 — 費用の内訳</figcaption>
+          <div class="fig-body" id="books-costs"></div>
+          <p class="method-note" id="books-costs-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">C</span>研究関連事業のフルコスト（府省庁横断・上位20件）</figcaption>
+          <div class="fig-body" id="books-fullcost"></div>
+          <p class="method-note" id="books-fullcost-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 10 · FUNDING STRUCTURE -->
       <section class="chapter" id="ch-funding" aria-labelledby="funding-title">
         <div class="ch-head">
-          <p class="ch-no">04 / FUNDING STRUCTURE</p>
+          <p class="ch-no">10 / FUNDING STRUCTURE</p>
           <h2 id="funding-title">研究助成の構造</h2>
           <p class="ch-lede" id="funding-lede">大学の研究開発費はどこから来て、競争的資金はどの制度にどれだけ配られているか。</p>
         </div>
@@ -127,10 +257,10 @@
         </figure>
       </section>
 
-      <!-- 05 · KAKENHI -->
+      <!-- 11 · KAKENHI -->
       <section class="chapter" id="ch-kakenhi" aria-labelledby="kakenhi-title">
         <div class="ch-head">
-          <p class="ch-no">05 / KAKENHI</p>
+          <p class="ch-no">11 / KAKENHI</p>
           <h2 id="kakenhi-title">科研費の機関別配分</h2>
           <p class="ch-lede" id="kakenhi-lede">競争的資金の代表・科学研究費助成事業が、どの研究機関に配分されているか。</p>
         </div>
@@ -146,10 +276,10 @@
         </figure>
       </section>
 
-      <!-- 06 · INDUSTRY-ACADEMIA -->
+      <!-- 12 · INDUSTRY-ACADEMIA -->
       <section class="chapter" id="ch-sangaku" aria-labelledby="sangaku-title">
         <div class="ch-head">
-          <p class="ch-no">06 / INDUSTRY → ACADEMIA</p>
+          <p class="ch-no">12 / INDUSTRY → ACADEMIA</p>
           <h2 id="sangaku-title">企業から大学等への研究資金の推移</h2>
           <p class="ch-lede" id="sangaku-lede">資金の流れで最も細い管のひとつ、産学のあいだの金額。</p>
         </div>
@@ -167,10 +297,10 @@
         </div>
       </section>
 
-      <!-- 07 · GOV SUPPORT INTERNATIONAL -->
+      <!-- 13 · GOV SUPPORT INTERNATIONAL -->
       <section class="chapter" id="ch-support" aria-labelledby="support-title">
         <div class="ch-head">
-          <p class="ch-no">07 / GOVERNMENT SUPPORT FOR BUSINESS R&amp;D</p>
+          <p class="ch-no">13 / GOVERNMENT SUPPORT FOR BUSINESS R&amp;D</p>
           <h2 id="support-title">企業の研究開発への政府支援、国際比較</h2>
           <p class="ch-lede" id="support-lede">直接支援（政府負担の企業研究費）と間接支援（研究開発減税）の対GDP比。</p>
         </div>
@@ -180,10 +310,10 @@
         </figure>
       </section>
 
-      <!-- 08 · UNIVERSITY & INSTITUTE FINANCE -->
+      <!-- 14 · UNIVERSITY & INSTITUTE FINANCE -->
       <section class="chapter" id="ch-finance" aria-labelledby="finance-title">
         <div class="ch-head">
-          <p class="ch-no">08 / FINANCIAL STATEMENTS</p>
+          <p class="ch-no">14 / FINANCIAL STATEMENTS</p>
           <h2 id="finance-title">大学・研究所の財務諸表</h2>
           <p class="ch-lede" id="finance-lede">国立大学法人・主要私立大学・国立研究開発法人・大学共同利用機関法人の財務諸表を、同じ物差しで並べる。</p>
         </div>
@@ -210,10 +340,10 @@
         </figure>
       </section>
 
-      <!-- 09 · FINANCIAL ANATOMY -->
+      <!-- 15 · FINANCIAL ANATOMY -->
       <section class="chapter" id="ch-anatomy" aria-labelledby="anatomy-title">
         <div class="ch-head">
-          <p class="ch-no">09 / FINANCIAL ANATOMY</p>
+          <p class="ch-no">15 / FINANCIAL ANATOMY</p>
           <h2 id="anatomy-title">大学・研究機関の財務のかたち</h2>
           <p class="ch-lede" id="anatomy-lede">すべての法人をひとつの平面に置く。右にあるほど公費頼み、上にあるほど収益が大きい。花弁の向きが財源、大きさが割合。クリックで内訳、比較トレイで並べて比べる。</p>
         </div>
@@ -242,10 +372,10 @@
         <p class="method-note" id="anatomy-source">出典を確認中</p>
       </section>
 
-      <!-- 10 · ACADEMIC PUBLISHING -->
+      <!-- 16 · ACADEMIC PUBLISHING -->
       <section class="chapter" id="ch-publishing" aria-labelledby="publishing-title">
         <div class="ch-head">
-          <p class="ch-no">10 / ACADEMIC PUBLISHING</p>
+          <p class="ch-no">16 / ACADEMIC PUBLISHING</p>
           <h2 id="publishing-title">学術出版へ流れる資金</h2>
           <p class="ch-lede" id="publishing-lede">大学は読むために購読料を、出す（掲載する）ためにAPC（論文掲載料）を出版社に払う。二本の流れを調査値と推計で描く。</p>
         </div>
@@ -305,6 +435,16 @@
         </div>
       </section>
 
+      <!-- OFF-RAIL · GOVERNMENT DATA PROVENANCE (旧 gov.html 出典台帳を移設) -->
+      <section class="chapter gov-sources" aria-labelledby="sources-title">
+        <div class="ch-head">
+          <p class="ch-no">DATA PROVENANCE</p>
+          <h2 id="sources-title">政府予算データの出典</h2>
+          <p class="ch-lede">03〜09章（予算の全体像〜省庁の帳簿）が使ったデータの、出典・年度・注記。</p>
+        </div>
+        <div class="cmp-table-wrap" id="sources-table"></div>
+      </section>
+
       <footer class="obs-footer">
         <div class="ledger" id="ledger">
           <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
@@ -321,6 +461,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="money.js?v=20260817a" defer></script>
+    <script src="money.js?v=20260819a" defer></script>
+    <script src="gov.js?v=20260819a" defer></script>
   </body>
 </html>

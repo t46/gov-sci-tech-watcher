@@ -139,6 +139,18 @@ canvas { display: block; }
   box-shadow: 0 0 0 3px rgba(255, 181, 69, 0.18), 0 0 10px rgba(255, 181, 69, 0.7);
 }
 .chapter-rail a:focus-visible { outline-offset: 5px; }
+/* 17項目+グループ見出しになった資金ページ用の詰め間隔とグループラベル */
+.chapter-rail.is-dense { gap: 9px; }
+.rail-group {
+  display: block;
+  margin-top: 8px;
+  font: 500 9px var(--mono);
+  letter-spacing: 0.16em;
+  color: var(--faint);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rail-group:first-child { margin-top: 0; }
 
 /* ---------------------------------------------------------------- chapters */
 .chapter { position: relative; padding: 120px 8vw 90px; }
@@ -691,3 +703,99 @@ a.signal-title:hover { color: var(--jp); }
 /* off-rail source ledger table */
 .gov-sources { border-top: 1px solid var(--hair); padding-top: 60px; }
 .gov-sources-table th { text-align: left; color: var(--dim); font-weight: 400; white-space: normal; }
+
+/* ------------------------------------------------ people: 03 国際移動 */
+.mob-panel-title {
+  font: 500 11px var(--mono);
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.mob-quad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.mob-quad-panel { min-width: 0; }
+.mob-stat-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px;
+  border: 1px solid var(--hair);
+  background: var(--panel);
+}
+.mob-stat-chip b {
+  font: 600 32px var(--mono);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.mob-stat-chip b small {
+  font: 500 13px var(--mono);
+  color: var(--dim);
+  margin-left: 4px;
+}
+.mob-stat-chip > span {
+  font: 500 12px var(--mono);
+  color: var(--dim);
+}
+.mob-stat-chip > small {
+  font: 400 10.5px var(--mono);
+  color: var(--faint);
+}
+@media (max-width: 1100px) {
+  .mob-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 26px; }
+}
+@media (max-width: 640px) {
+  .mob-quad { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------ policy: 政策ページ */
+.policy-period-link { cursor: pointer; }
+.policy-timeline-legend { font: 400 10.5px var(--mono); color: var(--dim); }
+.policy-ind-group { margin-top: 40px; }
+.policy-ind-group:first-child { margin-top: 0; }
+.policy-ind-group-title {
+  font: 600 11px var(--mono);
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--hair);
+}
+.policy-ind-group-title b { color: var(--jp); font-weight: 600; margin-right: 8px; }
+.policy-ind-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.policy-ind-card { border: 1px solid var(--hair); background: var(--panel); padding: 18px 20px; }
+.policy-ind-name { font-size: 12.5px; color: var(--text); line-height: 1.65; min-height: 2.6em; }
+.policy-ind-values {
+  margin-top: 12px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 7px;
+  font: 600 14.5px var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+.policy-ind-values .policy-ind-target { color: var(--jp); }
+.policy-ind-values .policy-arrow { color: var(--faint); font-weight: 400; }
+.policy-year-chip { font: 400 9.5px var(--mono); color: var(--faint); }
+.policy-ind-gauge { position: relative; height: 5px; margin-top: 14px; background: var(--grid); }
+.policy-ind-gauge i { position: absolute; inset: 0 auto 0 0; height: 100%; background: var(--jp); box-shadow: 0 0 8px rgba(255, 181, 69, 0.4); }
+.policy-ind-gauge b {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--cn);
+  box-shadow: 0 0 6px rgba(79, 216, 255, 0.6);
+}
+.policy-ind-source { margin-top: 10px; font: 400 10px var(--mono); color: var(--faint); line-height: 1.7; }
+.policy-domain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.policy-domain-tile { border: 1px solid var(--hair); background: var(--panel); padding: 18px 20px; }
+.policy-domain-no { font: 500 10px var(--mono); color: var(--faint); letter-spacing: 0.1em; }
+.policy-domain-name { font-family: var(--mincho); font-size: 15px; font-weight: 600; margin: 6px 0 9px; line-height: 1.5; }
+.policy-domain-summary { font-size: 12px; color: var(--dim); line-height: 1.8; }
+@media (max-width: 760px) {
+  .policy-ind-grid, .policy-domain-grid { grid-template-columns: 1fr; }
+}

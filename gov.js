@@ -1,4 +1,6 @@
-/* SCIENCE SIGNAL / GOVERNMENT — 行政の解剖。obs-core.js の後に読み込む。 */
+/* SCIENCE SIGNAL / MONEY — money.htmlの政府予算章群を描画。obs-core.js・money.js の後に読み込む。
+   トップレベル定数がmoney.jsと衝突しないようIIFEで包む。 */
+(() => {
 "use strict";
 
 /* ============================================================== helpers */
@@ -809,8 +811,6 @@ function renderSourcesTable(gov) {
 /* ================================================================= boot */
 
 async function init() {
-  bootFooter();
-  initRail();
   let gov = null;
   try {
     gov = await fetchJson("data/gov.json");
@@ -818,14 +818,9 @@ async function init() {
     console.error(error);
   }
   if (!gov) {
-    setText("#header-status", "行政データを取得できません");
+    console.error("[gov] data/gov.json unavailable");
     return;
   }
-  $("#header-status-dot")?.classList.add("is-live");
-  const blockKeys = ["budget_series", "budget_ministry", "projects", "network", "contracts", "ministry_finance", "fullcost"];
-  const blocksOk = blockKeys.filter((k) => gov[k]?.status === "ok").length;
-  const totalYen = gov.budget_series?.status === "ok" ? choFromMillion(gov.budget_series.initial[gov.budget_series.initial.length - 1]) : "";
-  setText("#header-status", `観測中 — 科学技術関係予算${totalYen} / ${blocksOk}系統の公開データ`);
 
   safeCall("renderTotal", () => renderTotal(gov));
   safeCall("renderCycle", () => renderCycle(gov));
@@ -835,11 +830,12 @@ async function init() {
   safeCall("renderBooks", () => renderBooks(gov));
   safeCall("renderSourcesTable", () => renderSourcesTable(gov));
 
+  const blockKeys = ["budget_series", "budget_ministry", "projects", "network", "contracts", "ministry_finance", "fullcost"];
   const entries = blockKeys.map((k) => blockEntry(gov[k], k)).filter(Boolean);
   renderLedgerEntries(entries);
 }
 
 init().catch((error) => {
   console.error(error);
-  setText("#header-status", "行政データを取得できません");
 });
+})();

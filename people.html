@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260817d" />
+    <link rel="stylesheet" href="analytics.css?v=20260819a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -20,7 +20,7 @@
       <nav class="obs-nav" aria-label="メインナビゲーション">
         <a href="./">観測室</a>
         <a href="signals.html">情報</a>
-        <a href="gov.html">行政</a>
+        <a href="policy.html">政策</a>
         <a class="active" href="people.html">人材</a>
         <a href="money.html">資金</a>
         <a href="papers.html">研究</a>
@@ -32,7 +32,8 @@
       <a href="#ch-phd" data-rail="ch-phd"><i>00</i><span>博士の曲線</span></a>
       <a href="#ch-career" data-rail="ch-career"><i>01</i><span>キャリアの構造</span></a>
       <a href="#ch-flows" data-rail="ch-flows"><i>02</i><span>研究者の移動</span></a>
-      <a href="#ch-economy" data-rail="ch-economy"><i>03</i><span>博士の経済</span></a>
+      <a href="#ch-global" data-rail="ch-global"><i>03</i><span>国際移動</span></a>
+      <a href="#ch-economy" data-rail="ch-economy"><i>04</i><span>博士の経済</span></a>
     </nav>
 
     <main id="main">
@@ -140,10 +141,52 @@
         </figure>
       </section>
 
-      <!-- 03 · GRADUATE ECONOMICS -->
+      <!-- 03 · GLOBAL MOBILITY -->
+      <section class="chapter" id="ch-global" aria-labelledby="global-title">
+        <div class="ch-head">
+          <p class="ch-no">03 / INTERNATIONAL MOBILITY</p>
+          <h2 id="global-title">国際移動</h2>
+          <p class="ch-lede" id="global-lede">日本の研究者の海外派遣・受入と、国際的な研究者移動の出入りのバランスを公的統計で描く。</p>
+        </div>
+
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">A</span>32年の往来 — 延べ派遣・受入研究者数の推移 1993〜2024年度</figcaption>
+          <div class="duo">
+            <div>
+              <p class="mob-panel-title">短期（30日以内）</p>
+              <div class="fig-body" id="mob-flows-short"></div>
+            </div>
+            <div>
+              <p class="mob-panel-title">中・長期（30日超）</p>
+              <div class="fig-body" id="mob-flows-midlong"></div>
+            </div>
+          </div>
+          <p class="method-note" id="mob-flows-source">出典を確認中</p>
+        </figure>
+
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>地域別の内訳 — 令和6年度</figcaption>
+          <div class="mob-quad" id="mob-regional"></div>
+          <p class="method-note" id="mob-regional-source">出典を確認中</p>
+        </figure>
+
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">C</span>15年の出入りのバランス — OECD推計、国別 2010〜2024年累積</figcaption>
+          <div class="fig-body" id="mob-bilateral"></div>
+          <p class="method-note" id="mob-bilateral-source">出典を確認中</p>
+        </figure>
+
+        <div style="margin-top: 56px">
+          <h3 class="sub-title" style="margin: 0 0 16px">補助統計 — 外国人本務教員<span>ストックの1時点のみ</span></h3>
+          <div class="mob-stat-chip" id="mob-faculty-chip"></div>
+          <p class="method-note" id="mob-faculty-source">出典を確認中</p>
+        </div>
+      </section>
+
+      <!-- 04 · GRADUATE ECONOMICS -->
       <section class="chapter" id="ch-economy" aria-labelledby="economy-title">
         <div class="ch-head">
-          <p class="ch-no">03 / GRADUATE ECONOMICS</p>
+          <p class="ch-no">04 / GRADUATE ECONOMICS</p>
           <h2 id="economy-title">博士の経済</h2>
           <p class="ch-lede" id="economy-lede">「博士課程学生の平均給与」という公的統計は存在しない — 博士課程学生の大半は雇用契約のない学生であり、「給与」という概念自体が制度的に成り立たない。ここにあるのは、学振特別研究員（DC）の研究奨励金という実測の金額と、それを受け取れる人の割合という実測の断面だけである。</p>
         </div>
@@ -182,6 +225,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="people.js?v=20260817a" defer></script>
+    <script src="people.js?v=20260819a" defer></script>
   </body>
 </html>

@@ -87,7 +87,7 @@ const sparkSvg = (values, color) => {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.4" opacity="0.9"/><circle cx="${x(last[0]).toFixed(1)}" cy="${y(last[1]).toFixed(1)}" r="2" fill="${color}"/></svg>`;
 };
 
-function renderWindows(indicators, analytics, updates, gov) {
+function renderWindows(indicators, analytics, updates, gov, policy) {
   /* ① 最新情報 */
   const items = [...(updates?.items || [])].sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
   if (items.length) {
@@ -110,15 +110,15 @@ function renderWindows(indicators, analytics, updates, gov) {
     const spark = $("#win-people-spark");
     if (spark) spark.innerHTML = sparkSvg(phdRows.map((r) => [r.year, r.total]), "#4fd8ff");
   }
-  /* ③ 行政 */
-  const budgetSeries = gov?.budget_series;
-  if (budgetSeries?.status === "ok" && budgetSeries.fiscal_years?.length) {
-    const li = budgetSeries.fiscal_years.length - 1;
-    const total = budgetSeries.initial?.[li];
-    const year = budgetSeries.fiscal_years[li];
-    if (Number.isFinite(total) && total > 0) {
-      ticker("#win-gov", total, (v) => fmtCho(v));
-      setText("#win-gov-note", `科学技術関係予算（当初） ${year}年度 / ${gov?.projects?.status === "ok" && gov.projects.count ? `${fmtInt(gov.projects.count)}事業` : ""}`);
+  /* ③ 政策 */
+  const plansHistory = policy?.plans_history;
+  if (plansHistory?.status === "ok" && Array.isArray(plansHistory.periods) && plansHistory.periods.length) {
+    const latest = plansHistory.periods[plansHistory.periods.length - 1];
+    const target = latest?.target_govt_investment_trillion_yen;
+    const indicatorCount = policy?.plan7_indicators?.status === "ok" ? policy.plan7_indicators.count : null;
+    if (Number.isFinite(target) && target > 0) {
+      ticker("#win-policy", target, (v) => `${v.toFixed(0)}兆円`);
+      setText("#win-policy-note", `第${latest.period}期 ${latest.fiscal_years}年度 / 投資目標${target}兆円${indicatorCount ? ` / 指標${fmtInt(indicatorCount)}` : ""}`);
     }
   }
   /* ④ お金 */
@@ -141,13 +141,14 @@ function renderWindows(indicators, analytics, updates, gov) {
   }
 }
 
-function renderLedgerAll(indicators, analytics, updates, gov) {
+function renderLedgerAll(indicators, analytics, updates, gov, policy) {
   const ind = indicators || {};
   const entries = [
     blockEntry(ind.gerd_gdp), blockEntry(ind.researchers), blockEntry(ind.phd_enrollment), blockEntry(ind.phd_degrees),
     blockEntry(ind.papers), blockEntry(ind.field_share), blockEntry(ind.funding_flow), blockEntry(ind.oecd_gerd_gdp),
     blockEntry(ind.openalex), blockEntry(ind.estat),
     blockEntry(gov?.budget_series), blockEntry(gov?.projects), blockEntry(gov?.contracts),
+    blockEntry(policy?.plans_history), blockEntry(policy?.plan7_indicators), blockEntry(policy?.tech_domains),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
     ...(updates?.sources || []).map((s) => ({ title: `政府公式フィード — ${s.name}`, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
   ].filter(Boolean);
@@ -159,16 +160,18 @@ function renderLedgerAll(indicators, analytics, updates, gov) {
 async function init() {
   bootFooter();
   initHeroCanvas();
-  const [indicatorsResult, analyticsResult, updatesResult, govResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, updatesResult, govResult, policyResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/updates.json"),
     fetchJson("data/gov.json"),
+    fetchJson("data/policy.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
   const updates = updatesResult.status === "fulfilled" ? updatesResult.value : null;
   const gov = govResult.status === "fulfilled" ? govResult.value : null;
+  const policy = policyResult.status === "fulfilled" ? policyResult.value : null;
 
   if (!indicators && !analytics && !updates) {
     setText("#header-status", "観測データを取得できません");
@@ -189,8 +192,8 @@ async function init() {
   if (phd) { ticker("#ro-phd", phd.total, (v) => fmtInt(Math.round(v))); setText("#ro-phd-note", `${phd.year}年度 / 学校基本調査`); }
   if (signals != null) { ticker("#ro-signals", signals, (v) => `${Math.round(v)}件`); setText("#ro-signals-note", "政府公式 / 3時間ごと更新"); }
 
-  renderWindows(indicators, analytics, updates, gov);
-  renderLedgerAll(indicators, analytics, updates, gov);
+  renderWindows(indicators, analytics, updates, gov, policy);
+  renderLedgerAll(indicators, analytics, updates, gov, policy);
 }
 
 init().catch((error) => {
