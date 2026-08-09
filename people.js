@@ -758,65 +758,196 @@ function renderIntlStudents(indicators) {
 
 /* ================================================================ 03 GRADUATE ECONOMICS */
 
-const DC_MONTHLY_BASE = 200000; /* 学振DC1/DC2 研究奨励金の現行基礎額（月額、円）。出典: JSPS https://www.jsps.go.jp/j-pd/pd_oubo.html （200,000〜230,000円のうち下限額）。令和9(2027)年度新規採用者からは月額227,000円へ増額（JSPS DC募集要項PDFで確認済み、下記注記参照）。 */
+/* 断片的な一次資料（国会会議録・Wayback保存のJSPS公式ページ）から復元したDC月額の
+   確認済み年度のみを点として描く。未確認区間は補間せず「未確認」帯として明示する。
+   出典・注記は data/phd_support.json の dc_stipend_history ブロックを参照。 */
 
-function renderDcRealValue(economy) {
+function renderDcRealValue(phdSupport, economy) {
   const mount = $("#dc-real-value");
-  const block = economy?.cpi;
-  if (!mount || !block || block.status !== "ok" || !(block.calendar_year || []).length) {
+  const stipend = phdSupport?.dc_stipend_history;
+  const cpiBlock = economy?.cpi;
+  if (!mount || !stipend || stipend.status !== "ok" || !(stipend.points || []).length || !cpiBlock || cpiBlock.status !== "ok") {
     if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
     return;
   }
   mount.innerHTML = "";
-  const rows = block.calendar_year
-    .filter(([yr, cpi]) => Number.isFinite(yr) && yr >= 1985 && Number.isFinite(cpi) && cpi > 0)
-    .map(([yr, cpi]) => [yr, (DC_MONTHLY_BASE * 100) / cpi]);
-  if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
-  const width = mount.clientWidth || 900, height = Math.max(340, width * 0.4);
-  const margin = { top: 28, right: 20, bottom: 34, left: 56 };
-  const x = d3.scaleLinear().domain(d3.extent(rows, (d) => d[0])).range([margin.left, width - margin.right]);
-  const minV = d3.min(rows, (d) => d[1]), maxV = d3.max(rows, (d) => d[1]);
-  const y = d3.scaleLinear().domain([minV * 0.94, maxV * 1.04]).range([height - margin.bottom, margin.top]);
+  const cpiMap = new Map((cpiBlock.calendar_year || []).filter(([, v]) => Number.isFinite(v) && v > 0));
+  const lastCpiYear = d3.max([...cpiMap.keys()]);
+
+  const allPoints = [...stipend.points].sort((a, b) => a.fiscal_year - b.fiscal_year);
+  const confirmed = allPoints.filter((p) => !p.planned);
+  const planned = allPoints.find((p) => p.planned);
+  const gaps = stipend.gaps || [];
+  if (!confirmed.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+
+  /* 確認済み点を、宣言済みの空白区間で分断してセグメント化（＝空白は線を引かない） */
+  const segments = [[confirmed[0]]];
+  for (let i = 1; i < confirmed.length; i += 1) {
+    const prev = confirmed[i - 1], next = confirmed[i];
+    const bridged = gaps.some((g) => g.from > prev.fiscal_year && g.to < next.fiscal_year);
+    if (bridged) segments.push([next]);
+    else segments[segments.length - 1].push(next);
+  }
+  const lastSegment = segments[segments.length - 1];
+  const lastConfirmed = lastSegment[lastSegment.length - 1];
+  if (planned) {
+    /* 直近の確定額を、予定額が始まる前年まで平らに延長して据え置きを視覚化する */
+    lastSegment.push({ fiscal_year: planned.fiscal_year - 1, amount_yen: lastConfirmed.amount_yen, virtual: true });
+  }
+
+  const nominalAt = (segment, year) => {
+    let value = segment[0].amount_yen;
+    for (const p of segment) { if (p.fiscal_year <= year) value = p.amount_yen; else break; }
+    return value;
+  };
+  /* 実質値は名目が確定している年についてのみ、CPIが取得できる範囲で年次計算する */
+  const realSegments = segments
+    .map((segment) => {
+      const startYear = segment[0].fiscal_year, endYear = Math.min(segment[segment.length - 1].fiscal_year, lastCpiYear);
+      const pts = [];
+      for (let year = startYear; year <= endYear; year += 1) {
+        const cpi = cpiMap.get(year);
+        if (cpi == null) continue;
+        pts.push([year, (nominalAt(segment, year) * 100) / cpi]);
+      }
+      return pts;
+    })
+    .filter((pts) => pts.length > 1);
+
+  const allYears = confirmed.map((p) => p.fiscal_year).concat(planned ? [planned.fiscal_year] : []);
+  const allNominalVals = confirmed.map((p) => p.amount_yen).concat(planned ? [planned.amount_yen] : []);
+  const allRealVals = realSegments.flat().map(([, v]) => v);
+  const width = mount.clientWidth || 900, height = Math.max(360, width * 0.42);
+  const margin = { top: 32, right: 24, bottom: 34, left: 56 };
+  const x = d3.scaleLinear().domain([d3.min(allYears) - 1, d3.max(allYears) + 1]).range([margin.left, width - margin.right]);
+  const yMin = Math.min(d3.min(allNominalVals), d3.min(allRealVals.length ? allRealVals : allNominalVals));
+  const yMax = Math.max(d3.max(allNominalVals), d3.max(allRealVals.length ? allRealVals : allNominalVals));
+  const y = d3.scaleLinear().domain([yMin * 0.93, yMax * 1.08]).range([height - margin.bottom, margin.top]);
+
   const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-    .attr("aria-label", "学振DC研究奨励金の現行基礎額20万円を、各年の物価水準で2020年価格に換算した線グラフ。2020年以降、実質価値が下がり続けている。");
+    .attr("aria-label", "学振DC研究奨励金の月額の推移（復元した名目額）と、それを各年の物価で2020年価格に換算した実質価値。1989〜1996年・1999〜2002年は未確認区間。2004年度から2026年度まで月額20万円で据え置かれ、2027年度に227,000円へ増額される予定。");
+
   const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtMan(v)).tickSize(-(width - margin.left - margin.right)));
   gy.select(".domain").remove();
   gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
-  /* 基準年2020の参照線 */
-  svg.append("line").attr("x1", margin.left).attr("x2", width - margin.right).attr("y1", y(DC_MONTHLY_BASE)).attr("y2", y(DC_MONTHLY_BASE))
-    .attr("stroke", "#4c5a72").attr("stroke-dasharray", "3 4");
-  svg.append("text").attr("x", margin.left + 4).attr("y", y(DC_MONTHLY_BASE) - 6).attr("class", "annot-sub").text("2020年 = 20.0万円（現行基礎額）");
-  svg.append("line").attr("x1", x(2020)).attr("x2", x(2020)).attr("y1", margin.top).attr("y2", height - margin.bottom)
-    .attr("stroke", "#e9eef7").attr("stroke-dasharray", "2 3").attr("opacity", 0.35);
+    .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
 
-  const line = d3.line().x((d) => x(d[0])).y((d) => y(d[1])).curve(d3.curveMonotoneX);
-  const path = svg.append("path").attr("d", line(rows)).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 2.4)
-    .attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.5))");
+  /* 未確認区間の帯 */
+  for (const g of gaps) {
+    svg.append("rect").attr("x", x(g.from)).attr("width", Math.max(0, x(g.to) - x(g.from)))
+      .attr("y", margin.top).attr("height", height - margin.top - margin.bottom)
+      .attr("fill", "rgba(139,150,171,0.09)")
+      .append("title").text(g.note);
+    svg.append("text").attr("x", (x(g.from) + x(g.to)) / 2).attr("y", margin.top + 13)
+      .attr("text-anchor", "middle").attr("font-size", 9.5).attr("fill", "#5a6579").text("未確認");
+  }
+
+  /* 実質価値（2020年価格）— 名目より細く、奥に */
+  const realLine = d3.line().x((d) => x(d[0])).y((d) => y(d[1])).curve(d3.curveMonotoneX);
+  for (const seg of realSegments) {
+    svg.append("path").attr("d", realLine(seg)).attr("fill", "none").attr("stroke", "#5fb3c9").attr("stroke-width", 1.8).attr("opacity", 0.85);
+  }
+
+  /* 名目額（確認済み区間、階段関数） */
+  const nominalLine = d3.line().x((d) => x(d.fiscal_year)).y((d) => y(d.amount_yen)).curve(d3.curveStepAfter);
+  const nominalPaths = [];
+  for (const seg of segments) {
+    const path = svg.append("path").attr("d", nominalLine(seg)).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 2.6)
+      .attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.45))");
+    nominalPaths.push(path);
+  }
   if (!REDUCED && gsap) {
-    const length = path.node().getTotalLength();
-    path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
-    gsap.to(path.node(), { strokeDashoffset: 0, duration: 2.2, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 75%" } });
+    for (const path of nominalPaths) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+      gsap.to(path.node(), { strokeDashoffset: 0, duration: 1.8, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 75%" } });
+    }
   }
-  const markYears = [1985, 2000, 2020, 2025].filter((yr) => rows.some(([y0]) => y0 === yr));
-  for (const yr of markYears) {
-    const point = rows.find(([y0]) => y0 === yr);
-    if (!point) continue;
-    svg.append("circle").attr("cx", x(point[0])).attr("cy", y(point[1])).attr("r", 3).attr("fill", "#ffb545");
-    svg.append("text").attr("x", x(point[0])).attr("y", y(point[1]) - 10).attr("text-anchor", yr === 2025 ? "end" : "middle")
-      .attr("font-size", 10.5).attr("font-weight", yr === 2020 ? 600 : 400).attr("fill", yr === 2020 ? "#ffb545" : "#8b96ab")
-      .text(`${yr} ${fmtMan(point[1])}`);
+
+  /* 予定額（2027年度・破線） */
+  if (planned) {
+    const preJumpYear = planned.fiscal_year - 1;
+    svg.append("line").attr("x1", x(preJumpYear)).attr("x2", x(planned.fiscal_year))
+      .attr("y1", y(lastConfirmed.amount_yen)).attr("y2", y(lastConfirmed.amount_yen))
+      .attr("stroke", "#ffb545").attr("stroke-width", 1.6).attr("stroke-dasharray", "1 3").attr("opacity", 0.5);
+    svg.append("line").attr("x1", x(planned.fiscal_year)).attr("x2", x(planned.fiscal_year))
+      .attr("y1", y(lastConfirmed.amount_yen)).attr("y2", y(planned.amount_yen))
+      .attr("stroke", "#ffb545").attr("stroke-width", 2).attr("stroke-dasharray", "3 3").attr("opacity", 0.85);
+    svg.append("circle").attr("cx", x(planned.fiscal_year)).attr("cy", y(planned.amount_yen)).attr("r", 4)
+      .attr("fill", "#06090f").attr("stroke", "#ffb545").attr("stroke-width", 2);
+    svg.append("text").attr("x", x(planned.fiscal_year) - 8).attr("y", y(planned.amount_yen) - 10)
+      .attr("text-anchor", "end").attr("font-size", 11).attr("font-weight", 600).attr("fill", "#ffb545")
+      .text(`${planned.fiscal_year}年度 ${fmtMan(planned.amount_yen)}（予定・新規採用分）`);
   }
-  const first = rows[0], last = rows[rows.length - 1], at2020 = rows.find(([yr]) => yr === 2020);
-  if (at2020 && last) {
-    const declinePct = ((at2020[1] - last[1]) / at2020[1]) * 100;
-    setText("#dc-real-value-source",
-      `出典: ${block.source?.title || ""}。DC月額の改定履歴は公式の沿革表が公開されておらず、名目額の長期系列は復元できない。この線は現行基礎額20万円の購買力を各年の物価で換算したもの（＝各年にいくら相当だったかであり、当時の実際の支給額ではない）。2020年${fmtMan(at2020[1])}→${last[0]}年${fmtMan(last[1])}、実質${declinePct.toFixed(1)}%目減り。基準額は現行の下限20万円（上限23万円。出典: JSPS 特別研究員 募集・採用情報）。なお令和9(2027)年度新規採用者からはDC1・DC2ともに月額227,000円へ増額される（JSPS特別研究員-DC募集要項で確認、出典: https://www.jsps.go.jp/file/storage/j-pd/data/recruiting/2_dc_yoko.pdf ）。`);
-  } else {
-    setText("#dc-real-value-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+
+  /* 据え置き期間のブラケット注釈（2004年度〜直近の確認済み据え置き終端） */
+  const plateauStart = confirmed.find((p) => p.amount_yen === 200000 && p.fiscal_year >= 2004);
+  const plateauEndYear = planned ? planned.fiscal_year - 1 : lastConfirmed.fiscal_year;
+  if (plateauStart) {
+    const plateauY = y(200000) + 22;
+    svg.append("line").attr("x1", x(plateauStart.fiscal_year)).attr("x2", x(plateauEndYear)).attr("y1", plateauY).attr("y2", plateauY)
+      .attr("stroke", "#8b96ab").attr("stroke-width", 1);
+    [plateauStart.fiscal_year, plateauEndYear].forEach((yr) => {
+      svg.append("line").attr("x1", x(yr)).attr("x2", x(yr)).attr("y1", plateauY - 4).attr("y2", plateauY + 4).attr("stroke", "#8b96ab");
+    });
+    svg.append("text").attr("x", (x(plateauStart.fiscal_year) + x(plateauEndYear)) / 2).attr("y", plateauY + 15)
+      .attr("text-anchor", "middle").attr("font-size", 10.5).attr("fill", "#8b96ab")
+      .text(`${plateauEndYear - plateauStart.fiscal_year + 1}年間 月額20万円で据え置き`);
   }
+
+  /* 主要ポイントの点＋ホバー用ツールチップは常に描く。1997/1998・2003/2004はx位置が近く
+     常時ラベルだと（特に狭幅で）文字が重なるため、それぞれ1本のまとめラベルにする。
+     まとめラベル自体も狭幅では省略し、ドット＋ツールチップのみにする。 */
+  const labelPoints = confirmed.filter((p) => [1987, 1997, 1998, 2003, 2004].includes(p.fiscal_year));
+  for (const p of labelPoints) {
+    svg.append("circle").attr("cx", x(p.fiscal_year)).attr("cy", y(p.amount_yen)).attr("r", 2.6).attr("fill", "#ffb545")
+      .append("title").text(`${p.fiscal_year}年度 ${fmtMan(p.amount_yen)}${p.approx ? "（概数）" : ""}`);
+  }
+  const clusterLabel = (points, text) => {
+    if (width < 560) return;
+    const midX = d3.mean(points, (p) => x(p.fiscal_year));
+    const topY = d3.min(points, (p) => y(p.amount_yen));
+    svg.append("text").attr("x", midX).attr("y", topY - 10)
+      .attr("text-anchor", "middle").attr("font-size", 9.5).attr("fill", "#8b96ab").text(text);
+  };
+  const p1987 = confirmed.find((p) => p.fiscal_year === 1987);
+  if (p1987) {
+    svg.append("text").attr("x", x(1987)).attr("y", y(p1987.amount_yen) - 9)
+      .attr("text-anchor", "middle").attr("font-size", 9.5).attr("fill", "#8b96ab").text(`1987頃 ${fmtMan(p1987.amount_yen)}`);
+  }
+  const p9798 = confirmed.filter((p) => [1997, 1998].includes(p.fiscal_year));
+  if (p9798.length === 2) clusterLabel(p9798, `'97→98 ${fmtMan(p9798[0].amount_yen)}→${fmtMan(p9798[1].amount_yen)}`);
+  const p0001 = confirmed.filter((p) => [2000, 2001].includes(p.fiscal_year));
+  if (p0001.length === 2) clusterLabel(p0001, `'00–01 ${fmtMan(p0001[0].amount_yen)}（ピーク）`);
+  const p0304 = confirmed.filter((p) => [2003, 2004].includes(p.fiscal_year));
+  if (p0304.length === 2) clusterLabel(p0304, `'03→04 ${fmtMan(p0304[0].amount_yen)}→${fmtMan(p0304[1].amount_yen)}`);
+
+  /* 凡例。狭幅では横並びだと右端があふれるので縦積みにする */
+  const stackLegend = width < 560;
+  const legend = svg.append("g").attr("transform", `translate(${margin.left + 4},${margin.top - (stackLegend ? 26 : 20)})`);
+  const legendItems = [
+    { label: "名目額（確認済み）", color: "#ffb545" },
+    { label: "実質価値（2020年価格）", color: "#5fb3c9" },
+  ];
+  legendItems.forEach((item, i) => {
+    const row = legend.append("g").attr("transform", stackLegend ? `translate(0,${i * 13})` : `translate(${i * 160},0)`);
+    row.append("line").attr("x1", 0).attr("x2", 14).attr("y1", -4).attr("y2", -4).attr("stroke", item.color).attr("stroke-width", 2.2);
+    row.append("text").attr("x", 18).attr("y", -1).attr("font-size", 10).attr("fill", "#8b96ab").text(item.label);
+  });
+
+  const first = confirmed[0];
+  const realLast = realSegments.length ? realSegments[realSegments.length - 1] : [];
+  const realLastPoint = realLast[realLast.length - 1];
+  const plateauPeak = realSegments.flat().reduce((a, b) => (b[1] > a[1] ? b : a), realSegments.flat()[0] || [0, 0]);
+  let summary = "";
+  if (realLastPoint && plateauPeak) {
+    const declinePct = ((plateauPeak[1] - realLastPoint[1]) / plateauPeak[1]) * 100;
+    summary = ` 実質価値は物価が安定していた${plateauPeak[0]}年に${fmtMan(plateauPeak[1])}まで上がったが、名目額が20万円のまま2020年代の物価上昇にさらされ、${realLastPoint[0]}年には${fmtMan(realLastPoint[1])}まで実質${declinePct.toFixed(1)}%目減りした（名目額は変わっていない）。`;
+  }
+  setText("#dc-real-value-source",
+    `出典: 国会会議録検索システム（kokkai.ndl.go.jp）＋Wayback Machineに保存されたJSPS公式ページ・PDF、直近はJSPS特別研究員-DC募集要項（令和9年度採用分）。JSPSはDC月額改定の沿革表を公開しておらず、断片的な一次資料から復元した確認済み年度のみを点として描いている（灰色の帯は未確認区間、補間はしていない）。${first.fiscal_year}${first.approx ? "年頃" : "年度"}${fmtMan(first.amount_yen)}${first.approx ? "（概数）" : ""}→2000〜01年度の20.5万円をピークに2003〜04年度にかけて減額→2004〜${plateauEndYear}年度は月額20万円で据え置き→2027年度に${planned ? fmtMan(planned.amount_yen) : "?"}へ増額予定（新規採用分、+13.5%）。${summary}`);
 }
 
 const DC_ACCEPTANCE_COLORS = { applicants: "#4f7ca6", accepted: "#ffb545" };
@@ -995,7 +1126,7 @@ async function init() {
   renderStemOutcomes(indicators);
   initFlows(analytics);
   renderIntlStudents(indicators);
-  renderDcRealValue(economy);
+  renderDcRealValue(phdSupport, economy);
   renderDcAcceptance(phdSupport);
   renderPhdLivingSupport(phdSupport);
 
@@ -1015,6 +1146,8 @@ async function init() {
     blockEntry(indicators?.stem_phd_outcomes), blockEntry(indicators?.corporate_phd_hiring),
     blockEntry(indicators?.intl_grad_students),
     blockEntry(economy?.cpi), blockEntry(phdSupport?.dc_acceptance), blockEntry(phdSupport?.living_support),
+    /* dc_stipend_history.source は複数出典の配列（国会会議録・Wayback保存ページ複数点）のため個別展開 */
+    ...(phdSupport?.dc_stipend_history?.source || []).map((s) => ({ title: s.title, url: s.url, status: phdSupport.dc_stipend_history.status === "ok" ? "ok" : "unavailable" })),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
   ].filter(Boolean);
   renderLedgerEntries(entries);
