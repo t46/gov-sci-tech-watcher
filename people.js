@@ -756,17 +756,214 @@ function renderIntlStudents(indicators) {
   setText("#intl-students-source", `出典: ${block.source?.title || ""}。${block.note || ""} ${first.year}年${fmtInt(first.total)}人→${last.year}年${fmtInt(last.total)}人。`);
 }
 
+/* ================================================================ 03 GRADUATE ECONOMICS */
+
+const DC_MONTHLY_BASE = 200000; /* 学振DC1/DC2 研究奨励金の現行基礎額（月額、円）。出典: JSPS https://www.jsps.go.jp/j-pd/pd_oubo.html （200,000〜230,000円のうち下限額）。令和9(2027)年度新規採用者からは月額227,000円へ増額（JSPS DC募集要項PDFで確認済み、下記注記参照）。 */
+
+function renderDcRealValue(economy) {
+  const mount = $("#dc-real-value");
+  const block = economy?.cpi;
+  if (!mount || !block || block.status !== "ok" || !(block.calendar_year || []).length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  const rows = block.calendar_year
+    .filter(([yr, cpi]) => Number.isFinite(yr) && yr >= 1985 && Number.isFinite(cpi) && cpi > 0)
+    .map(([yr, cpi]) => [yr, (DC_MONTHLY_BASE * 100) / cpi]);
+  if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 900, height = Math.max(340, width * 0.4);
+  const margin = { top: 28, right: 20, bottom: 34, left: 56 };
+  const x = d3.scaleLinear().domain(d3.extent(rows, (d) => d[0])).range([margin.left, width - margin.right]);
+  const minV = d3.min(rows, (d) => d[1]), maxV = d3.max(rows, (d) => d[1]);
+  const y = d3.scaleLinear().domain([minV * 0.94, maxV * 1.04]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "学振DC研究奨励金の現行基礎額20万円を、各年の物価水準で2020年価格に換算した線グラフ。2020年以降、実質価値が下がり続けている。");
+  const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtMan(v)).tickSize(-(width - margin.left - margin.right)));
+  gy.select(".domain").remove();
+  gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  /* 基準年2020の参照線 */
+  svg.append("line").attr("x1", margin.left).attr("x2", width - margin.right).attr("y1", y(DC_MONTHLY_BASE)).attr("y2", y(DC_MONTHLY_BASE))
+    .attr("stroke", "#4c5a72").attr("stroke-dasharray", "3 4");
+  svg.append("text").attr("x", margin.left + 4).attr("y", y(DC_MONTHLY_BASE) - 6).attr("class", "annot-sub").text("2020年 = 20.0万円（現行基礎額）");
+  svg.append("line").attr("x1", x(2020)).attr("x2", x(2020)).attr("y1", margin.top).attr("y2", height - margin.bottom)
+    .attr("stroke", "#e9eef7").attr("stroke-dasharray", "2 3").attr("opacity", 0.35);
+
+  const line = d3.line().x((d) => x(d[0])).y((d) => y(d[1])).curve(d3.curveMonotoneX);
+  const path = svg.append("path").attr("d", line(rows)).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 2.4)
+    .attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.5))");
+  if (!REDUCED && gsap) {
+    const length = path.node().getTotalLength();
+    path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+    gsap.to(path.node(), { strokeDashoffset: 0, duration: 2.2, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 75%" } });
+  }
+  const markYears = [1985, 2000, 2020, 2025].filter((yr) => rows.some(([y0]) => y0 === yr));
+  for (const yr of markYears) {
+    const point = rows.find(([y0]) => y0 === yr);
+    if (!point) continue;
+    svg.append("circle").attr("cx", x(point[0])).attr("cy", y(point[1])).attr("r", 3).attr("fill", "#ffb545");
+    svg.append("text").attr("x", x(point[0])).attr("y", y(point[1]) - 10).attr("text-anchor", yr === 2025 ? "end" : "middle")
+      .attr("font-size", 10.5).attr("font-weight", yr === 2020 ? 600 : 400).attr("fill", yr === 2020 ? "#ffb545" : "#8b96ab")
+      .text(`${yr} ${fmtMan(point[1])}`);
+  }
+  const first = rows[0], last = rows[rows.length - 1], at2020 = rows.find(([yr]) => yr === 2020);
+  if (at2020 && last) {
+    const declinePct = ((at2020[1] - last[1]) / at2020[1]) * 100;
+    setText("#dc-real-value-source",
+      `出典: ${block.source?.title || ""}。DC月額の改定履歴は公式の沿革表が公開されておらず、名目額の長期系列は復元できない。この線は現行基礎額20万円の購買力を各年の物価で換算したもの（＝各年にいくら相当だったかであり、当時の実際の支給額ではない）。2020年${fmtMan(at2020[1])}→${last[0]}年${fmtMan(last[1])}、実質${declinePct.toFixed(1)}%目減り。基準額は現行の下限20万円（上限23万円。出典: JSPS 特別研究員 募集・採用情報）。なお令和9(2027)年度新規採用者からはDC1・DC2ともに月額227,000円へ増額される（JSPS特別研究員-DC募集要項で確認、出典: https://www.jsps.go.jp/file/storage/j-pd/data/recruiting/2_dc_yoko.pdf ）。`);
+  } else {
+    setText("#dc-real-value-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+  }
+}
+
+const DC_ACCEPTANCE_COLORS = { applicants: "#4f7ca6", accepted: "#ffb545" };
+
+function renderDcAcceptance(phdSupport) {
+  const mount = $("#dc-acceptance");
+  const block = phdSupport?.dc_acceptance;
+  const rows = block?.rows || [];
+  if (!mount || !block || block.status !== "ok" || !rows.length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  const data = rows
+    .filter((r) => [r.fiscal_year, r.dc1_applicants, r.dc2_applicants, r.dc1_accepted, r.dc2_accepted].every(Number.isFinite))
+    .map((r) => {
+      const applicants = r.dc1_applicants + r.dc2_applicants;
+      const accepted = r.dc1_accepted + r.dc2_accepted;
+      return { year: r.fiscal_year, applicants, accepted, rate: applicants > 0 ? (accepted / applicants) * 100 : 0 };
+    });
+  if (!data.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 560, height = Math.max(340, width * 0.62);
+  const margin = { top: 30, right: 16, bottom: 34, left: 48 };
+  const x0 = d3.scaleBand().domain(data.map((d) => d.year)).range([margin.left, width - margin.right]).padding(0.32);
+  const x1 = d3.scaleBand().domain(["applicants", "accepted"]).range([0, x0.bandwidth()]).padding(0.14);
+  const y = d3.scaleLinear().domain([0, d3.max(data, (d) => d.applicants) * 1.18]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "学振DC1・DC2合計の申請者数・採用者数・採用率の推移。申請者は増え続ける一方、採用者数はほぼ横ばいで採用率が下がっている。");
+  const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtMan(v)).tickSize(-(width - margin.left - margin.right)));
+  gy.select(".domain").remove();
+  gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x0).tickFormat((yr) => `${yr}年度`)).select(".domain").attr("stroke", "#1c2839");
+
+  const groups = svg.append("g").selectAll("g").data(data).join("g").attr("transform", (d) => `translate(${x0(d.year)},0)`);
+  const bar = (key) => groups.append("rect")
+    .attr("x", x1(key)).attr("width", x1.bandwidth())
+    .attr("y", (d) => y(d[key])).attr("height", (d) => height - margin.bottom - y(d[key]))
+    .attr("fill", DC_ACCEPTANCE_COLORS[key]).attr("opacity", key === "applicants" ? 0.4 : 0.95)
+    .append("title").text((d) => `${d.year}年度 ${key === "applicants" ? "申請者数" : "採用者数"} ${fmtInt(d[key])}人`);
+  bar("applicants");
+  bar("accepted");
+  if (!REDUCED && gsap) {
+    gsap.from(groups.selectAll("rect").nodes(), {
+      attr: { height: 0, y: height - margin.bottom },
+      duration: 0.9, ease: "power3.out", stagger: 0.06, scrollTrigger: { trigger: mount, start: "top 80%" },
+    });
+  }
+  groups.append("text").attr("x", x0.bandwidth() / 2).attr("y", (d) => y(d.applicants) - 8)
+    .attr("text-anchor", "middle").attr("font-size", 11).attr("font-weight", 600).attr("fill", "#ffb545")
+    .text((d) => `${d.rate.toFixed(1)}%`);
+  const legend = svg.append("g").attr("transform", `translate(${margin.left + 4},${margin.top - 18})`);
+  [["applicants", "申請者数（DC1+DC2）"], ["accepted", "採用者数"]].forEach(([key, label], i) => {
+    const row = legend.append("g").attr("transform", `translate(${i * 140},0)`);
+    row.append("rect").attr("width", 9).attr("height", 9).attr("y", -8).attr("fill", DC_ACCEPTANCE_COLORS[key]).attr("opacity", key === "applicants" ? 0.4 : 0.95);
+    row.append("text").attr("x", 14).attr("font-size", 10).attr("fill", "#8b96ab").text(label);
+  });
+  const first = data[0], last = data[data.length - 1];
+  setText("#dc-acceptance-source",
+    `出典: ${block.source?.title || ""}。${block.note || ""} ${first.year}年度は申請${fmtInt(first.applicants)}人・採用${fmtInt(first.accepted)}人（採用率${first.rate.toFixed(1)}%）、${last.year}年度は申請${fmtInt(last.applicants)}人・採用${fmtInt(last.accepted)}人（採用率${last.rate.toFixed(1)}%）。上部の%は採用率。`);
+}
+
+const LIVING_SUPPORT_PALETTE = ["#ffb545", "#5fb3c9", "#8d7fb0", "#59687f"];
+
+function renderPhdLivingSupport(phdSupport) {
+  const mount = $("#phd-living-support");
+  const block = phdSupport?.living_support;
+  if (!mount || !block || block.status !== "ok") { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const segments = (block.baseline_breakdown || []).filter((s) => Number.isFinite(s.count) && s.count > 0);
+  if (!segments.length || !Number.isFinite(block.target_count) || block.target_count <= 0) {
+    mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return;
+  }
+  /* 報告書の「約16,000人」は丸め表記で内訳合算(16,300人)と一致しない。積み上げ・ラベルとも内訳合算に統一し概数と明記 */
+  const segSum = d3.sum(segments, (s) => s.count);
+  const rows = [
+    { label: `現状（令和${block.baseline_fiscal_year - 2018}年度）`, total: segSum, segments },
+    { label: `目標（${block.target_fiscal_year}年度）`, total: block.target_count, segments: null },
+  ];
+  const width = mount.clientWidth || 560, height = Math.max(300, segments.length * 20 + 190);
+  const margin = { top: 16, right: 70, bottom: 30, left: 118 };
+  const x = d3.scaleLinear().domain([0, block.target_count * 1.08]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.label)).range([margin.top, margin.top + 130]).padding(0.42);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "生活費相当額を受給する博士学生数（特別研究員DC・大学フェローシップ・SPRING・RA支援の4施策合計の推計）の現状と政府目標の比較。現状は目標の7割程度。");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${margin.top + 130})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat((v) => fmtMan(v))).select(".domain").attr("stroke", "#1c2839");
+
+  /* 現状: 内訳を積み上げ */
+  const baseline = rows[0];
+  let cursor = x(0);
+  const bGroup = svg.append("g");
+  baseline.segments.forEach((seg, i) => {
+    const w = x(seg.count) - x(0);
+    bGroup.append("rect").attr("x", cursor).attr("y", y(baseline.label)).attr("height", y.bandwidth())
+      .attr("width", w).attr("fill", LIVING_SUPPORT_PALETTE[i % LIVING_SUPPORT_PALETTE.length]).attr("opacity", 0.88)
+      .append("title").text(`${seg.label}: ${fmtInt(seg.count)}人`);
+    cursor += w;
+  });
+  if (!REDUCED && gsap) {
+    gsap.from(bGroup.selectAll("rect").nodes(), { attr: { width: 0 }, duration: 0.9, ease: "power3.out", stagger: 0.1, scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+  svg.append("text").attr("x", x(baseline.total) + 8).attr("y", y(baseline.label) + y.bandwidth() / 2 + 4)
+    .attr("font-size", 11).attr("font-weight", 600).attr("fill", "#e9eef7").text(`約${fmtInt(baseline.total)}人`);
+
+  /* 目標: 破線の枠のみ（未達成の目印） */
+  const target = rows[1];
+  svg.append("rect").attr("x", x(0)).attr("y", y(target.label)).attr("height", y.bandwidth())
+    .attr("width", x(target.total) - x(0)).attr("fill", "none").attr("stroke", "#8b96ab").attr("stroke-dasharray", "3 4");
+  svg.append("line").attr("x1", x(baseline.total)).attr("x2", x(baseline.total)).attr("y1", y(target.label) - 4).attr("y2", y(target.label) + y.bandwidth() + 4)
+    .attr("stroke", "#4c5a72").attr("stroke-dasharray", "2 3");
+  svg.append("text").attr("x", x(target.total) + 8).attr("y", y(target.label) + y.bandwidth() / 2 + 4)
+    .attr("font-size", 11).attr("fill", "#8b96ab").text(`${fmtInt(target.total)}人（目標）`);
+
+  svg.append("g").selectAll("text.rowlabel").data(rows).join("text")
+    .attr("x", margin.left - 10).attr("y", (r) => y(r.label) + y.bandwidth() / 2 + 4)
+    .attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#e9eef7").text((r) => r.label);
+
+  /* 内訳の凡例 */
+  const legend = svg.append("g").attr("transform", `translate(${margin.left},${margin.top + 158})`);
+  segments.forEach((seg, i) => {
+    const row = legend.append("g").attr("transform", `translate(0,${i * 16})`);
+    row.append("rect").attr("width", 9).attr("height", 9).attr("y", -8).attr("fill", LIVING_SUPPORT_PALETTE[i % LIVING_SUPPORT_PALETTE.length]).attr("opacity", 0.88);
+    row.append("text").attr("x", 14).attr("font-size", 10).attr("fill", "#8b96ab").text(`${seg.label} ${fmtInt(seg.count)}人`);
+  });
+
+  const gap = block.target_count - segSum;
+  setText("#phd-living-support-source",
+    `出典: ${block.source?.title || ""}。${block.note || ""} 内訳の合算は${fmtInt(segSum)}人（報告書の丸め表記は約16,000人。いずれも概数）。目標まで残り約${fmtInt(gap)}人（${block.target_note || ""}）`);
+}
+
 /* ================================================================ boot */
 
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, analyticsResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
+    fetchJson("data/economy.json"),
+    fetchJson("data/phd_support.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
+  const economy = economyResult.status === "fulfilled" ? economyResult.value : null;
+  const phdSupport = phdSupportResult.status === "fulfilled" ? phdSupportResult.value : null;
   if (!indicators && !analytics) {
     setText("#header-status", "人材データを取得できません");
     return;
@@ -798,6 +995,9 @@ async function init() {
   renderStemOutcomes(indicators);
   initFlows(analytics);
   renderIntlStudents(indicators);
+  renderDcRealValue(economy);
+  renderDcAcceptance(phdSupport);
+  renderPhdLivingSupport(phdSupport);
 
   const hireRows = indicators?.faculty_age?.hire_rows || [];
   const femaleSeries = indicators?.female_researchers?.series || [];
@@ -814,6 +1014,7 @@ async function init() {
     blockEntry(indicators?.researchers_density), blockEntry(indicators?.faculty_tenure),
     blockEntry(indicators?.stem_phd_outcomes), blockEntry(indicators?.corporate_phd_hiring),
     blockEntry(indicators?.intl_grad_students),
+    blockEntry(economy?.cpi), blockEntry(phdSupport?.dc_acceptance), blockEntry(phdSupport?.living_support),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
   ].filter(Boolean);
   renderLedgerEntries(entries);

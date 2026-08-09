@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260813a" />
+    <link rel="stylesheet" href="analytics.css?v=20260814a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -31,6 +31,7 @@
       <a href="#ch-phd" data-rail="ch-phd"><i>00</i><span>博士の曲線</span></a>
       <a href="#ch-career" data-rail="ch-career"><i>01</i><span>キャリアの構造</span></a>
       <a href="#ch-flows" data-rail="ch-flows"><i>02</i><span>研究者の移動</span></a>
+      <a href="#ch-economy" data-rail="ch-economy"><i>03</i><span>博士の経済</span></a>
     </nav>
 
     <main id="main">
@@ -138,6 +139,32 @@
         </figure>
       </section>
 
+      <!-- 03 · GRADUATE ECONOMICS -->
+      <section class="chapter" id="ch-economy" aria-labelledby="economy-title">
+        <div class="ch-head">
+          <p class="ch-no">03 / GRADUATE ECONOMICS</p>
+          <h2 id="economy-title">博士の経済</h2>
+          <p class="ch-lede" id="economy-lede">「博士課程学生の平均給与」という公的統計は存在しない — 博士課程学生の大半は雇用契約のない学生であり、「給与」という概念自体が制度的に成り立たない。ここにあるのは、学振特別研究員（DC）の研究奨励金という実測の金額と、それを受け取れる人の割合という実測の断面だけである。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">A</span>月20万円の実質価値 — 学振DC研究奨励金の現行基礎額を各年の物価で換算</figcaption>
+          <div class="fig-body" id="dc-real-value"></div>
+          <p class="method-note" id="dc-real-value-source">出典を確認中</p>
+        </figure>
+        <div class="duo" style="margin-top: 56px">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>学振DC1・DC2 採用率の推移 2022–2026年度</figcaption>
+            <div class="fig-body" id="dc-acceptance"></div>
+            <p class="method-note" id="dc-acceptance-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">C</span>生活費相当額（年180万円以上）受給者数 — 4施策合計の推計 vs 政府目標</figcaption>
+            <div class="fig-body" id="phd-living-support"></div>
+            <p class="method-note" id="phd-living-support-source">出典を確認中</p>
+          </figure>
+        </div>
+      </section>
+
       <footer class="obs-footer">
         <div class="ledger" id="ledger">
           <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
@@ -154,6 +181,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="people.js?v=20260813a" defer></script>
+    <script src="people.js?v=20260814a" defer></script>
   </body>
 </html>

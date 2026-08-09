@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-08-09T00:00:00Z",
+  "note": "『博士課程学生の平均給与』という公的統計は存在しない（博士課程学生の大半は雇用契約のない学生である）。ここにあるのは支援制度の額・採用状況・受給者数という実測の断面である。",
+  "dc_acceptance": {
+    "status": "ok",
+    "unit": "人",
+    "source": {
+      "title": "日本学術振興会 特別研究員 採用状況（DC1・DC2）",
+      "url": "https://www.jsps.go.jp/j-pd/pd_saiyo.html"
+    },
+    "note": "各年度の採用状況ページ（9分野×性別×区分のHTML表）から、DC1・DC2それぞれの申請者数・採用者数（全分野合計）を集計。令和8年度分は2026年7月1日時点の値で、採用手続き中のため今後変動しうる。採用率＝採用者数÷申請者数。",
+    "rows": [
+      {
+        "fiscal_year": 2022,
+        "dc1_applicants": 3824,
+        "dc1_accepted": 707,
+        "dc2_applicants": 5833,
+        "dc2_accepted": 1094
+      },
+      {
+        "fiscal_year": 2023,
+        "dc1_applicants": 3991,
+        "dc1_accepted": 691,
+        "dc2_applicants": 5860,
+        "dc2_accepted": 1086
+      },
+      {
+        "fiscal_year": 2024,
+        "dc1_applicants": 4591,
+        "dc1_accepted": 694,
+        "dc2_applicants": 6367,
+        "dc2_accepted": 1091
+      },
+      {
+        "fiscal_year": 2025,
+        "dc1_applicants": 4959,
+        "dc1_accepted": 708,
+        "dc2_applicants": 7444,
+        "dc2_accepted": 1092
+      },
+      {
+        "fiscal_year": 2026,
+        "dc1_applicants": 5637,
+        "dc1_accepted": 634,
+        "dc2_applicants": 8609,
+        "dc2_accepted": 1026
+      }
+    ]
+  },
+  "living_support": {
+    "status": "ok",
+    "unit": "人",
+    "source": {
+      "title": "次世代研究者挑戦的研究プログラム（JST SPRING）委員会「事業実施及び次期公募に関する報告書」（令和4年12月19日）",
+      "url": "https://www.jst.go.jp/jisedai/spring/dl/report2022.pdf"
+    },
+    "note": "文部科学省 学校基本調査によれば令和3年度の博士後期課程在学者数は75,295人。政府目標は『生活費相当額（年180万円以上）を受給する博士学生を2025年度までに約22,500人（従来の約1割の3倍）に増やす』。現状値の約16,000人はSPRING単独の実績ではなく、特別研究員(DC)・大学フェローシップ創設事業・SPRING（本事業）・RA支援充実の4施策を合算した令和3年度時点の受給者数（推計）。",
+    "baseline_fiscal_year": 2021,
+    "baseline_count": 16000,
+    "baseline_breakdown": [
+      {
+        "label": "既受給者（特別研究員DC 約4,200人を含む）",
+        "count": 7500
+      },
+      {
+        "label": "大学フェローシップ創設事業（新規）",
+        "count": 2000
+      },
+      {
+        "label": "SPRING 本事業（新規）",
+        "count": 6000
+      },
+      {
+        "label": "創発的研究RA支援充実（新規）",
+        "count": 800
+      }
+    ],
+    "target_fiscal_year": 2025,
+    "target_count": 22500,
+    "target_note": "従来（在学者の約1割）の3倍。第6期科学技術・イノベーション基本計画（令和3年3月26日閣議決定）が根拠。"
+  }
+}
