@@ -1129,12 +1129,20 @@ function renderMobReicoNetBars(mount, rf) {
   const net = (rf.annual_net || []).filter(([yr, v]) => Number.isFinite(yr) && Number.isFinite(v));
   if (!net.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
   const width = mount.clientWidth || 900, height = Math.max(260, width * 0.32);
-  const margin = { top: 22, right: 16, bottom: 24, left: 58 };
+  const margin = { top: 34, right: 16, bottom: 24, left: 58 };
   const x = d3.scaleBand().domain(net.map(([yr]) => yr)).range([margin.left, width - margin.right]).padding(0.26);
   const maxAbs = d3.max(net, ([, v]) => Math.abs(v)) || 1;
   const y = d3.scaleLinear().domain([-maxAbs * 1.18, maxAbs * 1.18]).range([height - margin.bottom, margin.top]);
   const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-    .attr("aria-label", "日本の研究者の純移動（流入-流出）の年次推移、2011-2024年。2011年を除き一貫して純流出。");
+    .attr("aria-label", "日本の研究者の純移動（流入と流出の差引）の年次推移、2011-2024年。2011年を除き一貫して純流出。毎年数千人規模の流入・流出があり、このグラフはその差引だけを示す。");
+  /* このグラフは差引(ネット)だけを描く。「流入がゼロ」という誤読を防ぐため、
+     実数の流入・流出(内訳指標がある2024年のみ)を図の中に明示する */
+  const lbForNote = rf.latest_breakdown;
+  if (lbForNote && Number.isFinite(lbForNote.inflow) && Number.isFinite(lbForNote.outflow)) {
+    svg.append("text").attr("x", margin.left + 4).attr("y", margin.top - 8)
+      .attr("font-size", 10.5).attr("fill", "#8b96ab")
+      .text(`差引（ネット）のみを表示 — 毎年数千人規模の出入りがある（${lbForNote.fiscal_year}年の実数: 流入${fmtInt(Math.round(lbForNote.inflow))}人・流出${fmtInt(Math.round(lbForNote.outflow))}人）`);
+  }
   const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtInt(v)).tickSize(-(width - margin.left - margin.right)));
   gy.select(".domain").remove();
@@ -1531,7 +1539,9 @@ function renderMobMap(mobility, landTopology) {
         anchorXY: projection(d.anchor),
         pxLen,
         outPath: d.outflow != null ? offsetPath(center, off) : null,
-        inPath: d.inflow != null ? offsetPath(center, -off) : null,
+        /* 経路の点列はTokyo→各国の順なので、流入(各国→日本)は反転してから使う。
+           反転しないと流入の粒子まで東京から外へ流れて見える */
+        inPath: d.inflow != null ? offsetPath(center, -off).slice().reverse() : null,
       };
     });
 
