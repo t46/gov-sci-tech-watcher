@@ -12,6 +12,17 @@ function baseAxis(g) {
   return g;
 }
 
+/* 1つの章の描画失敗が他の章を巻き込まないようにする（章単位の隔離）。想定外のデータ
+   形状に対する事前検証は各render関数側にあるが、それをすり抜けた実行時エラーでも
+   後続のrender呼び出しが止まらないようにする最後の砦。 */
+function safeCall(name, fn) {
+  try {
+    fn();
+  } catch (error) {
+    console.error(`[money] ${name} failed`, error);
+  }
+}
+
 const hoverBox = (id) => {
   const node = $(id);
   return {
@@ -408,16 +419,33 @@ function renderSangaku(indicators) {
 
 /* ============================================================== 04 kakenhi */
 
-function renderKakenhi(indicators) {
+function renderKakenhi(indicators, funders) {
   const mount = $("#kakenhi-chart");
-  const block = indicators?.kakenhi;
   if (!mount) return;
-  if (!block || block.status !== "ok") {
+  /* funders.json の複数年ブロックがあれば最新年度分を優先、無ければ従来の単年表示にフォールバック */
+  let block = null;
+  const yearsBlock = funders?.kakenhi_years;
+  if (yearsBlock?.status === "ok" && Array.isArray(yearsBlock.reiwa_years) && yearsBlock.reiwa_years.length
+    && yearsBlock.years_detail && typeof yearsBlock.years_detail === "object") {
+    const latestReiwa = yearsBlock.reiwa_years[yearsBlock.reiwa_years.length - 1];
+    const detail = yearsBlock.years_detail[`R${latestReiwa}`];
+    if (detail && Array.isArray(detail.rows) && detail.rows.length && detail.rows.every((r) => r && typeof r.label === "string" && typeof r.amount === "number")) {
+      block = {
+        status: "ok", unit: yearsBlock.unit, year_label: detail.year_label,
+        source: yearsBlock.source, note: yearsBlock.note,
+        institution_count: detail.institution_count, total_amount: detail.total_amount,
+        rows: detail.rows,
+      };
+    }
+  }
+  if (!block) block = indicators?.kakenhi;
+  if (!block || block.status !== "ok" || !Array.isArray(block.rows) || !block.rows.length) {
     mount.innerHTML = '<p class="data-empty">科研費の機関別データは接続作業中。日本学術振興会の配分結果（機関別採択件数・配分額）を確認しだい、ここに機関別の配分を表示する。</p>';
     setText("#kakenhi-source", "出典（予定）: 日本学術振興会 科研費データ（機関別採択件数・配分額）");
     return;
   }
   mount.innerHTML = "";
+  setText("#kakenhi-year-label", block.year_label || "");
   const shorten = (label) => label.replace(/^(国立研究開発法人|大学共同利用機関法人|独立行政法人|学校法人)/, "");
   const rows = (block.rows || []).slice(0, 25).map((r) => ({ ...r, label: shorten(r.label) }));
   const width = mount.clientWidth || 1000, height = Math.max(420, rows.length * 24 + 60);
@@ -444,6 +472,74 @@ function renderKakenhi(indicators) {
   const top10 = d3.sum((block.rows || []).slice(0, 10), (r) => r.amount);
   setText("#kakenhi-lede", `${block.year_label || ""}、${fmtInt(block.institution_count || 0)}機関に総額${okuFromThousand(block.total_amount || 0)}（新規＋継続）。上位10機関が全体の${fmtPct((top10 / (block.total_amount || 1)) * 100)}を占める。`);
   setText("#kakenhi-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+}
+
+function renderKakenhiTrend(funders) {
+  const mount = $("#kakenhi-trend");
+  const block = funders?.kakenhi_years;
+  if (!mount) return;
+  const valid = block && block.status === "ok"
+    && Array.isArray(block.reiwa_years) && block.reiwa_years.length >= 2
+    && Array.isArray(block.calendar_years) && block.calendar_years.length === block.reiwa_years.length
+    && Array.isArray(block.labels) && block.labels.length === block.reiwa_years.length
+    && Array.isArray(block.top10_share)
+    && Array.isArray(block.institutions) && block.institutions.length
+    && block.institutions.every((inst) => inst && typeof inst.label === "string"
+      && Array.isArray(inst.amounts) && inst.amounts.length === block.reiwa_years.length);
+  if (!valid) {
+    mount.innerHTML = '<p class="data-empty">科研費の機関別配分額の複数年データは接続作業中。令和4〜7年度分の機関別配分xlsxを確認しだい、上位機関の推移と機関集中度をここに表示する。</p>';
+    setText("#kakenhi-trend-source", "出典（予定）: 日本学術振興会 科研費データ（機関別採択件数・配分額、複数年度）");
+    return;
+  }
+  mount.innerHTML = "";
+  const reiwaYears = block.reiwa_years;
+  const calYears = block.calendar_years;
+  const shorten = (label) => label.replace(/^(国立研究開発法人|大学共同利用機関法人|独立行政法人|学校法人)/, "");
+  const institutions = block.institutions;
+  const width = mount.clientWidth || 1000, height = Math.max(360, Math.min(460, width * 0.4));
+  const margin = { top: 22, right: 132, bottom: 30, left: 60 };
+  const x = d3.scalePoint().domain(calYears).range([margin.left, width - margin.right]).padding(0.6);
+  const maxAmount = d3.max(institutions.flatMap((inst) => inst.amounts.filter((v) => v != null))) || 1;
+  const y = d3.scaleLinear().domain([0, maxAmount * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "科研費機関別配分額の上位機関の推移（令和4〜7年度）");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => okuFromThousand(v)).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickFormat((year) => `${year}年度`)).select(".domain").attr("stroke", "#1c2839");
+  const palette = d3.quantize(d3.interpolateHcl("#ffb545", "#4fd8ff"), Math.max(2, institutions.length));
+  institutions.forEach((inst, i) => {
+    const pts = calYears.map((year, idx) => ({ year, value: inst.amounts[idx] })).filter((p) => p.value != null);
+    if (pts.length < 2) return; /* 機関統廃合等で系列が途切れる場合は線を引かない */
+    const line = d3.line().x((p) => x(p.year)).y((p) => y(p.value)).curve(d3.curveMonotoneX);
+    const path = svg.append("path").attr("d", line(pts)).attr("fill", "none")
+      .attr("stroke", palette[i]).attr("stroke-width", i === 0 ? 2.4 : 1.2).attr("opacity", i === 0 ? 1 : 0.7);
+    if (!REDUCED && gsap) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+      gsap.to(path.node(), { strokeDashoffset: 0, duration: 1.6, ease: "power2.out", stagger: 0.05, scrollTrigger: { trigger: mount, start: "top 78%" } });
+    }
+    const last = pts[pts.length - 1];
+    svg.append("text").attr("x", x(last.year) + 8).attr("y", y(last.value) + 4)
+      .attr("fill", palette[i]).attr("font-size", i === 0 ? 11 : 9.5).attr("font-weight", i === 0 ? 600 : 400)
+      .text(shorten(inst.label));
+  });
+  const shareWrap = d3.select(mount).append("div").attr("class", "kakenhi-share-strip");
+  shareWrap.append("p").attr("class", "kakenhi-share-title").text("上位10機関シェア（配分額ベース）");
+  const shareRow = shareWrap.append("div").attr("class", "kakenhi-share-row");
+  reiwaYears.forEach((reiwa, idx) => {
+    const share = block.top10_share?.[idx];
+    const item = shareRow.append("div").attr("class", "kakenhi-share-item");
+    item.append("span").attr("class", "kakenhi-share-year").text(`令和${reiwa}年度`);
+    item.append("div").attr("class", "kakenhi-share-bar")
+      .append("i").style("width", share != null ? `${Math.min(100, share * 100).toFixed(1)}%` : "0%");
+    item.append("span").attr("class", "kakenhi-share-value").text(share != null ? fmtPct(share * 100) : "—");
+  });
+  const firstShare = block.top10_share?.[0], lastShare = block.top10_share?.[block.top10_share.length - 1];
+  const shareDrift = firstShare != null && lastShare != null
+    ? `上位10機関シェアは${block.labels[0]}の${fmtPct(firstShare * 100)}から${block.labels[block.labels.length - 1]}の${fmtPct(lastShare * 100)}へ。`
+    : "";
+  setText("#kakenhi-trend-source", `出典: ${block.source?.title || ""}。${block.note || ""} ${shareDrift}`);
 }
 
 /* ====================================================== 05 support scatter */
@@ -1616,9 +1712,156 @@ function renderPublishing(publishing) {
   renderPubFacts();
 }
 
+/* ========================================================= 10 funding structure */
+
+function renderFundingDualStream(funders) {
+  const mount = $("#funding-dual-stream");
+  const buttons = $$("#funding-sector-filter button");
+  if (!mount) return;
+  const block = funders?.dual_support;
+  const keys = ["self", "government", "company", "other"];
+  const sectorArrayKeys = ["self", "government", "company", "nonprofit", "foreign", "inter_university", "private_university", "total"];
+  const isValidSector = (sector) => sector && typeof sector === "object"
+    && sectorArrayKeys.every((k) => Array.isArray(sector[k]) && sector[k].length === block.years.length);
+  const valid = block && block.status === "ok" && Array.isArray(block.years) && block.years.length
+    && block.sectors && typeof block.sectors === "object"
+    && ["all", "national", "public", "private"].every((sectorKey) => isValidSector(block.sectors[sectorKey]));
+  if (!valid) {
+    mount.innerHTML = '<p class="data-empty">大学の資金源データは接続作業中。NISTEP科学技術指標「大学等における負担源別研究開発費」を確認しだい、大学の資金源シフトをここに表示する。</p>';
+    setText("#funding-dual-source", "出典（予定）: NISTEP 科学技術指標 表1-3-19 大学等における負担源別研究開発費");
+    return;
+  }
+  const colors = { self: "#a7b4cc", government: "#ffb545", company: "#4fd8ff", other: "#8d7fb0" };
+  const labels = { self: "自己資金", government: "政府", company: "企業", other: "その他（非営利・外国・大学間）" };
+  const years = block.years;
+
+  function rowsFor(sectorKey) {
+    const sector = block.sectors[sectorKey];
+    if (!sector) return null;
+    return years.map((year, i) => {
+      const total = sector.total[i];
+      const self = sector.self[i] ?? 0, government = sector.government[i] ?? 0, company = sector.company[i] ?? 0;
+      const other = (sector.nonprofit[i] ?? 0) + (sector.foreign[i] ?? 0) + (sector.inter_university[i] ?? 0) + (sector.private_university[i] ?? 0);
+      return { year, self, government, company, other, total };
+    }).filter((r) => r.total);
+  }
+
+  function draw(sectorKey) {
+    mount.innerHTML = "";
+    const rows = rowsFor(sectorKey);
+    if (!rows || !rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+    const pctRows = rows.map((r) => {
+      const row = { year: r.year };
+      for (const key of keys) row[key] = r.total ? (r[key] / r.total) * 100 : 0;
+      return row;
+    });
+    const width = mount.clientWidth || 1000, height = Math.max(360, Math.min(480, width * 0.42));
+    const margin = { top: 26, right: 158, bottom: 34, left: 44 };
+    const stack = d3.stack().keys(keys).value((row, key) => row[key] ?? 0);
+    const series = stack(pctRows);
+    const x = d3.scaleLinear().domain(d3.extent(rows, (r) => r.year)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([0, 100]).range([height - margin.bottom, margin.top]);
+    const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+      .attr("aria-label", "大学の研究開発費における負担源別割合の推移");
+    baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${v}%`).tickSize(-(width - margin.left - margin.right))));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x).ticks(MOBILE ? 5 : 9).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+    const area = d3.area().x((d) => x(d.data.year)).y0((d) => y(d[0])).y1((d) => y(d[1])).curve(d3.curveMonotoneX);
+    svg.append("g").selectAll("path").data(series).join("path")
+      .attr("d", area).attr("fill", (d) => colors[d.key]).attr("opacity", 0.82)
+      .attr("stroke", "#06090f").attr("stroke-width", 0.6);
+    const lastRow = pctRows[pctRows.length - 1];
+    for (const s of series) {
+      const end = s[s.length - 1];
+      svg.append("text").attr("x", x(lastRow.year) + 8).attr("y", (y(end[0]) + y(end[1])) / 2 + 4)
+        .attr("fill", colors[s.key]).attr("font-size", 10.5).attr("font-weight", 600)
+        .text(`${labels[s.key]} ${fmtPct(lastRow[s.key] ?? 0)}`);
+    }
+    const hover = hoverBox("#funding-dual-hover");
+    svg.on("pointermove", (event) => {
+      const [mx, my] = d3.pointer(event);
+      const year = Math.round(x.invert(mx));
+      const row = pctRows.find((r) => r.year === year);
+      if (!row) { hover.hide(); return; }
+      const hit = series.find((s) => {
+        const d = s.find((p) => p.data.year === year);
+        return d && my >= y(d[1]) && my <= y(d[0]);
+      });
+      if (hit) hover.show(`<b>${escapeHtml(labels[hit.key])}</b><br>${year}年度 ${fmtPct(row[hit.key] ?? 0)}`, event, mount);
+      else hover.hide();
+    }).on("pointerleave", () => hover.hide());
+    const first = rows[0], last = rows[rows.length - 1];
+    const govFirst = first.total ? (first.government / first.total) * 100 : 0;
+    const govLast = last.total ? (last.government / last.total) * 100 : 0;
+    setText("#funding-dual-years", `${first.year}→${last.year}年度`);
+    setText("#funding-dual-source", `${first.year}年度、政府由来の外部資金は大学の研究開発費の${fmtPct(govFirst)}。${last.year}年度は${fmtPct(govLast)}。出典: ${block.source?.title || ""}。${block.note || ""}`);
+  }
+
+  draw("all");
+  buttons.forEach((btn) => btn.addEventListener("click", () => {
+    buttons.forEach((b) => b.classList.toggle("is-active", b === btn));
+    draw(btn.dataset.sector);
+  }));
+}
+
+function renderFundingCsti(funders) {
+  const mount = $("#funding-csti-bars");
+  if (!mount) return;
+  const block = funders?.csti_programs;
+  const valid = block && block.status === "ok" && typeof block.latest_year === "string"
+    && block.years && typeof block.years === "object" && !Array.isArray(block.years)
+    && block.years[block.latest_year] && Array.isArray(block.years[block.latest_year].programs)
+    && Array.isArray(block.years[block.latest_year].ministries);
+  if (!valid) {
+    mount.innerHTML = '<p class="data-empty">競争的資金の制度別予算データは接続作業中。内閣府CSTI「競争的研究費制度一覧（省庁別予算）」を確認しだい、制度別の予算額をここに表示する。</p>';
+    setText("#funding-csti-source", "出典（予定）: 内閣府 CSTI「競争的研究費制度一覧（省庁別予算）」");
+    return;
+  }
+  const year = block.years[block.latest_year];
+  const programs = (year.programs || []).filter((p) => p && typeof p.initial === "number" && typeof p.label === "string").slice(0, 15);
+  if (!programs.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  mount.innerHTML = "";
+  const agencyColor = { JSPS: "#ffb545", JST: "#4fd8ff", AMED: "#5ad8a1", NEDO: "#8d7fb0" };
+  const colorFor = (agency) => agencyColor[agency] || "#71809b";
+  const width = mount.clientWidth || 1000, height = Math.max(360, programs.length * 30 + 60);
+  /* 狭い画面ではラベル用の左マージンを詰める。固定250pxのままだと390px幅のコンテナで
+     (width - margin.right) が margin.left を下回り、スケールのrangeが反転して負の幅の
+     rectをGSAPに渡す実行時エラーになる（SVGはwidth属性に負値を許さない）。 */
+  const margin = MOBILE
+    ? { top: 8, right: 56, bottom: 30, left: 120 }
+    : { top: 8, right: 130, bottom: 30, left: 250 };
+  const x = d3.scaleLinear().domain([0, d3.max(programs, (p) => p.initial) * 1.05]).range([margin.left, Math.max(margin.left + 40, width - margin.right)]);
+  const y = d3.scaleBand().domain(programs.map((p) => p.label)).range([margin.top, height - margin.bottom]).padding(0.28);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "競争的研究費制度別の予算額の比較");
+  const bars = svg.append("g").selectAll("rect").data(programs).join("rect")
+    .attr("x", x(0)).attr("y", (p) => y(p.label)).attr("height", y.bandwidth())
+    .attr("width", (p) => Math.max(0, x(p.initial) - x(0))).attr("fill", (p) => colorFor(p.agency)).attr("opacity", 0.85);
+  const shortenProgram = (label) => {
+    const limit = MOBILE ? 9 : 17;
+    return label.length > limit ? `${label.slice(0, limit - 1)}…` : label;
+  };
+  svg.append("g").selectAll("text.flabel").data(programs).join("text")
+    .attr("x", margin.left - 8).attr("y", (p) => y(p.label) + y.bandwidth() / 2 + 4)
+    .attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#e9eef7")
+    .text((p) => shortenProgram(p.label))
+    .append("title").text((p) => p.label);
+  svg.append("g").selectAll("text.fvalue").data(programs).join("text")
+    .attr("x", (p) => x(p.initial) + 6).attr("y", (p) => y(p.label) + y.bandwidth() / 2 + 4)
+    .attr("font-size", 10).attr("fill", "#8b96ab")
+    .text((p) => `${fmtInt(p.initial)}百万円 / ${p.agency}`);
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { width: 0 }, duration: 1.1, ease: "power3.out", stagger: 0.03, scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+  const parsedCount = year.total_programs_parsed;
+  setText("#funding-csti-year", `令和${year.reiwa_current}年度当初予算 — ${parsedCount ? `全${fmtInt(parsedCount)}制度・事業中、` : ""}予算額上位${programs.length}件`);
+  setText("#funding-csti-source", `出典: ${block.source?.title || ""}（${year.pdf_url}）。${block.note || ""} 全制度合計${fmtInt(year.initial_total)}百万円（前年度当初${fmtInt(year.prev_initial_total)}百万円、令和${year.reiwa_prev}年度補正込み${fmtInt(year.supplementary_total)}百万円）。府省庁別小計の上位: ${(year.ministries || []).slice(0, 3).map((m) => `${m.name} ${fmtInt(m.initial)}百万円`).join(" / ")}。`);
+}
+
 /* ================================================================= ledger */
 
-function renderLedger(indicators, finance, publishing) {
+function renderLedger(indicators, finance, publishing, funders) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -1635,6 +1878,7 @@ function renderLedger(indicators, finance, publishing) {
   if (publishing?.contracts?.status === "ok") {
     entries.push({ title: "国立大学法人等の契約公表（各法人サイト・随意契約公表/落札公示）", url: "", status: "ok" });
   }
+  push(funders?.dual_support); push(funders?.kakenhi_years); push(funders?.csti_programs);
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -1651,15 +1895,18 @@ async function init() {
   let indicators = null;
   let finance = null;
   let publishing = null;
+  let funders = null;
   try {
-    const [indicatorsResult, financeResult, publishingResult] = await Promise.allSettled([
+    const [indicatorsResult, financeResult, publishingResult, fundersResult] = await Promise.allSettled([
       fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/publishing.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/funders.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
     ]);
     indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
     finance = financeResult.status === "fulfilled" ? financeResult.value : null;
     publishing = publishingResult.status === "fulfilled" ? publishingResult.value : null;
+    funders = fundersResult.status === "fulfilled" ? fundersResult.value : null;
   } catch (error) {
     console.error(error);
   }
@@ -1675,7 +1922,8 @@ async function init() {
   renderGovStream(indicators);
   renderMinistryStream(indicators);
   renderSangaku(indicators);
-  renderKakenhi(indicators);
+  safeCall("renderKakenhi", () => renderKakenhi(indicators, funders));
+  safeCall("renderKakenhiTrend", () => renderKakenhiTrend(funders));
   renderSupportScatter(indicators);
   renderPlanBars(indicators);
   renderNatlScatter(finance);
@@ -1684,7 +1932,9 @@ async function init() {
   renderSectorLines(finance);
   initAnatomy(finance);
   renderPublishing(publishing);
-  renderLedger(indicators, finance, publishing);
+  safeCall("renderFundingDualStream", () => renderFundingDualStream(funders));
+  safeCall("renderFundingCsti", () => renderFundingCsti(funders));
+  renderLedger(indicators, finance, publishing, funders);
 }
 
 init().catch((error) => {

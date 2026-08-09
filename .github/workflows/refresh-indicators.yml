@@ -32,12 +32,16 @@ jobs:
         run: uv run python scripts/fetch_finance.py
       - name: Fetch academic publishing data
         run: uv run python scripts/fetch_publishing.py
+      - name: Fetch funding agency data
+        run: uv run python scripts/fetch_funders.py
+      - name: Fetch economy baseline (CPI, FX)
+        run: uv run python scripts/fetch_economy.py
       - name: Commit refreshed indicators
         run: |
           git config user.name "gov-sci-tech-watcher[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main
-          git add data/indicators.json data/finance.json data/publishing.json
+          git add data/indicators.json data/finance.json data/publishing.json data/funders.json data/economy.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_ENV"
           else

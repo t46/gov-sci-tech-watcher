@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260812a" />
+    <link rel="stylesheet" href="analytics.css?v=20260813a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -38,6 +38,7 @@
       <a href="#ch-finance" data-rail="ch-finance"><i>07</i><span>大学・研究所の財務</span></a>
       <a href="#ch-anatomy" data-rail="ch-anatomy"><i>08</i><span>財務の解剖</span></a>
       <a href="#ch-publishing" data-rail="ch-publishing"><i>09</i><span>学術出版</span></a>
+      <a href="#ch-funding" data-rail="ch-funding"><i>10</i><span>研究助成の構造</span></a>
     </nav>
 
     <main id="main">
@@ -113,8 +114,14 @@
           <p class="ch-lede" id="kakenhi-lede">競争的資金の代表・科学研究費助成事業が、どの研究機関に配分されているか。</p>
         </div>
         <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">A</span>機関別配分額の上位機関 <span id="kakenhi-year-label"></span></figcaption>
           <div class="fig-body" id="kakenhi-chart"></div>
           <p class="method-note" id="kakenhi-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>上位機関の配分額推移と機関集中度</figcaption>
+          <div class="fig-body" id="kakenhi-trend"></div>
+          <p class="method-note" id="kakenhi-trend-source">出典を確認中</p>
         </figure>
       </section>
 
@@ -249,6 +256,33 @@
         </div>
       </section>
 
+      <!-- 10 · FUNDING STRUCTURE -->
+      <section class="chapter" id="ch-funding" aria-labelledby="funding-title">
+        <div class="ch-head">
+          <p class="ch-no">10 / FUNDING STRUCTURE</p>
+          <h2 id="funding-title">研究助成の構造</h2>
+          <p class="ch-lede" id="funding-lede">大学の研究開発費はどこから来て、競争的資金はどの制度にどれだけ配られているか。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">A</span>大学の資金源シフト <span id="funding-dual-years"></span></figcaption>
+          <div class="glyph-toolbar" id="funding-sector-filter" role="toolbar" aria-label="大学区分の切替">
+            <span class="toolbar-label">大学区分:</span>
+            <button class="is-active" data-sector="all">全大学</button>
+            <button data-sector="national">国立大学</button>
+            <button data-sector="public">公立大学</button>
+            <button data-sector="private">私立大学</button>
+          </div>
+          <div class="fig-body" id="funding-dual-stream"></div>
+          <div class="terrain-hover" id="funding-dual-hover" aria-hidden="true"></div>
+          <p class="method-note" id="funding-dual-source">出典を確認中</p>
+        </figure>
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">B</span>競争的資金の勢力図 <span id="funding-csti-year"></span></figcaption>
+          <div class="fig-body" id="funding-csti-bars"></div>
+          <p class="method-note" id="funding-csti-source">出典を確認中</p>
+        </figure>
+      </section>
+
       <footer class="obs-footer">
         <div class="ledger" id="ledger">
           <p class="ledger-title">DATA PROVENANCE — 出典台帳</p>
@@ -265,6 +299,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260810a" defer></script>
-    <script src="money.js?v=20260812a" defer></script>
+    <script src="money.js?v=20260813a" defer></script>
   </body>
 </html>
