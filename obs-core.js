@@ -39,7 +39,7 @@ function fitCanvas(canvas) {
 
 const seriesMap = (block, name = "series") => Object.fromEntries((block?.[name] || []).map((s) => [s.key, s.values]));
 const lastPoint = (values = []) => values[values.length - 1];
-const fetchJson = (url) => fetch(url, { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${url}: ${r.status}`))));
+const fetchJson = (url) => fetch(url, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${url}: ${r.status}`))));
 
 /* Compact 3D value-noise (fractal) — deterministic, dependency-free. */
 const noise3 = (() => {

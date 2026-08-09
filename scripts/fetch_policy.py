@@ -14,6 +14,18 @@
 - plan_language（第3〜7期本文の用語頻度）は plans_history と同じ更新頻度（第8期策定時が
   目安）。第3〜7期の本文しか対象にしないため、新しい期が策定されるたびに
   PLAN_LANGUAGE_PERIODS に追加すること。
+- strategy_language（統合イノベーション戦略2018〜2026本文の用語頻度、年次解像度）は
+  tech_domains と同じ更新頻度（毎年6〜7月頃の閣議決定のたびに再実行）。再実行時は
+  STRATEGY_LANGUAGE_YEARS に当年を追加し、STRATEGY_LANGUAGE_URLS /
+  STRATEGY_LANGUAGE_DECISIONS に当年のURL・閣議決定日を追記すること（当年のURLは
+  index.html のトップの2本の直リンク、または年別サブページ https://www8.cao.go.jp/cstp/
+  tougosenryaku/{year}.html から本文/全体版PDFのリンクを辿って確認する）。
+- domain_lineage（第2期〜第7期の重点分野・技術領域の系譜）は plans_history と同じ更新頻度
+  （第8期策定時が目安）。DOMAIN_LINEAGE_PERIODS の各期の分野名・グループ構成は各期基本計画
+  本文から手動で書き起こした定数（史料的事実）で、本文が改定されない限り不変。第7期分
+  （17の新興・基盤技術領域）だけは tech_domains ブロックの domains をそのまま参照して組み
+  立てる（このブロック内で再転記しない）ため、tech_domains の領域数・名称が変わった年は
+  DOMAIN_LINEAGE_EDGES の対応関係（どの過去分野がどの第7期領域に繋がるか）も見直しが必要。
 
 Sources (all official, no key required):
 - 内閣府 CSTI「科学技術基本計画及び科学技術・イノベーション基本計画」本文PDF
@@ -55,6 +67,36 @@ Blocks written to data/policy.json（全ブロック status/source/note を持�
   （単一表記）について独立した正規表現カウント（grep -o | wc -l 相当）と本採用の集計値が
   一致すること、(5)「ＡＩ」（3表記の合算＋半角AIの境界判定）について集約ロジックを経由
   しない独立集計と本採用の集計値が一致すること（自己検証）を確認する。
+- strategy_language: plan_language の年次解像度版。統合イノベーション戦略2018〜2026の
+  本文/全体版PDF（STRATEGY_LANGUAGE_URLS）を対象に、plan_language と全く同じ18語・
+  同じ集約規則（PLAN_LANGUAGE_TERMS を共用）・同じ正規化（fix_radicals→空白除去→
+  per10k）で出現頻度を数える。plan_language との違いは対象が「5年ごとの期」ではなく
+  「年」であることのみ。検証として、(1) 2018〜2026の全9年分がそろっていること、
+  (2) 各年の本文文字数（正規化後）が20,000字を上回ること（範囲外なら抽出失敗を疑う）、
+  (3) 全termの全年のper10kが有限（NaN/inf でない）かつ0以上であること、(4) plan_language
+  と同じ「安全保障」「ＡＩ」の独立再集計による自己検証、を確認する。2018〜2020年は
+  https://www8.cao.go.jp/cstp/togo{,2019_,2020_}honbun.pdf（tougosenryaku/ 配下ではなく
+  cstp/ 直下）、2021〜2023年は tougosenryaku/ 配下の togo{年}_honbun.pdf、2024〜2026年は
+  本文（honbun）とは別に「全体版」（zentai、別紙等を含む完全版）が公式ページで案内されて
+  いるため zentai を採用する（honbun側のURLも存在するが、公式indexが正式版として案内する
+  のはzentai。2026-08の再検証では2026年の両URLが同一サイズを返した — 提供元の差し替えが
+  あるため採用はzentaiに固定する）。2024〜2026年は別紙等を含む全体版、2018〜2023年は本文
+  のみのPDFであり、対象文書の範囲が年代で異なる点はフロント側の注記にも明示する。
+- domain_lineage: 国の重点分野・技術領域の看板が第2期（2001年）から第7期（2026年）の
+  17の新興・基盤技術領域までどう分岐・改名・消滅してきたかの系譜。periods は各期の分野・
+  技術領域の一覧（第7期分は tech_domains ブロックの domains をそのまま参照し再転記しない）、
+  edges は「どの過去の分野が第7期のどの領域に繋がるか」を表す個々の区間（from_period/
+  from_item → to_period/to_item）のリストで、各区間には flag（sure=名称（中核語）の
+  直接継承または本文で確認できる改名、interp=内容上の対応・編集部の解釈）と、対応する
+  第7期領域名（domain）を持たせる。flag は系譜チェーン全体ではなく区間ごとに判定する。第4期
+  （課題達成型への転換期）は分野の看板を一度降ろしたため、多くの区間はこの期の項目を経由
+  せず前後の期を直接結ぶ。first_appearance は第7期で初めて設定された領域（防衛産業関連
+  技術）、national_strategy は第7期のうち国家戦略技術領域（集中投資対象、6領域）、extinct
+  は看板としては消滅したが中身は他領域に分散継承された過去の分野名。全ファクトは各期
+  基本計画本文（第2期のみNDL WARP保存版）を編集部が直接確認して書き起こした定数であり、
+  検証として (1) 全17領域が edges の domain 集合と first_appearance のどちらかに過不足なく
+  対応すること、(2) national_strategy が6件でいずれも tech_domains の17領域名に含まれる
+  こと、(3) extinct が5件であることを確認する。
 
 Parsing approach / pitfalls:
 - 別紙の指標表・重要技術領域の見出しは、いずれも pdftotext -layout（poppler-utils）でのみ
@@ -91,6 +133,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
 import shutil
@@ -120,6 +163,39 @@ HONBUN_URLS: dict[int, str | None] = {
 TOGO_URL = "https://www8.cao.go.jp/cstp/tougosenryaku/togo2026_zentai.pdf"
 TOGO_TITLE = "統合イノベーション戦略2026"
 TOGO_DECISION = "2026-07-14"
+
+# 統合イノベーション戦略 各年の本文/全体版PDF URL。2018〜2020年は www8.cao.go.jp/cstp/
+# 直下（tougosenryaku/ 配下ではない）、2021〜2023年は tougosenryaku/ 配下の
+# togo{年}_honbun.pdf、2024年以降は本文単体ではなく別紙等を含む「全体版」（zentai）を
+# 正式版として採用する（2026年分は既存の TOGO_URL/TOGO_DECISION と同一定数を指す）。
+# 再実行時、当年分を追加する際は index.html
+# (https://www8.cao.go.jp/cstp/tougosenryaku/index.html) と当年の年別サブページ
+# (.../tougosenryaku/{year}.html) の両方でURL・閣議決定日をcurl -sIで検証すること。
+STRATEGY_LANGUAGE_URLS: dict[int, str] = {
+    2018: "https://www8.cao.go.jp/cstp/togo_honbun.pdf",
+    2019: "https://www8.cao.go.jp/cstp/togo2019_honbun.pdf",
+    2020: "https://www8.cao.go.jp/cstp/togo2020_honbun.pdf",
+    2021: "https://www8.cao.go.jp/cstp/tougosenryaku/togo2021_honbun.pdf",
+    2022: "https://www8.cao.go.jp/cstp/tougosenryaku/togo2022_honbun.pdf",
+    2023: "https://www8.cao.go.jp/cstp/tougosenryaku/togo2023_honbun.pdf",
+    2024: "https://www8.cao.go.jp/cstp/tougosenryaku/togo2024_zentai.pdf",
+    2025: "https://www8.cao.go.jp/cstp/tougosenryaku/togo2025_zentai.pdf",
+    2026: TOGO_URL,
+}
+
+STRATEGY_LANGUAGE_DECISIONS: dict[int, str] = {
+    2018: "2018-06-15",
+    2019: "2019-06-21",
+    2020: "2020-07-17",
+    2021: "2021-06-18",
+    2022: "2022-06-03",
+    2023: "2023-06-09",
+    2024: "2024-06-04",
+    2025: "2025-06-06",
+    2026: TOGO_DECISION,
+}
+
+STRATEGY_LANGUAGE_YEARS = list(range(2018, 2027))
 
 CACHE_DIR: Path | None = None
 
@@ -662,7 +738,10 @@ def tech_domains_block(previous: dict[str, object] | None) -> dict[str, object]:
             "機械的な切り詰めはしない）。原文の一文の長さ次第で30〜110字程度までばらつく。"
             "統合イノベーション戦略は毎年6〜7月頃に改定される運用のため、領域の数・名称・"
             "要約は年によって変わりうる。再実行時は TOGO_URL / TOGO_TITLE / TOGO_DECISION を"
-            "当年のものに更新すること。"
+            "当年のものに更新すること。17領域の初出・一次資料は第7期科学技術・イノベーション"
+            "基本計画本文第3章「新興・基盤技術領域」（2026-03-27閣議決定）であり、統合"
+            "イノベーション戦略2026（2026-07-14閣議決定）は名称・順序を踏襲して要約文を"
+            "付加したもの（要約文の出典は引き続き統合イノベーション戦略2026）。"
         ),
     }
 
@@ -819,6 +898,382 @@ def plan_language_block(previous: dict[str, object] | None) -> dict[str, object]
     }
 
 
+# ----------------------------------------------------------- strategy_language
+
+def _fetch_strategy_text(year: int) -> str:
+    url = STRATEGY_LANGUAGE_URLS[year]
+    cache_relpath = url.rsplit("/", 1)[-1]
+    pdf_bytes = fetch_with_cache(url, cache_relpath, magic=b"%PDF")
+    return pdftotext_layout(pdf_bytes)
+
+
+MIN_STRATEGY_DOC_LENGTH = 20_000  # 正規化後の文字数がこれ未満なら抽出失敗を疑う
+
+
+def strategy_language_block(previous: dict[str, object] | None) -> dict[str, object]:
+    """plan_language の年次解像度版。統合イノベーション戦略2018〜2026本文を対象に、
+    plan_language と同じ18語・同じ集約規則・同じ正規化ロジックで出現頻度を数える
+    （PLAN_LANGUAGE_TERMS をそのまま共用し、term一覧・集約規則を重複定義しない）。
+    """
+    doc_lengths: dict[str, int] = {}
+    normalized_by_year: dict[int, str] = {}
+    for year in STRATEGY_LANGUAGE_YEARS:
+        text = _fetch_strategy_text(year)
+        normalized = _normalize_doc_text(text)
+        normalized_by_year[year] = normalized
+        doc_lengths[str(year)] = len(normalized)
+
+    terms = []
+    for key, rule, variants in PLAN_LANGUAGE_TERMS:
+        counts = {}
+        for year in STRATEGY_LANGUAGE_YEARS:
+            n = _count_term(normalized_by_year[year], variants)
+            length = doc_lengths[str(year)]
+            per10k = round(n / length * 10000, 2) if length else None
+            counts[str(year)] = {"n": n, "per10k": per10k}
+        terms.append({"term": key, "rule": rule, "counts": counts})
+
+    # 検証1: 2018〜2026の全9年分がそろっている
+    missing_years = [y for y in STRATEGY_LANGUAGE_YEARS if str(y) not in doc_lengths]
+    if missing_years:
+        raise ValueError(f"strategy_language: 本文を取得できなかった年: {missing_years}")
+    # 検証2: 各年の本文文字数（正規化後）が20,000字を上回る（抽出失敗の疑いを排除）
+    for year in STRATEGY_LANGUAGE_YEARS:
+        length = doc_lengths[str(year)]
+        if length <= MIN_STRATEGY_DOC_LENGTH:
+            raise ValueError(
+                f"strategy_language: {year}年の本文文字数が{length}字と少なすぎる"
+                f"（{MIN_STRATEGY_DOC_LENGTH}字以下）— 抽出失敗の疑い"
+            )
+    # 検証3: 全termの全年のper10kが有限かつ0以上
+    for term in terms:
+        for year in STRATEGY_LANGUAGE_YEARS:
+            per10k = term["counts"][str(year)]["per10k"]
+            if per10k is None or not math.isfinite(per10k) or per10k < 0:
+                raise ValueError(f"strategy_language: 「{term['term']}」{year}年のper10kが不正（{per10k}）")
+    # 検証4-a: 「安全保障」について独立した正規表現カウントと本採用の集計値が一致する
+    # （plan_language と同じ自己検証パターン）。
+    security = next(t for t in terms if t["term"] == "安全保障")
+    security_variants = next(v for k, r, v in PLAN_LANGUAGE_TERMS if k == "安全保障")
+    for year in STRATEGY_LANGUAGE_YEARS:
+        independent = sum(len(re.findall(re.escape(v), normalized_by_year[year])) for v in security_variants)
+        official_n = security["counts"][str(year)]["n"]
+        if independent != official_n:
+            raise ValueError(
+                f"strategy_language: 自己検証不一致（安全保障, {year}年）: "
+                f"独立カウント={independent}、本採用値={official_n}"
+            )
+    # 検証4-b: 「ＡＩ」について集約ロジックを経由しない独立集計と本採用の集計値が一致する。
+    ai_official = next(t for t in terms if t["term"] == "ＡＩ")
+    for year in STRATEGY_LANGUAGE_YEARS:
+        doc = normalized_by_year[year]
+        independent_ai = (
+            len(re.findall("ＡＩ", doc))
+            + len(re.findall("人工知能", doc))
+            + len(re.findall(r"(?<![A-Za-z0-9])AI(?![A-Za-z0-9])", doc))
+        )
+        official_n = ai_official["counts"][str(year)]["n"]
+        if independent_ai != official_n:
+            raise ValueError(
+                f"strategy_language: 自己検証不一致（ＡＩ, {year}年）: "
+                f"独立カウント={independent_ai}、本採用値={official_n}"
+            )
+    print("[policy] strategy_language: 自己検証OK（安全保障の独立カウント一致、ＡＩの集約ロジック一致）")
+
+    return {
+        "status": "ok",
+        "unit": "回/1万字",
+        "years_covered": STRATEGY_LANGUAGE_YEARS,
+        "terms": terms,
+        "doc_lengths": doc_lengths,
+        "source_urls_by_year": {str(y): STRATEGY_LANGUAGE_URLS[y] for y in STRATEGY_LANGUAGE_YEARS},
+        "decision_dates_by_year": {str(y): STRATEGY_LANGUAGE_DECISIONS[y] for y in STRATEGY_LANGUAGE_YEARS},
+        "source": {
+            "title": "統合イノベーション戦略（各年、閣議決定文書）",
+            "url": "https://www8.cao.go.jp/cstp/tougosenryaku/index.html",
+        },
+        "note": (
+            "plan_languageと同じ18語・同じ集約規則（PLAN_LANGUAGE_TERMSを共用）・同じ正規化"
+            "ロジックを、5年ごとの基本計画本文ではなく統合イノベーション戦略の年次本文に"
+            "適用したもの。単語の出現頻度であり政策の重要度そのものではない。年別の本文/"
+            "全体版PDF URLはsource_urls_by_year、閣議決定日はdecision_dates_by_yearを参照。"
+            "2018〜2020年は本文PDFがwww8.cao.go.jp/cstp/直下（tougosenryaku/配下ではない）に"
+            "所在。2021〜2023年はtougosenryaku/配下の本文（honbun）PDF、2024〜2026年は本文"
+            "単体ではなく別紙等を含む「全体版」（zentai）を正式版として採用（2024・2025年は"
+            "honbun.pdfも別途存在するが、公式ページが正式版として案内しているのはzentaiの"
+            "方）。pdftotextのレイアウト抽出テキストに基づくため、本文だけでなく表・脚注・"
+            "目次等も対象に含まれ、抽出時のレイアウト崩れによる誤差があり得る。カウントは"
+            "空白・改行を除去した文字列に対する単純部分一致で、重複部分文字列は問題視しない。"
+        ),
+    }
+
+
+# ----------------------------------------------------------- domain_lineage
+
+# 各期の重点分野・技術領域の一覧。groups は本文中のラベル付きグルーピング（ラベルが本文に
+# ない期は group に通称であることを note で明記）。第7期分（p7）の items は空のまま残し、
+# domain_lineage_block() で tech_domains ブロックの domains から実行時に埋める（再転記しない）。
+# 出典: 各期科学技術基本計画・科学技術・イノベーション基本計画本文（閣議決定文書）。
+# 第2期のみ本文PDFへの直接リンクが公式ページになく、NDL WARP保存版で確認した
+# （https://warp.ndl.go.jp/20250911/20250901044924/https://www8.cao.go.jp/cstp/kihonkeikaku/honbun.html）。
+# 第3期以降は HONBUN_URLS と同じ本文PDF（www8.cao.go.jp/cstp/kihonkeikaku/{honbun,4honbun,
+# 5honbun,6honbun,7honbun}.pdf）で確認した。
+DOMAIN_LINEAGE_PERIODS: list[dict[str, object]] = [
+    {
+        "key": "p2", "period": 2, "decided": "2001-03-30", "label": "第2期",
+        "groups": [
+            {
+                "group": "重点的に資源配分する4分野",
+                "note": "「重点4分野」は通称で本文にラベルなし。",
+                "items": ["ライフサイエンス", "情報通信", "環境", "ナノテクノロジー・材料"],
+            },
+            {"group": "上記以外の4分野", "items": ["エネルギー", "製造技術", "社会基盤", "フロンティア"]},
+        ],
+    },
+    {
+        "key": "p3", "period": 3, "decided": "2006-03-28", "label": "第3期",
+        "groups": [
+            {
+                "group": "重点推進４分野",
+                "note": "本文で初めてラベル定義。",
+                "items": ["ライフサイエンス", "情報通信", "環境", "ナノテクノロジー・材料"],
+            },
+            {"group": "推進４分野", "items": ["エネルギー", "ものづくり技術", "社会基盤", "フロンティア"]},
+        ],
+    },
+    {
+        "key": "p4", "period": 4, "decided": "2011-08-19", "label": "第4期",
+        "transition": True,
+        "transition_label": "課題達成型へ転換 — 分野の看板を降ろした5年",
+        "note": (
+            "本文が「重点推進４分野及び推進４分野に基づく重点化から、重要課題の達成に向けた"
+            "施策の重点化へ、方針を大きく転換する」と明記。正式用語は課題達成型（「課題解決型」"
+            "ではない）。"
+        ),
+        "groups": [
+            {"group": "課題達成型の柱", "items": ["震災からの復興・再生", "グリーンイノベーション", "ライフイノベーション"]},
+        ],
+    },
+    {
+        "key": "p5", "period": 5, "decided": "2016-01-22", "label": "第5期",
+        "groups": [
+            {
+                "group": "超スマート社会サービスプラットフォームに必要な基盤技術",
+                "items": ["サイバーセキュリティ技術", "IoTシステム構築技術", "ビッグデータ解析技術", "AI技術", "デバイス技術", "ネットワーク技術", "エッジコンピューティング"],
+            },
+            {
+                "group": "新たな価値創出のコアとなる強みを有する基盤技術",
+                "items": ["ロボット技術", "センサ技術", "アクチュエータ技術", "バイオテクノロジー", "ヒューマンインターフェース技術", "素材・ナノテクノロジー", "光・量子技術"],
+            },
+        ],
+    },
+    {
+        "key": "p6", "period": 6, "decided": "2021-03-26", "label": "第6期",
+        "note": (
+            "本文は独自リストを持たず分野別戦略を束ねる。環境エネルギー・安全・安心は本文"
+            "他章に既述だが、分野別戦略の8領域リストには独立項目としては含まれない。"
+        ),
+        "groups": [
+            {"group": "分野別戦略", "items": ["AI技術", "バイオテクノロジー", "量子技術", "マテリアル", "健康・医療", "宇宙", "海洋", "食料・農林水産業"]},
+        ],
+    },
+    {
+        "key": "p7", "period": 7, "decided": "2026-03-27", "label": "第7期",
+        "note": "17の新興・基盤技術領域。",
+        "groups": [{"group": "17の新興・基盤技術領域", "items": []}],  # tech_domainsからdomain_lineage_block()内で充填
+    },
+]
+
+# 第7期の17領域は1〜17の番号でtech_domainsの並び順（①〜⑰）を指す。国家戦略技術領域
+# （集中投資対象）6領域の番号。
+DOMAIN_LINEAGE_NATIONAL_STRATEGY_IDX = [12, 13, 14, 15, 16, 17]
+
+
+def _dl_hop(from_period: str, from_item: str, to_period: str, to_item: str, note: str | None = None) -> dict[str, object]:
+    return {"from_period": from_period, "from_item": from_item, "to_period": to_period, "to_item": to_item, "note": note}
+
+
+def _build_domain_lineage_edges(domain_names: list[str]) -> list[dict[str, object]]:
+    """domain_names は tech_domains.domains の17名称（①〜⑰の順）。flag は区間（hop）ごとに
+    適用する: sure=名称（中核語）が両端で直接継承されている、または本文で確認できる改名
+    （例: 製造技術→ものづくり技術）。interp=名称の継承がなく内容上の対応（編集部の解釈）。
+    同名継続（エネルギー→エネルギー等）や中核語の継承（量子/バイオ/宇宙/AI/マテリアル等）
+    のみを sure とし、エネルギー→グリーンイノベーションのような名称の切り替わりを伴う
+    区間は、系譜として明確でも interp（点線）に倒す。同じ第7期領域に複数の来歴が合流する
+    場合は、それぞれ独立したエントリとして追加する。"""
+    D = domain_names  # D[i-1] が第7期の i 番目の領域名
+    edges: list[dict[str, object]] = []
+
+    def add(idx: int, hops: list[tuple[str, dict[str, object]]]) -> None:
+        target = D[idx - 1]
+        for flag, h in hops:
+            edges.append({"domain": target, "flag": flag, **h})
+
+    add(1, [("interp", _dl_hop("p2", "社会基盤", "p7", D[0]))])
+    add(2, [("interp", _dl_hop("p2", "社会基盤", "p7", D[1]))])
+    add(3, [
+        ("sure", _dl_hop("p2", "情報通信", "p3", "情報通信")),
+        ("interp", _dl_hop("p3", "情報通信", "p5", "サイバーセキュリティ技術")),
+        ("interp", _dl_hop("p3", "情報通信", "p5", "IoTシステム構築技術")),
+        ("sure", _dl_hop("p5", "サイバーセキュリティ技術", "p7", D[2])),
+        ("interp", _dl_hop("p5", "IoTシステム構築技術", "p7", D[2])),
+    ])
+    add(4, [
+        ("interp", _dl_hop("p2", "ライフサイエンス", "p6", "食料・農林水産業", "ライフサイエンス分野中の食料に関する記述を編集部が抽出し対応させた（中間期に食料・農林水産業として独立継続した記載はない）。")),
+        ("sure", _dl_hop("p6", "食料・農林水産業", "p7", D[3])),
+    ])
+    add(5, [
+        ("sure", _dl_hop("p2", "エネルギー", "p3", "エネルギー")),
+        ("interp", _dl_hop("p3", "エネルギー", "p4", "グリーンイノベーション")),
+        ("interp", _dl_hop("p4", "グリーンイノベーション", "p7", D[4], "第6期本文では「環境エネルギー」として他章に既述だが、分野別戦略の8領域リストには独立項目としては含まれない。")),
+    ])
+    add(5, [
+        ("sure", _dl_hop("p2", "環境", "p3", "環境")),
+        ("interp", _dl_hop("p3", "環境", "p7", D[4], "環境分野（第2〜3期）は資源・エネルギー安全保障・GX関連技術（第7期）へ内容上対応すると編集部が解釈。")),
+    ])
+    add(6, [
+        ("sure", _dl_hop("p2", "社会基盤", "p3", "社会基盤")),
+        ("interp", _dl_hop("p3", "社会基盤", "p7", D[5], "第6期本文では「安全・安心」として他章に既述だが、分野別戦略の8領域リストには独立項目としては含まれない。")),
+    ])
+    add(7, [
+        ("sure", _dl_hop("p2", "ライフサイエンス", "p3", "ライフサイエンス")),
+        ("interp", _dl_hop("p3", "ライフサイエンス", "p4", "ライフイノベーション")),
+        ("interp", _dl_hop("p4", "ライフイノベーション", "p6", "健康・医療")),
+        ("sure", _dl_hop("p6", "健康・医療", "p7", D[6])),
+    ])
+    add(8, [
+        ("sure", _dl_hop("p2", "ナノテクノロジー・材料", "p3", "ナノテクノロジー・材料")),
+        ("sure", _dl_hop("p3", "ナノテクノロジー・材料", "p5", "素材・ナノテクノロジー")),
+        ("interp", _dl_hop("p5", "素材・ナノテクノロジー", "p6", "マテリアル", "「素材」から「マテリアル」への言い換えは内容上の対応として扱う（同一の字面継承ではない）。")),
+        ("sure", _dl_hop("p6", "マテリアル", "p7", D[7])),
+    ])
+    add(8, [
+        ("sure", _dl_hop("p2", "製造技術", "p3", "ものづくり技術", "第3期本文で確認できる改名。")),
+        ("interp", _dl_hop("p3", "ものづくり技術", "p7", D[7], "ものづくり技術はその後の期で独立区分としては継続せず、マテリアル系へ合流したと編集部が解釈。")),
+    ])
+    add(9, [
+        ("sure", _dl_hop("p2", "社会基盤", "p3", "社会基盤")),
+        ("interp", _dl_hop("p3", "社会基盤", "p7", D[8])),
+    ])
+    add(10, [
+        ("sure", _dl_hop("p2", "フロンティア", "p3", "フロンティア")),
+        ("interp", _dl_hop("p3", "フロンティア", "p6", "海洋", "海洋開発はフロンティア分野の内訳項目で、独立の看板になるのは第6期。")),
+        ("sure", _dl_hop("p6", "海洋", "p7", D[9])),
+    ])
+    # 11 = 防衛産業関連技術: 歴史的な来歴なし（first_appearanceで別途表現）
+    add(12, [
+        ("sure", _dl_hop("p5", "AI技術", "p6", "AI技術")),
+        ("interp", _dl_hop("p5", "ロボット技術", "p6", "AI技術", "第6期はAI技術に統合、ロボット技術は独立区分として第6期には継続せず。")),
+        ("sure", _dl_hop("p6", "AI技術", "p7", D[11])),
+    ])
+    add(13, [
+        ("sure", _dl_hop("p5", "光・量子技術", "p6", "量子技術")),
+        ("sure", _dl_hop("p6", "量子技術", "p7", D[12])),
+    ])
+    add(14, [
+        ("interp", _dl_hop("p2", "情報通信", "p5", "デバイス技術")),
+        ("interp", _dl_hop("p2", "情報通信", "p5", "ネットワーク技術")),
+        ("interp", _dl_hop("p5", "デバイス技術", "p7", D[13])),
+        ("interp", _dl_hop("p5", "ネットワーク技術", "p7", D[13])),
+    ])
+    add(15, [
+        ("sure", _dl_hop("p2", "ライフサイエンス", "p3", "ライフサイエンス")),
+        ("interp", _dl_hop("p3", "ライフサイエンス", "p5", "バイオテクノロジー")),
+        ("sure", _dl_hop("p5", "バイオテクノロジー", "p6", "バイオテクノロジー")),
+        ("sure", _dl_hop("p6", "バイオテクノロジー", "p7", D[14])),
+    ])
+    add(16, [
+        ("sure", _dl_hop("p2", "エネルギー", "p3", "エネルギー", "核融合に明示言及。")),
+        ("interp", _dl_hop("p3", "エネルギー", "p7", D[15], "独立領域としての切り出しは第7期が初。")),
+    ])
+    add(17, [
+        ("sure", _dl_hop("p2", "フロンティア", "p3", "フロンティア")),
+        ("interp", _dl_hop("p3", "フロンティア", "p6", "宇宙", "宇宙開発はフロンティア分野の内訳項目で、独立の看板になるのは第6期。")),
+        ("sure", _dl_hop("p6", "宇宙", "p7", D[16])),
+    ])
+    return edges
+
+
+def domain_lineage_block(tech_domains: dict[str, object] | None, plan_language: dict[str, object] | None) -> dict[str, object]:
+    if not tech_domains or tech_domains.get("status") != "ok" or not isinstance(tech_domains.get("domains"), list):
+        raise ValueError("domain_lineage: tech_domainsが取得できていない（第7期17領域名を参照できない）")
+    domains = tech_domains["domains"]
+    if len(domains) != 17:
+        raise ValueError(f"domain_lineage: tech_domainsの領域数が17ではない（{len(domains)}）")
+    D = [d["name"] for d in domains]
+
+    periods = [dict(p) for p in DOMAIN_LINEAGE_PERIODS]
+    for p in periods:
+        p["groups"] = [dict(g) for g in p["groups"]]
+        if p["key"] == "p7":
+            p["groups"][0] = {**p["groups"][0], "items": list(D)}
+
+    national_strategy = [D[i - 1] for i in DOMAIN_LINEAGE_NATIONAL_STRATEGY_IDX]
+    edges = _build_domain_lineage_edges(D)
+
+    # 防衛産業関連技術（11番目）は歴史的来歴を持たない第7期の初出領域。plan_languageで
+    # 既に集計済みの「防衛」出現回数（第3〜7期）を裏付けとしてnoteに動的に埋め込む
+    # （ハードコードした回数を別途持たない＝出典が二重管理にならない）。
+    defense_name = D[10]
+    defense_note = "第2〜6期の基本計画本文に先例なし（第7期で初めて重要技術領域として設定）。"
+    if plan_language and plan_language.get("status") == "ok":
+        term = next((t for t in plan_language.get("terms", []) if t.get("term") == "防衛"), None)
+        if term:
+            counts = term.get("counts", {})
+            pre7 = "、".join(f"第{p}期{counts.get(str(p), {}).get('n', '—')}回" for p in [3, 4, 5, 6])
+            n7 = counts.get("7", {}).get("n", "—")
+            defense_note = f"第2〜6期の基本計画本文に先例なし。plan_languageの「防衛」出現回数は{pre7}に対し、第7期は{n7}回。"
+    first_appearance = {"item": defense_name, "period": "p7", "note": defense_note}
+
+    extinct = [
+        {"name": "情報通信", "last_period": "p3", "fate": f"{D[2]}・{D[13]}・{D[11]}へ分散"},
+        {"name": "社会基盤", "last_period": "p3", "fate": f"{D[8]}・{D[5]}へ分散"},
+        {"name": "フロンティア", "last_period": "p3", "fate": f"{D[16]}・{D[9]}へ分割"},
+        {"name": "グリーンイノベーション／ライフイノベーション（柱構造）", "last_period": "p4", "fate": "第7期で技術領域別の構成に回帰"},
+        {"name": "安全・安心", "last_period": "p6", "fate": f"{D[5]}へ"},
+    ]
+
+    # 検証: 17領域全件が edges の domain 集合 と first_appearance のどちらかに過不足なく対応する
+    chain_domains = {e["domain"] for e in edges}
+    covered = chain_domains | {first_appearance["item"]}
+    all_p7 = set(D)
+    if covered != all_p7:
+        raise ValueError(
+            f"domain_lineage: 17領域とedges/first_appearanceの対応が一致しない"
+            f"（missing={all_p7 - covered}, extra={covered - all_p7}）"
+        )
+    if len(national_strategy) != 6:
+        raise ValueError(f"domain_lineage: national_strategyが6件ではない（{len(national_strategy)}件）")
+    if not set(national_strategy) <= all_p7:
+        raise ValueError("domain_lineage: national_strategyにtech_domainsに存在しない名称が含まれる")
+    if len(extinct) != 5:
+        raise ValueError(f"domain_lineage: extinctが5件ではない（{len(extinct)}件）")
+    print(f"[policy] domain_lineage: {len(edges)}区間・17領域（うち国家戦略{len(national_strategy)}・初出1）を検証")
+
+    return {
+        "status": "ok",
+        "periods": periods,
+        "edges": edges,
+        "extinct": extinct,
+        "first_appearance": first_appearance,
+        "national_strategy": national_strategy,
+        "source": {
+            "title": "各期科学技術基本計画・科学技術・イノベーション基本計画本文（内閣府CSTI）",
+            "url": CSTP_KIHON_INDEX,
+        },
+        "note": (
+            "系譜の対応付けは、名称（中核語）の直接継承または本文で確認できる改名（実線）と、"
+            "名称の継承を伴わない内容上の対応（点線・編集部の解釈）を、系譜チェーン全体ではなく"
+            "区間ごとに区別している。第2期の「重点4分野」等の呼称は通称で、本文でラベルが定義されるのは"
+            "第3期から。第2期は本文PDFへの直接リンクが公式ページになくNDL WARP保存版で確認した"
+            "（https://warp.ndl.go.jp/20250911/20250901044924/https://www8.cao.go.jp/cstp/"
+            "kihonkeikaku/honbun.html）。第3期以降はplans_historyと同じ本文PDF（www8.cao.go.jp/"
+            "cstp/kihonkeikaku/{honbun,4honbun,5honbun,6honbun,7honbun}.pdf）で確認した。"
+            "第7期の17領域名・要約はtech_domainsブロックをそのまま参照している。"
+        ),
+    }
+
+
 # ---------------------------------------------------------------- run helpers
 
 def run_block(name: str, builder) -> dict[str, object]:
@@ -831,7 +1286,11 @@ def run_block(name: str, builder) -> dict[str, object]:
         return {"status": "error", "note": str(error)}
 
 
-BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains", "plan_language"]
+BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains", "plan_language", "strategy_language", "domain_lineage"]
+# domain_lineage は tech_domains（第7期17領域名）と plan_language（防衛の出現回数）に
+# 依存するため、この2ブロックの「前回値保持」フォールバックが確定したあとに構築する
+# （フォールバックが起きた回でも domain_lineage が有効な入力を参照できるようにするため）。
+_DOMAIN_LINEAGE_DEPS = ["plans_history", "plan7_indicators", "tech_domains", "plan_language", "strategy_language"]
 
 
 def main() -> int:
@@ -855,14 +1314,27 @@ def main() -> int:
     payload["plan7_indicators"] = run_block("plan7_indicators", lambda: plan7_indicators_block(previous.get("plan7_indicators")))
     payload["tech_domains"] = run_block("tech_domains", lambda: tech_domains_block(previous.get("tech_domains")))
     payload["plan_language"] = run_block("plan_language", lambda: plan_language_block(previous.get("plan_language")))
+    payload["strategy_language"] = run_block("strategy_language", lambda: strategy_language_block(previous.get("strategy_language")))
 
     # 一時的な取得失敗で公開済みの正常データを潰さない: 前回ファイルの正常ブロックを保持
-    for key in BLOCK_NAMES:
+    # （domain_lineage が tech_domains/plan_language に依存するため、このフォールバックを
+    # 先に確定させてから domain_lineage_block を呼ぶ）
+    for key in _DOMAIN_LINEAGE_DEPS:
         if payload[key].get("status") != "ok" and previous.get(key, {}).get("status") == "ok":
             kept = previous[key]
             kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()
             payload[key] = kept
             print(f"[policy] {key}: kept previous ok block")
+
+    payload["domain_lineage"] = run_block(
+        "domain_lineage",
+        lambda: domain_lineage_block(payload.get("tech_domains"), payload.get("plan_language")),
+    )
+    if payload["domain_lineage"].get("status") != "ok" and previous.get("domain_lineage", {}).get("status") == "ok":
+        kept = previous["domain_lineage"]
+        kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()
+        payload["domain_lineage"] = kept
+        print("[policy] domain_lineage: kept previous ok block")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"

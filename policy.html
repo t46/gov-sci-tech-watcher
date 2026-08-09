@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260819a" />
+    <link rel="stylesheet" href="analytics.css?v=20260821c" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -31,8 +31,10 @@
     <nav class="chapter-rail" aria-label="章ナビゲーション">
       <a href="#ch-history" data-rail="ch-history"><i>00</i><span>計画の30年</span></a>
       <a href="#ch-language" data-rail="ch-language"><i>01</i><span>計画の言葉</span></a>
-      <a href="#ch-targets" data-rail="ch-targets"><i>02</i><span>19の指標</span></a>
-      <a href="#ch-domains" data-rail="ch-domains"><i>03</i><span>重点技術17領域</span></a>
+      <a href="#ch-strategy-language" data-rail="ch-strategy-language"><i>02</i><span>戦略の言葉</span></a>
+      <a href="#ch-targets" data-rail="ch-targets"><i>03</i><span>19の指標</span></a>
+      <a href="#ch-lineage" data-rail="ch-lineage"><i>04</i><span>重点領域の系譜</span></a>
+      <a href="#ch-domains" data-rail="ch-domains"><i>05</i><span>重点技術17領域</span></a>
     </nav>
 
     <main id="main">
@@ -67,22 +69,56 @@
         </figure>
       </section>
 
-      <!-- 02 · PLAN 7 INDICATORS -->
+      <!-- 02 · STRATEGY LANGUAGE SPECTRUM -->
+      <section class="chapter" id="ch-strategy-language" aria-labelledby="strategy-language-title">
+        <div class="ch-head">
+          <p class="ch-no">02 / STRATEGY LANGUAGE SPECTRUM</p>
+          <h2 id="strategy-language-title">戦略の言葉</h2>
+          <p class="ch-lede" id="strategy-language-lede">用語データを取得中。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">DATA</span>統合イノベーション戦略 各年版本文（内閣府）<a href="https://www8.cao.go.jp/cstp/tougosenryaku/index.html" target="_blank" rel="noopener noreferrer">cao.go.jp/cstp/tougosenryaku</a></figcaption>
+          <div class="fig-body" id="strategy-language-spectrum"></div>
+          <div class="terrain-hover" id="strategy-language-hover" aria-hidden="true"></div>
+          <p class="policy-lang-annotate"><i aria-hidden="true"></i>初出 — それ以前の対象期間はすべて出現回数0</p>
+          <p class="method-note" id="strategy-language-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 03 · PLAN 7 INDICATORS -->
       <section class="chapter" id="ch-targets" aria-labelledby="targets-title">
         <div class="ch-head">
-          <p class="ch-no">02 / PLAN 7 INDICATORS</p>
+          <p class="ch-no">03 / PLAN 7 INDICATORS</p>
           <h2 id="targets-title">19の指標</h2>
           <p class="ch-lede" id="targets-lede">指標データを取得中。</p>
           <p class="method-note">目標値は政策の進捗把握のためのもので、個々の研究者や機関の評価にそのまま用いるものではない。</p>
         </div>
+        <div id="targets-audit"></div>
         <div id="targets-groups"></div>
         <p class="method-note" id="targets-source">出典を確認中</p>
       </section>
 
-      <!-- 03 · TECH DOMAINS -->
+      <!-- 04 · DOMAIN LINEAGE -->
+      <section class="chapter" id="ch-lineage" aria-labelledby="lineage-title">
+        <div class="ch-head">
+          <p class="ch-no">04 / DOMAIN LINEAGE</p>
+          <h2 id="lineage-title">重点領域の系譜</h2>
+          <p class="ch-lede" id="lineage-lede">系譜データを取得中。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">DATA</span>各期の基本計画本文（内閣府CSTI）<a href="https://www8.cao.go.jp/cstp/kihonkeikaku/index.html" target="_blank" rel="noopener noreferrer">cao.go.jp/cstp/kihonkeikaku</a></figcaption>
+          <div class="fig-body lineage-body" id="lineage-chart"></div>
+          <div class="terrain-hover" id="lineage-hover" aria-hidden="true"></div>
+          <p class="method-note" id="lineage-legend"></p>
+          <p class="method-note" id="lineage-extinct"></p>
+          <p class="method-note" id="lineage-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 05 · TECH DOMAINS -->
       <section class="chapter" id="ch-domains" aria-labelledby="domains-title">
         <div class="ch-head">
-          <p class="ch-no">03 / TECHNOLOGY DOMAINS</p>
+          <p class="ch-no">05 / TECHNOLOGY DOMAINS</p>
           <h2 id="domains-title">重点技術の17領域</h2>
           <p class="ch-lede" id="domains-lede">重点技術領域のデータを取得中。</p>
         </div>
@@ -105,7 +141,7 @@
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-    <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="policy.js?v=20260819c" defer></script>
+    <script src="obs-core.js?v=20260817b" defer></script>
+    <script src="policy.js?v=20260821d" defer></script>
   </body>
 </html>

@@ -2057,18 +2057,43 @@ function renderMobChoices(mobility) {
   setText("#mob-choices-source", notes.join(" "));
 }
 
+/* 図B（地図）は#ch-globalが画面外3スクロール分下にあり、land-110m.jsonの取得と
+   d3.geoContainsによる陸ドット事前計算（~31,000回）が初期描画の足を引っ張っていたため、
+   セクションが近づくまで取得・描画を遅らせる（IntersectionObserverが無ければ即実行にフォールバック） */
+function initMobMapLazy(mobility) {
+  const target = $("#mobmap-stage") || $("#ch-global");
+  const trigger = () => {
+    fetchJson("data/land-110m.json")
+      .then((landTopology) => safeCall("renderMobMap", () => renderMobMap(mobility, landTopology)))
+      .catch((error) => {
+        console.error("[people] land-110m fetch failed", error);
+        safeCall("renderMobMap", () => renderMobMap(mobility, null));
+      });
+  };
+  if (!target || typeof IntersectionObserver === "undefined") {
+    trigger();
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.isIntersecting)) {
+      observer.disconnect();
+      trigger();
+    }
+  }, { rootMargin: "600px 0px" });
+  observer.observe(target);
+}
+
 /* ================================================================ boot */
 
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult, landTopologyResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/economy.json"),
     fetchJson("data/phd_support.json"),
     fetchJson("data/mobility.json"),
-    fetchJson("data/land-110m.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
@@ -2076,8 +2101,6 @@ async function init() {
   const phdSupport = phdSupportResult.status === "fulfilled" ? phdSupportResult.value : null;
   /* mobility.json取得失敗は03章のみに影響させる（他の章は独立して動く） */
   const mobility = mobilityResult.status === "fulfilled" ? mobilityResult.value : null;
-  /* land-110m.json取得失敗は図Bだけに影響させる（renderMobMap内で.data-emptyにする） */
-  const landTopology = landTopologyResult.status === "fulfilled" ? landTopologyResult.value : null;
   if (!indicators && !analytics) {
     setText("#header-status", "人材データを取得できません");
     return;
@@ -2113,7 +2136,7 @@ async function init() {
   /* 章の視覚的な並び: A純流出(reico) → B地図 → C出入りのバランス(bilateral) → D博士たちの選択
      → 参考セクション: E32年の往来(flows) → F地域別(regional) → 外国人本務教員 */
   safeCall("renderMobReico", () => renderMobReico(mobility));
-  safeCall("renderMobMap", () => renderMobMap(mobility, landTopology));
+  initMobMapLazy(mobility);
   safeCall("renderMobBilateral", () => renderMobBilateral(mobility));
   safeCall("renderMobChoices", () => renderMobChoices(mobility));
   safeCall("renderMobFlows", () => renderMobFlows(mobility));

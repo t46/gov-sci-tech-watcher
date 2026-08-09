@@ -860,3 +860,114 @@ a.signal-title:hover { color: var(--jp); }
   font: 400 9.5px var(--mono);
   color: var(--faint);
 }
+
+/* ==== policy: strategy-language + targets-audit (2026-08) ==== */
+/* 02 戦略の言葉: マトリクスは既存の .fig / .terrain-hover / .policy-lang-annotate / .annot-line
+   / .annot-text / .annot-sub / .method-note / figcaption をそのまま再利用（新規クラスなし）。 */
+
+/* 03 19の指標: 監査ヘッダ（見出し・19セルの帯・凡例） */
+.policy-audit { margin-bottom: 36px; padding-bottom: 28px; border-bottom: 1px solid var(--hair); }
+.policy-audit-headline { font-family: var(--mincho); font-size: clamp(19px, 2.4vw, 25px); font-weight: 600; }
+.policy-audit-headline b { color: var(--jp); font-weight: 700; }
+.policy-audit-strip { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 20px; }
+.policy-audit-cell { width: 16px; height: 16px; flex: none; }
+.policy-audit-cell.is-direct { background: var(--jp); }
+.policy-audit-cell.is-approx { background: transparent; border: 1px solid var(--jp); opacity: 0.85; }
+.policy-audit-cell.is-none { background: var(--faint); opacity: 0.3; }
+.policy-audit-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font: 400 10.5px var(--mono); color: var(--dim); }
+.policy-audit-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.policy-audit-legend i { width: 10px; height: 10px; flex: none; }
+.policy-audit-legend .is-direct i { background: var(--jp); }
+.policy-audit-legend .is-approx i { background: transparent; border: 1px solid var(--jp); }
+.policy-audit-legend .is-none i { background: var(--faint); opacity: 0.32; }
+
+/* 03 19の指標: カードの状態チップ・定義差ノート・ミニ系列 */
+.policy-ind-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.policy-audit-chip { flex: none; font: 600 9.5px var(--mono); letter-spacing: 0.06em; padding: 2px 7px; border: 1px solid; white-space: nowrap; }
+.policy-audit-chip.is-direct { color: #14100a; background: var(--jp); border-color: var(--jp); }
+.policy-audit-chip.is-approx { color: var(--jp); background: transparent; border-color: var(--jp); }
+.policy-audit-chip.is-none { color: var(--faint); background: transparent; border-color: var(--hair); }
+.policy-audit-note { margin-top: 10px; font: 400 10px var(--mono); color: var(--dim); line-height: 1.7; }
+.policy-spark { margin-top: 12px; min-height: 46px; }
+.policy-spark svg { width: 100%; height: auto; }
+.policy-spark-loading, .policy-spark-empty { font: 400 10px var(--mono); color: var(--faint); }
+.policy-spark-note { margin-top: 6px; font: 400 9.5px var(--mono); color: var(--faint); line-height: 1.6; }
+
+/* ==== policy: domain-lineage (2026-08) ==== */
+
+/* 04 系譜の出典note・消滅バナーnoteは長いURL/連結語を生のまま含むため、.method-note
+   共通ルールを変えずにこの2要素だけ折り返しを許可する（横スクロール防止）。 */
+#lineage-source, #lineage-extinct { overflow-wrap: anywhere; }
+
+/* 05 重点技術17領域: 国家戦略技術領域バッジ（04系譜の national_strategy を参照） */
+.policy-domain-tile.is-natstrat { border-color: rgba(255, 181, 69, 0.4); }
+.policy-domain-badge {
+  display: inline-block;
+  margin-top: 2px;
+  font: 600 9px var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--jp);
+  border: 1px solid var(--jp);
+  padding: 1px 6px;
+}
+
+/* 04 重点領域の系譜: デスクトップSVG */
+.lineage-body { min-height: 220px; }
+.lineage-band { fill: rgba(255, 181, 69, 0.05); stroke: rgba(255, 181, 69, 0.18); stroke-width: 1; cursor: help; }
+.lineage-band-title { font: 600 10px var(--mono); fill: var(--jp); }
+.lineage-edge { fill: none; stroke: var(--jp); transition: opacity 0.15s ease, stroke-width 0.15s ease; }
+.lineage-edge.is-sure { stroke-width: 1.3; opacity: 0.32; }
+.lineage-edge.is-interp { stroke-width: 1.1; stroke-dasharray: 3 3; opacity: 0.17; }
+.lineage-edge.is-hi { opacity: 0.92; stroke-width: 2.2; }
+.lineage-edge.is-dim { opacity: 0.04; }
+.lineage-fade-stub { stroke: url(#lineage-fade); stroke-width: 2; }
+.lineage-tick { stroke: var(--jp); stroke-width: 1.4; opacity: 0.55; transition: opacity 0.15s ease, stroke-width 0.15s ease; }
+.lineage-node.is-p7 .lineage-tick { opacity: 0.75; }
+.lineage-node.is-first .lineage-tick { stroke: var(--cn); opacity: 0.9; }
+.lineage-node.is-hi .lineage-tick { opacity: 1; stroke-width: 2.2; }
+.lineage-node.is-dim .lineage-tick { opacity: 0.1; }
+.lineage-natstrat-ring { fill: none; stroke: var(--jp); stroke-width: 1; opacity: 0.65; }
+.lineage-label {
+  font: 400 10px var(--mono);
+  fill: var(--dim);
+  paint-order: stroke;
+  stroke: var(--bg0);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  transition: opacity 0.15s ease, fill 0.15s ease;
+}
+.lineage-label-p4 { font-size: 10.5px; fill: var(--text); font-weight: 500; }
+.lineage-mid-label { font-size: 9px; fill: #66738c; }
+.lineage-node.is-hi .lineage-mid-label { fill: var(--text); }
+.lineage-node.is-hi .lineage-label { fill: var(--text); }
+.lineage-node.is-dim .lineage-label { opacity: 0.18; }
+.lineage-badge-natstrat { fill: var(--jp); color: var(--jp); font-weight: 700; }
+.lineage-hit { fill: transparent; }
+.lineage-hit-domain { cursor: pointer; }
+@media (max-width: 760px) {
+  .lineage-hit-domain { display: none; } /* MOBILEはSVGを描画しないため到達しないが念のため */
+}
+
+/* 04 重点領域の系譜: モバイルのカード一覧（17件の来歴をパンくずで表示） */
+.lineage-cards { display: flex; flex-direction: column; gap: 10px; }
+.lineage-card { border: 1px solid var(--hair); background: var(--panel); padding: 14px 16px; }
+.lineage-card.is-first { border-color: rgba(79, 216, 255, 0.4); }
+.lineage-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.lineage-card-name { font-family: var(--mincho); font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.5; }
+.lineage-card-name .lineage-badge-natstrat { font-family: var(--mono); margin-right: 2px; }
+.lineage-first-chip {
+  flex: none;
+  fill: var(--cn);
+  font: 600 9px var(--mono);
+  color: var(--cn);
+  border: 1px solid var(--cn);
+  padding: 1px 6px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.lineage-card-trail { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; font: 400 11px var(--mono); color: var(--dim); }
+.lineage-card-step { display: inline-flex; align-items: baseline; gap: 4px; }
+.lineage-card-step b { color: var(--text); font-weight: 500; }
+.lineage-card-step i { font-style: normal; color: var(--faint); font-size: 9.5px; }
+.lineage-card-arrow { color: var(--jp); opacity: 0.75; }
+.lineage-card-arrow.is-interp { color: var(--faint); }
