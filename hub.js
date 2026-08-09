@@ -87,7 +87,7 @@ const sparkSvg = (values, color) => {
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.4" opacity="0.9"/><circle cx="${x(last[0]).toFixed(1)}" cy="${y(last[1]).toFixed(1)}" r="2" fill="${color}"/></svg>`;
 };
 
-function renderWindows(indicators, analytics, updates) {
+function renderWindows(indicators, analytics, updates, gov) {
   /* ① 最新情報 */
   const items = [...(updates?.items || [])].sort((a, b) => String(b.published_at || "").localeCompare(String(a.published_at || "")));
   if (items.length) {
@@ -110,15 +110,26 @@ function renderWindows(indicators, analytics, updates) {
     const spark = $("#win-people-spark");
     if (spark) spark.innerHTML = sparkSvg(phdRows.map((r) => [r.year, r.total]), "#4fd8ff");
   }
-  /* ③ お金 */
+  /* ③ 行政 */
+  const budgetSeries = gov?.budget_series;
+  if (budgetSeries?.status === "ok" && budgetSeries.fiscal_years?.length) {
+    const li = budgetSeries.fiscal_years.length - 1;
+    const total = budgetSeries.initial?.[li];
+    const year = budgetSeries.fiscal_years[li];
+    if (Number.isFinite(total) && total > 0) {
+      ticker("#win-gov", total, (v) => fmtCho(v));
+      setText("#win-gov-note", `科学技術関係予算（当初） ${year}年度 / ${gov?.projects?.status === "ok" && gov.projects.count ? `${fmtInt(gov.projects.count)}事業` : ""}`);
+    }
+  }
+  /* ④ お金 */
   const funding = indicators?.funding_flow;
   if (funding?.status === "ok") {
     const total = d3.sum(funding.links || [], (l) => l.value);
-    const gov = d3.sum((funding.links || []).filter((l) => l.source === "政府"), (l) => l.value);
+    const govShare = d3.sum((funding.links || []).filter((l) => l.source === "政府"), (l) => l.value);
     ticker("#win-money", total, (v) => fmtCho(v));
-    setText("#win-money-note", `研究開発費 ${funding.year_label || ""} / うち政府負担 ${fmtCho(gov)}`);
+    setText("#win-money-note", `研究開発費 ${funding.year_label || ""} / うち政府負担 ${fmtCho(govShare)}`);
   }
-  /* ④ 研究 */
+  /* ⑤ 研究 */
   const share = seriesMap(indicators?.papers, "share").jp || [];
   if (share.length) {
     const peak = share.reduce((a, b) => (b[1] > a[1] ? b : a));
@@ -130,12 +141,13 @@ function renderWindows(indicators, analytics, updates) {
   }
 }
 
-function renderLedgerAll(indicators, analytics, updates) {
+function renderLedgerAll(indicators, analytics, updates, gov) {
   const ind = indicators || {};
   const entries = [
     blockEntry(ind.gerd_gdp), blockEntry(ind.researchers), blockEntry(ind.phd_enrollment), blockEntry(ind.phd_degrees),
     blockEntry(ind.papers), blockEntry(ind.field_share), blockEntry(ind.funding_flow), blockEntry(ind.oecd_gerd_gdp),
     blockEntry(ind.openalex), blockEntry(ind.estat),
+    blockEntry(gov?.budget_series), blockEntry(gov?.projects), blockEntry(gov?.contracts),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
     ...(updates?.sources || []).map((s) => ({ title: `政府公式フィード — ${s.name}`, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
   ].filter(Boolean);
@@ -147,21 +159,23 @@ function renderLedgerAll(indicators, analytics, updates) {
 async function init() {
   bootFooter();
   initHeroCanvas();
-  const [indicatorsResult, analyticsResult, updatesResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, updatesResult, govResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/updates.json"),
+    fetchJson("data/gov.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
   const updates = updatesResult.status === "fulfilled" ? updatesResult.value : null;
+  const gov = govResult.status === "fulfilled" ? govResult.value : null;
 
   if (!indicators && !analytics && !updates) {
     setText("#header-status", "観測データを取得できません");
     return;
   }
   $("#header-status-dot")?.classList.add("is-live");
-  setText("#header-status", `観測中 — 4分野 / シグナル${fmtInt((updates?.items || []).length)}件`);
+  setText("#header-status", `観測中 — 5分野 / シグナル${fmtInt((updates?.items || []).length)}件`);
 
   /* hero readouts */
   const gerd = lastPoint(seriesMap(indicators?.oecd_gerd_gdp).jp || seriesMap(indicators?.gerd_gdp).jp);
@@ -175,8 +189,8 @@ async function init() {
   if (phd) { ticker("#ro-phd", phd.total, (v) => fmtInt(Math.round(v))); setText("#ro-phd-note", `${phd.year}年度 / 学校基本調査`); }
   if (signals != null) { ticker("#ro-signals", signals, (v) => `${Math.round(v)}件`); setText("#ro-signals-note", "政府公式 / 3時間ごと更新"); }
 
-  renderWindows(indicators, analytics, updates);
-  renderLedgerAll(indicators, analytics, updates);
+  renderWindows(indicators, analytics, updates, gov);
+  renderLedgerAll(indicators, analytics, updates, gov);
 }
 
 init().catch((error) => {

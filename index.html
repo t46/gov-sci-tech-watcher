@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学技術観測室。政策・予算の最新情報を更新し、人材・資金・研究の3つの観点から日本の科学を観察する。" />
+    <meta name="description" content="日本の科学技術観測室。政策・予算の最新情報を更新し、行政・人材・資金・研究の4つの観点から日本の科学を観察する。" />
     <meta name="theme-color" content="#06090f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
     <title>SCIENCE SIGNAL — 日本の科学技術観測室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260817a" />
+    <link rel="stylesheet" href="analytics.css?v=20260817d" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -20,6 +20,7 @@
       <nav class="obs-nav" aria-label="メインナビゲーション">
         <a class="active" href="./">観測室</a>
         <a href="signals.html">情報</a>
+        <a href="gov.html">行政</a>
         <a href="people.html">人材</a>
         <a href="money.html">資金</a>
         <a href="papers.html">研究</a>
@@ -36,7 +37,7 @@
         <div class="hero-copy">
           <p class="eyebrow"><span></span>SCIENCE SIGNAL / OBSERVATORY</p>
           <h1 id="hero-title">日本の<span style="white-space: nowrap">科学技術</span><span style="white-space: nowrap">観測室</span></h1>
-          <p class="hero-lede" id="hero-lede">政策・予算の最新情報を更新。日本の科学を、人材、資金、研究の3つの観点から観察。</p>
+          <p class="hero-lede" id="hero-lede">政策・予算の最新情報を更新。日本の科学を、行政、人材、資金、研究の4つの観点から観察。</p>
           <div class="hero-readouts" id="hero-readouts">
             <div class="readout"><span class="ro-label">研究開発費 / GDP</span><strong class="ro-value" id="ro-gerd">—</strong><span class="ro-note" id="ro-gerd-note">取得中</span></div>
             <div class="readout"><span class="ro-label">論文数（年間）</span><strong class="ro-value" id="ro-papers">—</strong><span class="ro-note" id="ro-papers-note">取得中</span></div>
@@ -47,11 +48,11 @@
         <div class="scroll-cue" aria-hidden="true"><span>SCROLL</span><i></i></div>
       </section>
 
-      <!-- 01 · FOUR WINDOWS -->
+      <!-- 01 · FIVE WINDOWS -->
       <section class="chapter" id="ch-windows" aria-labelledby="windows-title">
         <div class="ch-head">
-          <p class="ch-no">01 / FOUR WINDOWS</p>
-          <h2 id="windows-title">4つの観測窓</h2>
+          <p class="ch-no">01 / FIVE WINDOWS</p>
+          <h2 id="windows-title">5つの観測窓</h2>
         </div>
         <div class="win-grid">
           <a class="win" href="signals.html">
@@ -62,8 +63,16 @@
             <div class="win-list" id="win-signals-list"></div>
             <span class="win-cta">コンソールを開く →</span>
           </a>
-          <a class="win" href="people.html">
+          <a class="win" href="gov.html">
             <span class="win-no">02</span>
+            <h3>行政<small>GOVERNMENT</small></h3>
+            <strong class="win-value" id="win-gov">—</strong>
+            <span class="win-note" id="win-gov-note">予算編成から支出先・契約・財務諸表まで</span>
+            <div class="win-spark" aria-hidden="true"></div>
+            <span class="win-cta">行政の観測へ →</span>
+          </a>
+          <a class="win" href="people.html">
+            <span class="win-no">03</span>
             <h3>人材<small>PEOPLE</small></h3>
             <strong class="win-value" id="win-people">—</strong>
             <span class="win-note" id="win-people-note">博士号・博士課程入学者・研究者の移動</span>
@@ -71,7 +80,7 @@
             <span class="win-cta">人材の観測へ →</span>
           </a>
           <a class="win" href="money.html">
-            <span class="win-no">03</span>
+            <span class="win-no">04</span>
             <h3>資金<small>MONEY</small></h3>
             <strong class="win-value" id="win-money">—</strong>
             <span class="win-note" id="win-money-note">研究開発費の流れと、大学・研究機関の財務諸表</span>
@@ -79,7 +88,7 @@
             <span class="win-cta">資金の観測へ →</span>
           </a>
           <a class="win" href="papers.html">
-            <span class="win-no">04</span>
+            <span class="win-no">05</span>
             <h3>研究<small>RESEARCH</small></h3>
             <strong class="win-value" id="win-papers">—</strong>
             <span class="win-note" id="win-papers-note">論文数・注目論文シェア・分野構成・機関</span>
@@ -105,6 +114,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="hub.js?v=20260812a" defer></script>
+    <script src="hub.js?v=20260817d" defer></script>
   </body>
 </html>

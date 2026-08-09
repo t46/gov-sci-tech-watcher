@@ -75,7 +75,7 @@ canvas { display: block; }
 .obs-brand-dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--jp); }
 .obs-nav { display: flex; gap: 24px; font: 500 12px var(--mono); letter-spacing: 0.08em; }
 .obs-nav a {
-  position: relative; color: var(--dim); padding: 4px 0 9px;
+  position: relative; color: var(--dim); padding: 4px 0 9px; white-space: nowrap;
   transition: color 0.3s cubic-bezier(0.19, 1, 0.22, 1), text-shadow 0.3s cubic-bezier(0.19, 1, 0.22, 1);
 }
 .obs-nav a::after {
@@ -577,6 +577,14 @@ a.signal-title:hover { color: var(--jp); }
   .obs-header { padding: 10px 14px; }
   .obs-status { display: none; }
   .obs-nav { gap: 13px; font-size: 11.5px; letter-spacing: 0.02em; }
+}
+@media (max-width: 460px) {
+  .obs-header { padding: 8px 10px; }
+  .obs-brand { font-size: 11px; gap: 6px; letter-spacing: 0.1em; }
+  .obs-brand-dot { width: 7px; height: 7px; }
+  .obs-nav { gap: 7px; font-size: 10px; letter-spacing: 0; }
+}
+@media (max-width: 760px) {
   .chapter { padding: 84px 6vw 64px; }
   .hero { padding: 0 6vw; }
   .hero-readouts { grid-template-columns: 1fr 1fr; margin-top: 40px; }
@@ -625,3 +633,61 @@ a.signal-title:hover { color: var(--jp); }
 }
 .theme-legend .tl i { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
 #themes-stream svg text { user-select: none; }
+
+/* ================================================================== gov */
+
+/* 00 budget anatomy strip */
+.gov-anatomy { max-width: 920px; }
+.gov-anatomy-title { font: 500 12px var(--mono); color: var(--dim); margin-bottom: 10px; }
+.gov-anatomy-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font: 400 11px var(--mono); color: var(--dim); }
+.gov-anatomy-legend i, .bs-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.gov-anatomy-note { margin-top: 10px; font: 400 10.5px var(--mono); color: var(--faint); line-height: 1.7; }
+
+/* 02 project star map */
+.star-stage { position: relative; border: 1px solid var(--hair); height: 640px; background: linear-gradient(180deg, rgba(13, 20, 32, 0.55), rgba(8, 12, 20, 0.9)); }
+.star-stage canvas { width: 100%; height: 100%; }
+.proj-card { margin-top: 22px; border: 1px solid var(--hair); background: var(--panel); padding: 20px 22px; min-height: 60px; }
+.proj-card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 12px; }
+.proj-card-tag { font: 600 10px var(--mono); padding: 2px 8px; border: 1px solid; white-space: nowrap; }
+.proj-card-head h4 { font-family: var(--mincho); font-size: 18px; flex-basis: 100%; line-height: 1.5; }
+.proj-card-amount { margin-top: 12px; font: 600 21px var(--mono); color: var(--jp); font-variant-numeric: tabular-nums; }
+.proj-card-amount small { display: block; margin-top: 3px; font: 400 10px var(--mono); color: var(--faint); }
+.proj-card-payees { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--grid); }
+.proj-card-payees h5 { font: 600 10px var(--mono); letter-spacing: 0.1em; color: var(--faint); margin-bottom: 8px; }
+.proj-card-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 12px; color: var(--dim); border-bottom: 1px solid var(--grid); }
+.proj-card-row b { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* 03 funding network */
+#network-canvas { width: 100%; height: min(90vh, 940px); }
+@media (max-width: 760px) { #network-canvas { height: 680px; } }
+
+/* 04 contract gauges + ranked rows (also reused by 05 books) */
+.gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.gauge { border: 1px solid var(--hair); background: var(--panel); padding: 20px 22px; }
+.gauge-label { font: 500 11px var(--mono); color: var(--dim); letter-spacing: 0.06em; margin-bottom: 14px; }
+.gauge-track { position: relative; height: 14px; background: var(--grid); overflow: hidden; }
+.gauge-track i { position: absolute; inset: 0 auto 0 0; box-shadow: 0 0 10px rgba(255, 181, 69, 0.45); }
+.gauge-value { margin-top: 14px; font: 600 clamp(26px, 3vw, 34px) var(--mono); font-variant-numeric: tabular-nums; }
+.gauge-note { margin-top: 8px; font: 400 10.5px var(--mono); color: var(--faint); }
+.gov-rank { border-top: 1px solid var(--hair); }
+.gov-rank-row { display: grid; grid-template-columns: 190px minmax(0, 1fr) 108px; gap: 12px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--grid); }
+.gov-rank-name { font-size: 12px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gov-rank-bar { position: relative; height: 11px; background: var(--grid); overflow: hidden; }
+.gov-rank-bar i { position: absolute; top: 0; bottom: 0; left: 0; }
+.gov-rank-value { font: 400 11px var(--mono); color: var(--text); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gov-rank-value small { display: block; color: var(--faint); font-size: 9px; }
+@media (max-width: 760px) {
+  .gauge-row { grid-template-columns: 1fr; }
+  .gov-rank-row { grid-template-columns: 118px minmax(0, 1fr) 88px; }
+}
+
+/* 05 ministry books BS bars */
+.bs-row { margin-bottom: 18px; }
+.bs-row-label { display: block; font: 500 11px var(--mono); color: var(--dim); margin-bottom: 6px; }
+.bs-row .cmp-stack i { border-right: 1px solid rgba(6, 9, 15, 0.5); }
+.bs-row .cmp-stack i:last-child { border-right: 0; }
+.bs-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font: 400 10.5px var(--mono); color: var(--dim); }
+
+/* off-rail source ledger table */
+.gov-sources { border-top: 1px solid var(--hair); padding-top: 60px; }
+.gov-sources-table th { text-align: left; color: var(--dim); font-weight: 400; white-space: normal; }
