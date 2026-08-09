@@ -790,8 +790,9 @@ function renderDcRealValue(phdSupport, economy) {
   }
   const lastSegment = segments[segments.length - 1];
   const lastConfirmed = lastSegment[lastSegment.length - 1];
-  if (planned) {
-    /* 直近の確定額を、予定額が始まる前年まで平らに延長して据え置きを視覚化する */
+  if (planned && lastConfirmed.fiscal_year < planned.fiscal_year - 1) {
+    /* 直近の確定額を、予定額が始まる前年まで平らに延長して据え置きを視覚化する
+       （最後の確認点が予定年の前年そのものなら、既にそこまで実データがあるので不要） */
     lastSegment.push({ fiscal_year: planned.fiscal_year - 1, amount_yen: lastConfirmed.amount_yen, virtual: true });
   }
 
@@ -825,7 +826,7 @@ function renderDcRealValue(phdSupport, economy) {
   const y = d3.scaleLinear().domain([yMin * 0.93, yMax * 1.08]).range([height - margin.bottom, margin.top]);
 
   const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-    .attr("aria-label", "学振DC研究奨励金の月額の推移（復元した名目額）と、それを各年の物価で2020年価格に換算した実質価値。1989〜1996年・1999〜2002年は未確認区間。2004年度から2026年度まで月額20万円で据え置かれ、2027年度に227,000円へ増額される予定。");
+    .attr("aria-label", "学振DC研究奨励金の月額の推移（復元した名目額）と、それを各年の物価で2020年価格に換算した実質価値。2000〜01年度の20.5万円をピークに減額され、2004年度から2026年度まで月額20万円で据え置かれ、2027年度に227,000円へ増額される予定。1989〜1996年度、1999年度、2002年度は未確認区間。");
 
   const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtMan(v)).tickSize(-(width - margin.left - margin.right)));
@@ -834,14 +835,21 @@ function renderDcRealValue(phdSupport, economy) {
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(10).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
 
-  /* 未確認区間の帯 */
+  /* 未確認区間の帯。単年ギャップ（from===to）は幅0になってしまうので、1年分の幅を確保して
+     その年を中心に描く（"視覚上は小さな切れ目でよい"という方針どおり細くてよいが、0だと見えない）。 */
+  const yearPx = x(confirmed[0].fiscal_year + 1) - x(confirmed[0].fiscal_year);
   for (const g of gaps) {
-    svg.append("rect").attr("x", x(g.from)).attr("width", Math.max(0, x(g.to) - x(g.from)))
+    const isNarrow = g.from === g.to;
+    const bandX = isNarrow ? x(g.from) - yearPx / 2 : x(g.from);
+    const bandWidth = isNarrow ? yearPx : x(g.to) - x(g.from);
+    svg.append("rect").attr("x", bandX).attr("width", Math.max(2, bandWidth))
       .attr("y", margin.top).attr("height", height - margin.top - margin.bottom)
       .attr("fill", "rgba(139,150,171,0.09)")
       .append("title").text(g.note);
-    svg.append("text").attr("x", (x(g.from) + x(g.to)) / 2).attr("y", margin.top + 13)
-      .attr("text-anchor", "middle").attr("font-size", 9.5).attr("fill", "#5a6579").text("未確認");
+    if (bandWidth > 46) {
+      svg.append("text").attr("x", bandX + bandWidth / 2).attr("y", margin.top + 13)
+        .attr("text-anchor", "middle").attr("font-size", 9.5).attr("fill", "#5a6579").text("未確認");
+    }
   }
 
   /* 実質価値（2020年価格）— 名目より細く、奥に */
@@ -882,7 +890,7 @@ function renderDcRealValue(phdSupport, economy) {
       .text(`${planned.fiscal_year}年度 ${fmtMan(planned.amount_yen)}（予定・新規採用分）`);
   }
 
-  /* 据え置き期間のブラケット注釈（2004年度〜直近の確認済み据え置き終端） */
+  /* 据え置き期間のブラケット注釈（2004年度〜直近の確認済み据え置き終端）。開始年を明記する */
   const plateauStart = confirmed.find((p) => p.amount_yen === 200000 && p.fiscal_year >= 2004);
   const plateauEndYear = planned ? planned.fiscal_year - 1 : lastConfirmed.fiscal_year;
   if (plateauStart) {
@@ -892,19 +900,21 @@ function renderDcRealValue(phdSupport, economy) {
     [plateauStart.fiscal_year, plateauEndYear].forEach((yr) => {
       svg.append("line").attr("x1", x(yr)).attr("x2", x(yr)).attr("y1", plateauY - 4).attr("y2", plateauY + 4).attr("stroke", "#8b96ab");
     });
+    const plateauYears = plateauEndYear - plateauStart.fiscal_year + 1;
+    const plateauLabel = width < 560
+      ? `凍結開始${plateauStart.fiscal_year}〜 ${plateauYears}年間据え置き`
+      : `${plateauStart.fiscal_year}年度〜${plateauEndYear}年度（凍結開始→${plateauYears}年間）月額20万円で据え置き`;
     svg.append("text").attr("x", (x(plateauStart.fiscal_year) + x(plateauEndYear)) / 2).attr("y", plateauY + 15)
-      .attr("text-anchor", "middle").attr("font-size", 10.5).attr("fill", "#8b96ab")
-      .text(`${plateauEndYear - plateauStart.fiscal_year + 1}年間 月額20万円で据え置き`);
+      .attr("text-anchor", "middle").attr("font-size", 10.5).attr("fill", "#8b96ab").text(plateauLabel);
   }
 
-  /* 主要ポイントの点＋ホバー用ツールチップは常に描く。1997/1998・2003/2004はx位置が近く
-     常時ラベルだと（特に狭幅で）文字が重なるため、それぞれ1本のまとめラベルにする。
-     まとめラベル自体も狭幅では省略し、ドット＋ツールチップのみにする。 */
-  const labelPoints = confirmed.filter((p) => [1987, 1997, 1998, 2003, 2004].includes(p.fiscal_year));
-  for (const p of labelPoints) {
+  /* 確認済み全点にドット＋ホバー用ツールチップ */
+  for (const p of confirmed) {
     svg.append("circle").attr("cx", x(p.fiscal_year)).attr("cy", y(p.amount_yen)).attr("r", 2.6).attr("fill", "#ffb545")
       .append("title").text(`${p.fiscal_year}年度 ${fmtMan(p.amount_yen)}${p.approx ? "（概数）" : ""}`);
   }
+  /* 隣接年（1997/1998・2003/2004）は常時ラベルだと（特に狭幅で）文字が重なるため、まとめラベルにする。
+     狭幅ではまとめラベルも省略し、ドット＋ツールチップのみにする。 */
   const clusterLabel = (points, text) => {
     if (width < 560) return;
     const midX = d3.mean(points, (p) => x(p.fiscal_year));
@@ -919,10 +929,21 @@ function renderDcRealValue(phdSupport, economy) {
   }
   const p9798 = confirmed.filter((p) => [1997, 1998].includes(p.fiscal_year));
   if (p9798.length === 2) clusterLabel(p9798, `'97→98 ${fmtMan(p9798[0].amount_yen)}→${fmtMan(p9798[1].amount_yen)}`);
-  const p0001 = confirmed.filter((p) => [2000, 2001].includes(p.fiscal_year));
-  if (p0001.length === 2) clusterLabel(p0001, `'00–01 ${fmtMan(p0001[0].amount_yen)}（ピーク）`);
   const p0304 = confirmed.filter((p) => [2003, 2004].includes(p.fiscal_year));
   if (p0304.length === 2) clusterLabel(p0304, `'03→04 ${fmtMan(p0304[0].amount_yen)}→${fmtMan(p0304[1].amount_yen)}`);
+
+  /* ピーク（2000〜01年度 20.5万円）— 山型の頂点として他の章と同じannot-line/annot-textの見せ方で強調 */
+  const peak = confirmed.reduce((a, b) => (b.amount_yen > a.amount_yen ? b : a), confirmed[0]);
+  if (peak.amount_yen > 200000) {
+    const peakTextY = Math.max(margin.top + 10, y(peak.amount_yen) - 34);
+    svg.append("circle").attr("cx", x(peak.fiscal_year)).attr("cy", y(peak.amount_yen)).attr("r", 4).attr("fill", "#ffb545")
+      .attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.6))");
+    svg.append("line").attr("class", "annot-line").attr("x1", x(peak.fiscal_year)).attr("x2", x(peak.fiscal_year))
+      .attr("y1", y(peak.amount_yen)).attr("y2", peakTextY + 6);
+    svg.append("text").attr("class", "annot-text").attr("x", x(peak.fiscal_year)).attr("y", peakTextY)
+      .attr("text-anchor", "middle").attr("font-size", 12.5)
+      .text(`ピーク ${peak.fiscal_year}年度 ${fmtMan(peak.amount_yen)}`);
+  }
 
   /* 凡例。狭幅では横並びだと右端があふれるので縦積みにする */
   const stackLegend = width < 560;
