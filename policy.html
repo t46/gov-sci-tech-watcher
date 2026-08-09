@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="日本の科学技術政策を観測する。第1期から第7期までの科学技術基本計画30年の投資目標と実績、第7期基本計画が掲げる19の指標、統合イノベーション戦略が定める重点技術17領域を公開データで描く。" />
+    <meta name="description" content="日本の科学技術政策を観測する。第1期から第7期までの科学技術基本計画30年の投資目標と実績、閣議決定文書に現れる言葉の変化、第7期基本計画が掲げる19の指標、統合イノベーション戦略が定める重点技術17領域を公開データで描く。" />
     <meta name="theme-color" content="#06090f" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb545' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='%23ffb545'/%3E%3C/svg%3E" />
     <title>政策 — SCIENCE SIGNAL 日本の科学技術観測室</title>
@@ -30,8 +30,9 @@
 
     <nav class="chapter-rail" aria-label="章ナビゲーション">
       <a href="#ch-history" data-rail="ch-history"><i>00</i><span>計画の30年</span></a>
-      <a href="#ch-targets" data-rail="ch-targets"><i>01</i><span>19の指標</span></a>
-      <a href="#ch-domains" data-rail="ch-domains"><i>02</i><span>重点技術17領域</span></a>
+      <a href="#ch-language" data-rail="ch-language"><i>01</i><span>計画の言葉</span></a>
+      <a href="#ch-targets" data-rail="ch-targets"><i>02</i><span>19の指標</span></a>
+      <a href="#ch-domains" data-rail="ch-domains"><i>03</i><span>重点技術17領域</span></a>
     </nav>
 
     <main id="main">
@@ -51,10 +52,25 @@
         <p class="method-note">年度ごとの実際の予算額は<a href="money.html#ch-plan">資金 — 基本計画と予算</a>へ。</p>
       </section>
 
-      <!-- 01 · PLAN 7 INDICATORS -->
+      <!-- 01 · PLAN LANGUAGE SPECTRUM -->
+      <section class="chapter" id="ch-language" aria-labelledby="language-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / PLAN LANGUAGE SPECTRUM</p>
+          <h2 id="language-title">計画の言葉</h2>
+          <p class="ch-lede" id="language-lede">用語データを取得中。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-body" id="language-spectrum"></div>
+          <div class="terrain-hover" id="language-hover" aria-hidden="true"></div>
+          <p class="policy-lang-annotate"><i aria-hidden="true"></i>初出 — それ以前の対象期間はすべて出現回数0</p>
+          <p class="method-note" id="language-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 02 · PLAN 7 INDICATORS -->
       <section class="chapter" id="ch-targets" aria-labelledby="targets-title">
         <div class="ch-head">
-          <p class="ch-no">01 / PLAN 7 INDICATORS</p>
+          <p class="ch-no">02 / PLAN 7 INDICATORS</p>
           <h2 id="targets-title">19の指標</h2>
           <p class="ch-lede" id="targets-lede">指標データを取得中。</p>
           <p class="method-note">目標値は政策の進捗把握のためのもので、個々の研究者や機関の評価にそのまま用いるものではない。</p>
@@ -63,10 +79,10 @@
         <p class="method-note" id="targets-source">出典を確認中</p>
       </section>
 
-      <!-- 02 · TECH DOMAINS -->
+      <!-- 03 · TECH DOMAINS -->
       <section class="chapter" id="ch-domains" aria-labelledby="domains-title">
         <div class="ch-head">
-          <p class="ch-no">02 / TECHNOLOGY DOMAINS</p>
+          <p class="ch-no">03 / TECHNOLOGY DOMAINS</p>
           <h2 id="domains-title">重点技術の17領域</h2>
           <p class="ch-lede" id="domains-lede">重点技術領域のデータを取得中。</p>
         </div>
@@ -90,6 +106,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="policy.js?v=20260819a" defer></script>
+    <script src="policy.js?v=20260819c" defer></script>
   </body>
 </html>

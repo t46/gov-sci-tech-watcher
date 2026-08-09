@@ -11,6 +11,9 @@
   6〜7月頃に閣議決定される運用のため、その都度 --output は変えずに再実行して置き換える
   （年度が変われば重要技術領域の数・名称・要約が変わりうるため、TOGO_URL / TOGO_DECISION
   を当年のものに書き換えること）。
+- plan_language（第3〜7期本文の用語頻度）は plans_history と同じ更新頻度（第8期策定時が
+  目安）。第3〜7期の本文しか対象にしないため、新しい期が策定されるたびに
+  PLAN_LANGUAGE_PERIODS に追加すること。
 
 Sources (all official, no key required):
 - 内閣府 CSTI「科学技術基本計画及び科学技術・イノベーション基本計画」本文PDF
@@ -41,6 +44,17 @@ Blocks written to data/policy.json（全ブロック status/source/note を持�
   地の文からの逐語抜粋のみで要約を作文しない。文の長さは原文次第で30〜110字程度まで
   ばらつく）。検証として領域数が17件であること、各要約が句点で終わる完結した文である
   ことを確認する。
+- plan_language: 第3〜7期の基本計画本文（pdftotext抽出テキスト、康熙部首正規化・空白除去
+  済み）を対象に、キュレーション済み18語の出現回数を数え、本文文字数1万字あたりの回数
+  （per10k）に正規化する。生カウント（n）・本文文字数（doc_lengths）も併記する。第1・2期は
+  本文PDFが存在しないため対象外（periods_covered = [3,4,5,6,7]）。用語ごとの集約規則
+  （スタートアップ=スタートアップ+ベンチャー、ＡＩ=ＡＩ+人工知能+半角AI等）は各termの
+  rule フィールドと source note の双方に明記する。検証として、(1) 第7期は安全保障の専章
+  （第4章）を持つため「安全保障」の出現回数が第3期を上回ること、(2) 全termのper10kが
+  0以上であること、(3) doc_lengthsが対象期の数だけそろっていること、(4)「安全保障」
+  （単一表記）について独立した正規表現カウント（grep -o | wc -l 相当）と本採用の集計値が
+  一致すること、(5)「ＡＩ」（3表記の合算＋半角AIの境界判定）について集約ロジックを経由
+  しない独立集計と本採用の集計値が一致すること（自己検証）を確認する。
 
 Parsing approach / pitfalls:
 - 別紙の指標表・重要技術領域の見出しは、いずれも pdftotext -layout（poppler-utils）でのみ
@@ -653,6 +667,158 @@ def tech_domains_block(previous: dict[str, object] | None) -> dict[str, object]:
     }
 
 
+# ---------------------------------------------------------------- plan_language
+
+# 各要素: (表示用の用語キー, 集約規則の説明, 集約する表記のリスト)。
+# "__AI_HALFWIDTH__" は特別扱いで、半角 "AI" を前後が英数字でない場合のみカウントする
+# （"MAIN"・"AIR" のような英単語内の偶然一致を避けるため）。
+PLAN_LANGUAGE_TERMS: list[tuple[str, str, list[str]]] = [
+    ("安全保障", "単純部分一致（「経済安全保障」等の複合語も包含してカウント）。", ["安全保障"]),
+    ("イノベーション", "単純部分一致。", ["イノベーション"]),
+    ("若手", "単純部分一致。", ["若手"]),
+    ("女性", "単純部分一致。", ["女性"]),
+    ("博士", "単純部分一致。", ["博士"]),
+    ("基礎研究", "単純部分一致。", ["基礎研究"]),
+    ("スタートアップ", "「スタートアップ」と「ベンチャー」を合算。", ["スタートアップ", "ベンチャー"]),
+    ("ＡＩ", "「ＡＩ」「人工知能」と、半角「AI」（前後が英数字でない場合のみ）を合算。", ["ＡＩ", "人工知能", "__AI_HALFWIDTH__"]),
+    ("量子", "単純部分一致。", ["量子"]),
+    ("半導体", "単純部分一致。", ["半導体"]),
+    ("宇宙", "単純部分一致（「宇宙人」等との誤爆は無視）。", ["宇宙"]),
+    ("バイオ", "単純部分一致。", ["バイオ"]),
+    ("デジタル", "単純部分一致（「ＩＴ」「情報通信」は合算しない）。", ["デジタル"]),
+    ("国際", "単純部分一致。", ["国際"]),
+    ("人文・社会科学", "「人文・社会科学」「人文社会科学」「人文学及び社会科学」を合算。", ["人文・社会科学", "人文社会科学", "人文学及び社会科学"]),
+    ("大学ファンド", "単純部分一致。", ["大学ファンド"]),
+    ("エネルギー", "単純部分一致。", ["エネルギー"]),
+    ("防衛", "単純部分一致。", ["防衛"]),
+]
+
+_AI_HALFWIDTH_RE = re.compile(r"(?<![A-Za-z0-9])AI(?![A-Za-z0-9])")
+
+PLAN_LANGUAGE_PERIODS = [3, 4, 5, 6, 7]
+
+
+def _normalize_doc_text(raw_text: str) -> str:
+    """康熙部首を標準漢字に戻した上で、空白・改行をすべて除去する（total文字数の分母と
+    出現回数カウントを同じ文字列に対して行うことで、両者の整合性を保つ）。日本語は語間に
+    空白を使わないため、pdftotextの行折り返しで用語が「安全\\n保障」のように分断された
+    ケースもこれで正しく再結合できる。英語混じりの箇所ではまれに語間の空白ごと連結されて
+    しまう（例: "…A" + "I think…" → "…AI think…"）が、本文はほぼ日本語であり実務上の
+    影響は無視できる（note に明記）。"""
+    return re.sub(r"\s+", "", fix_radicals(raw_text))
+
+
+def _count_term(text: str, variants: list[str]) -> int:
+    total = 0
+    for variant in variants:
+        if variant == "__AI_HALFWIDTH__":
+            total += len(_AI_HALFWIDTH_RE.findall(text))
+        else:
+            total += text.count(variant)
+    return total
+
+
+def plan_language_block(previous: dict[str, object] | None) -> dict[str, object]:
+    doc_lengths: dict[str, int] = {}
+    normalized_by_period: dict[int, str] = {}
+    for period in PLAN_LANGUAGE_PERIODS:
+        text = _fetch_honbun_text(period)
+        if text is None:
+            raise ValueError(f"plan_language: 第{period}期本文を取得できない")
+        normalized = _normalize_doc_text(text)
+        normalized_by_period[period] = normalized
+        doc_lengths[str(period)] = len(normalized)
+
+    terms = []
+    for key, rule, variants in PLAN_LANGUAGE_TERMS:
+        counts = {}
+        for period in PLAN_LANGUAGE_PERIODS:
+            n = _count_term(normalized_by_period[period], variants)
+            length = doc_lengths[str(period)]
+            per10k = round(n / length * 10000, 2) if length else None
+            counts[str(period)] = {"n": n, "per10k": per10k}
+        terms.append({"term": key, "rule": rule, "counts": counts})
+
+    # 検証1: 第7期は第4章が安全保障の専章のため、出現回数が第3期を上回るはず
+    security = next(t for t in terms if t["term"] == "安全保障")
+    if not (security["counts"]["7"]["n"] > security["counts"]["3"]["n"]):
+        raise ValueError(
+            "plan_language: 第7期の「安全保障」出現回数が第3期以下 — "
+            f"第3期={security['counts']['3']['n']}、第7期={security['counts']['7']['n']}"
+        )
+    # 検証2: 全termのper10kが0以上
+    for term in terms:
+        for period in PLAN_LANGUAGE_PERIODS:
+            per10k = term["counts"][str(period)]["per10k"]
+            if per10k is None or per10k < 0:
+                raise ValueError(f"plan_language: 「{term['term']}」第{period}期のper10kが不正（{per10k}）")
+    # 検証3: doc_lengthsが対象期の数だけそろっている（PLAN_LANGUAGE_PERIODS拡張時も
+    # マジックナンバー化しないよう、期待値は定数の長さから動的に取る）
+    if len(doc_lengths) != len(PLAN_LANGUAGE_PERIODS):
+        raise ValueError(
+            f"plan_language: doc_lengthsが{len(doc_lengths)}期分しかない"
+            f"（{len(PLAN_LANGUAGE_PERIODS)}期分必要）"
+        )
+    # 検証4-a: 「安全保障」（単純部分一致・単一表記）について、grep -o | wc -l 相当の
+    # 独立した正規表現カウントと一致することを自己検証する（基本のカウント機構の検証）。
+    security_variants = next(v for k, r, v in PLAN_LANGUAGE_TERMS if k == "安全保障")
+    for period in PLAN_LANGUAGE_PERIODS:
+        independent = sum(len(re.findall(re.escape(v), normalized_by_period[period])) for v in security_variants)
+        official_n = security["counts"][str(period)]["n"]
+        if independent != official_n:
+            raise ValueError(
+                f"plan_language: 自己検証不一致（安全保障, 第{period}期）: "
+                f"独立カウント={independent}、本採用値={official_n}"
+            )
+    # 検証4-b: 「ＡＩ」（3表記の合算＋半角ＡＩの境界判定）について、_count_term を経由
+    # しない形で各表記を個別に数えて合算し、集計ロジック自体（ダブルカウントの有無・
+    # 境界判定）を独立に検証する。
+    ai_official = next(t for t in terms if t["term"] == "ＡＩ")
+    for period in PLAN_LANGUAGE_PERIODS:
+        doc = normalized_by_period[period]
+        independent_ai = (
+            len(re.findall("ＡＩ", doc))
+            + len(re.findall("人工知能", doc))
+            + len(re.findall(r"(?<![A-Za-z0-9])AI(?![A-Za-z0-9])", doc))
+        )
+        official_n = ai_official["counts"][str(period)]["n"]
+        if independent_ai != official_n:
+            raise ValueError(
+                f"plan_language: 自己検証不一致（ＡＩ, 第{period}期）: "
+                f"独立カウント={independent_ai}、本採用値={official_n}"
+            )
+    print("[policy] plan_language: 自己検証OK（安全保障の独立カウント一致、ＡＩの集約ロジック一致）")
+
+    return {
+        "status": "ok",
+        "unit": "回/1万字",
+        "periods_covered": PLAN_LANGUAGE_PERIODS,
+        "terms": terms,
+        "doc_lengths": doc_lengths,
+        "source": {
+            "title": "各期基本計画本文（閣議決定文書）",
+            "url": CSTP_KIHON_INDEX,
+        },
+        # 期別の本文PDF URL（plans_history の honbun_url と同一。出典追跡用に自ブロックにも持たせる）
+        "source_urls_by_period": {str(p): HONBUN_URLS.get(p) for p in PLAN_LANGUAGE_PERIODS},
+        "note": (
+            "単語の出現頻度であり政策の重要度そのものではない。本文PDFの期別URLは"
+            "source_urls_by_period（plans_historyの各期honbun_urlと同一）を参照。"
+            "第1・2期は本文PDFが公式サイトに"
+            "現存せず対象外（第3〜7期のみ）。pdftotextのレイアウト抽出テキストに基づくため、"
+            "本文だけでなく表・脚注・目次等も対象に含まれ、抽出時のレイアウト崩れによる誤差が"
+            "あり得る。カウントは空白・改行を除去した文字列に対する単純部分一致で、重複部分"
+            "文字列は問題視しない（例:「安全保障」は「経済安全保障」を包含してカウント。"
+            "「宇宙」が「宇宙人」等に誤爆する可能性も無視する）。集約規則: スタートアップ="
+            "「スタートアップ」+「ベンチャー」、ＡＩ=「ＡＩ」+「人工知能」+半角「AI」（前後が"
+            "英数字でない場合のみ）、人文・社会科学=「人文・社会科学」+「人文社会科学」+"
+            "「人文学及び社会科学」、デジタルは単独集計（「ＩＴ」「情報通信」は合算しない）。"
+            "空白除去の副作用として、英語混じりの箇所でまれに語間の連結により半角「AI」の"
+            "境界判定に誤差が生じうるが、本文はほぼ日本語のため実務上の影響は無視できる。"
+        ),
+    }
+
+
 # ---------------------------------------------------------------- run helpers
 
 def run_block(name: str, builder) -> dict[str, object]:
@@ -665,7 +831,7 @@ def run_block(name: str, builder) -> dict[str, object]:
         return {"status": "error", "note": str(error)}
 
 
-BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains"]
+BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains", "plan_language"]
 
 
 def main() -> int:
@@ -688,6 +854,7 @@ def main() -> int:
     payload["plans_history"] = run_block("plans_history", lambda: plans_history_block(previous.get("plans_history")))
     payload["plan7_indicators"] = run_block("plan7_indicators", lambda: plan7_indicators_block(previous.get("plan7_indicators")))
     payload["tech_domains"] = run_block("tech_domains", lambda: tech_domains_block(previous.get("tech_domains")))
+    payload["plan_language"] = run_block("plan_language", lambda: plan_language_block(previous.get("plan_language")))
 
     # 一時的な取得失敗で公開済みの正常データを潰さない: 前回ファイルの正常ブロックを保持
     for key in BLOCK_NAMES:

@@ -1120,6 +1120,144 @@ const MOB_INFLOW_COLOR = "#4fd8ff";
 const MOB_DEF_CHANGE_YEARS = [2008, 2010, 2013, 2014];
 const MOB_REGION_SHORT = { "ヨーロッパ（含NIS諸国）": "ヨーロッパ" };
 
+/* ================================================================ 03-A 純流出（ReICO、移籍が主役） */
+
+/* annual_net: [year, netFlow] のゼロ線バー。負=純流出（amber、この章の主役）、
+   唯一の正の年（2011）は控えめな灰色で描き、視覚的に「良いこと」として強調しない */
+function renderMobReicoNetBars(mount, rf) {
+  mount.innerHTML = "";
+  const net = (rf.annual_net || []).filter(([yr, v]) => Number.isFinite(yr) && Number.isFinite(v));
+  if (!net.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 900, height = Math.max(260, width * 0.32);
+  const margin = { top: 22, right: 16, bottom: 24, left: 58 };
+  const x = d3.scaleBand().domain(net.map(([yr]) => yr)).range([margin.left, width - margin.right]).padding(0.26);
+  const maxAbs = d3.max(net, ([, v]) => Math.abs(v)) || 1;
+  const y = d3.scaleLinear().domain([-maxAbs * 1.18, maxAbs * 1.18]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "日本の研究者の純移動（流入-流出）の年次推移、2011-2024年。2011年を除き一貫して純流出。");
+  const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtInt(v)).tickSize(-(width - margin.left - margin.right)));
+  gy.select(".domain").remove();
+  gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${y(0)})`)
+    .call(d3.axisBottom(x).tickFormat(d3.format("d")).tickSize(0)).select(".domain").attr("stroke", "#4c5a72");
+
+  const bars = svg.append("g").selectAll("rect").data(net).join("rect")
+    .attr("x", ([yr]) => x(yr)).attr("width", x.bandwidth())
+    .attr("y", ([, v]) => y(Math.max(0, v))).attr("height", ([, v]) => Math.abs(y(v) - y(0)))
+    .attr("fill", ([, v]) => (v < 0 ? MOB_DISPATCH_COLOR : "#4c5a72"))
+    .attr("opacity", ([, v]) => (v < 0 ? 0.85 : 0.55));
+  bars.append("title").text(([yr, v]) => `${yr}年 ${v >= 0 ? "純流入" : "純流出"} ${fmtInt(Math.abs(Math.round(v)))}人（按分推計）`);
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { height: 0, y: y(0) }, duration: 0.85, ease: "power3.out", stagger: 0.025, scrollTrigger: { trigger: mount, start: "top 82%" } });
+  }
+
+  /* 最大の純流出年を1回だけ注釈（このデータで最も大きな出来事） */
+  const worst = net.reduce((a, b) => (b[1] < a[1] ? b : a));
+  const worstX = x(worst[0]) + x.bandwidth() / 2;
+  const worstY = y(worst[1]);
+  const textY = Math.min(height - margin.bottom - 8, worstY + 24);
+  svg.append("line").attr("class", "annot-line").attr("x1", worstX).attr("x2", worstX).attr("y1", worstY).attr("y2", textY - 6);
+  svg.append("text").attr("class", "annot-text").attr("x", worstX).attr("y", textY + 10)
+    .attr("text-anchor", "middle").attr("font-size", 11).text(`${worst[0]}年 純流出${fmtInt(Math.abs(Math.round(worst[1])))}人（最大）`);
+}
+
+/* latest_breakdown（2024年のみ）を4セルの数値行で表示。既存の.money-strip/.money-cellを再利用 */
+function renderMobReicoBreakdown(mount, lb) {
+  const cells = [
+    { name: "流入", value: lb.inflow, note: "他国から日本へ" },
+    { name: "流出", value: lb.outflow, note: "日本から他国へ" },
+    { name: "帰国", value: lb.returnees, note: "海外在住から日本へ" },
+    { name: "国際移動経験", value: lb.mobility, note: "流入＋流出＋帰国" },
+  ];
+  mount.innerHTML = cells.map((c) => `
+    <div class="money-cell">
+      <span class="m-name">${escapeHtml(c.name)}</span>
+      <span class="m-value">${Number.isFinite(c.value) ? fmtInt(Math.round(c.value)) : "—"}<span class="mob-unit">人</span></span>
+      <span class="m-note">${escapeHtml(c.note)}（${lb.fiscal_year}年、按分推計）</span>
+    </div>`).join("");
+}
+
+/* country_comparison: net_flow_rate_pctの国別横棒。日本=amber・他国=slate（既存の流儀。正負で色分けはしない） */
+function renderMobReicoCountries(mount, rf) {
+  mount.innerHTML = "";
+  const rows = (rf.country_comparison || []).filter((r) => Number.isFinite(r.net_flow_rate_pct)).sort((a, b) => b.net_flow_rate_pct - a.net_flow_rate_pct);
+  if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 900, height = Math.max(260, rows.length * 28 + 30);
+  const margin = { top: 10, right: 60, bottom: 26, left: 96 };
+  const maxAbs = d3.max(rows, (r) => Math.abs(r.net_flow_rate_pct)) || 1;
+  const x = d3.scaleLinear().domain([-maxAbs * 1.2, maxAbs * 1.2]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.country_name_ja)).range([margin.top, height - margin.bottom]).padding(0.3);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "研究者の純移動率（総著者数に対する年間純流入の割合）の国際比較。日本はマイナス圏、米豪加英独はプラス圏、韓国は日本より大きなマイナス。");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(6).tickFormat((v) => `${v}%`)).select(".domain").attr("stroke", "#1c2839");
+  svg.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", margin.top - 4).attr("y2", height - margin.bottom + 4).attr("stroke", "#4c5a72");
+  const bars = svg.append("g").selectAll("rect").data(rows).join("rect")
+    .attr("x", (r) => x(Math.min(0, r.net_flow_rate_pct))).attr("y", (r) => y(r.country_name_ja)).attr("height", y.bandwidth())
+    .attr("width", (r) => Math.abs(x(r.net_flow_rate_pct) - x(0)))
+    .attr("fill", (r) => (r.country_code === "JPN" ? MOB_DISPATCH_COLOR : "#4f7ca6"))
+    .attr("opacity", (r) => (r.country_code === "JPN" ? 0.95 : 0.55));
+  bars.append("title").text((r) => `${r.country_name_ja}: ${r.net_flow_rate_pct}%（総著者数${fmtInt(r.authors_total ?? 0)}人）`);
+  svg.append("g").selectAll("text.rcnlabel").data(rows).join("text")
+    .attr("x", margin.left - 8).attr("y", (r) => y(r.country_name_ja) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", "end").attr("font-size", 10.5)
+    .attr("fill", (r) => (r.country_code === "JPN" ? MOB_DISPATCH_COLOR : "#8b96ab"))
+    .attr("font-weight", (r) => (r.country_code === "JPN" ? 600 : 400))
+    .text((r) => r.country_name_ja);
+  svg.append("g").selectAll("text.rcnvalue").data(rows).join("text")
+    .attr("x", (r) => x(r.net_flow_rate_pct) + (r.net_flow_rate_pct >= 0 ? 6 : -6))
+    .attr("y", (r) => y(r.country_name_ja) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", (r) => (r.net_flow_rate_pct >= 0 ? "start" : "end"))
+    .attr("font-size", 10).attr("fill", "#e9eef7").text((r) => `${r.net_flow_rate_pct > 0 ? "+" : ""}${r.net_flow_rate_pct}%`);
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { width: 0, x: x(0) }, duration: 0.85, ease: "power3.out", stagger: 0.03, scrollTrigger: { trigger: mount, start: "top 82%" } });
+  }
+}
+
+function renderMobReico(mobility) {
+  const rf = mobility?.reico_flows;
+  const netMount = $("#mob-reico-net");
+  const breakdownMount = $("#mob-reico-breakdown");
+  const countryMount = $("#mob-reico-countries");
+  if (!rf || rf.status !== "ok") {
+    [netMount, breakdownMount, countryMount].forEach((m) => { if (m) m.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; });
+    return;
+  }
+  if (netMount) renderMobReicoNetBars(netMount, rf);
+  const lb = rf.latest_breakdown;
+  if (breakdownMount) {
+    if (lb) renderMobReicoBreakdown(breakdownMount, lb);
+    else breakdownMount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+  }
+  if (countryMount) renderMobReicoCountries(countryMount, rf);
+
+  /* ledeの主役はこの図。2011年以降で最後に純流入(≧0)だった年の翌年から現在までの連続年数を
+     動的に数える（ハードコードで「2012年から」等と書かない） */
+  const net = (rf.annual_net || []).filter(([yr, v]) => Number.isFinite(yr) && Number.isFinite(v));
+  const ledeEl = $("#global-lede");
+  if (ledeEl && net.length && lb) {
+    let streakStartIdx = 0;
+    for (let i = net.length - 1; i >= 0; i -= 1) { if (net[i][1] >= 0) { streakStartIdx = i + 1; break; } }
+    const streak = net.slice(streakStartIdx);
+    if (streak.length) {
+      /* 純流出はOECDの年次純流出指標(annual_net)を使う。流入・流出の内訳指標は別系列の推計で、
+         単純差(outflow−inflow)はannual_netと一致しないため「純流出」とは呼ばない */
+      const latestNet = net[net.length - 1];
+      const inflowText = Number.isFinite(lb.inflow) ? fmtInt(Math.round(lb.inflow)) : "—";
+      const outflowText = Number.isFinite(lb.outflow) ? fmtInt(Math.round(lb.outflow)) : "—";
+      ledeEl.textContent =
+        `日本は${streak[0][0]}年以降${streak.length}年連続で、論文著者として測った研究者の純流出国であり続けている（${latestNet[0]}年の純流出は約${fmtInt(Math.abs(Math.round(latestNet[1])))}人）。` +
+        `内訳の推計では${lb.fiscal_year}年に流出${outflowText}人・流入${inflowText}人` +
+        `、国際移動経験者${Number.isFinite(lb.mobility) ? fmtInt(Math.round(lb.mobility)) : "—"}人（うち帰国${Number.isFinite(lb.returnees) ? fmtInt(Math.round(lb.returnees)) : "—"}人）。`;
+    }
+  }
+
+  setText("#mob-reico-source", `出典: ${rf.source?.title || ""}。単位: ${rf.unit || ""}。${rf.note || ""} 注: 年次純流出（annual_net）はOECDの独立した純フロー推計で、流入・流出の内訳指標の単純差とは一致しない。`);
+}
+
+/* ================================================================ 03-E 32年の往来（MEXT、参考=交流の統計） */
+
 function renderMobFlowsPanel(mountSel, dispatchSeriesRaw, inflowSeriesRaw, opts = {}) {
   const mount = $(mountSel);
   if (!mount) return;
@@ -1209,28 +1347,395 @@ function renderMobFlows(mobility) {
     yTickFormat: (v) => fmtInt(v),
   });
 
+  /* この章のledeは図A（純流出）が主役になったので、ここでは触らない。
+     第7期基本計画の中・長期派遣3万人目標は、この図の文脈（中・長期派遣の実数）なのでここに注記する */
   const dispatchTotal = mf.dispatch?.total || [];
-  const inflowTotal = mf.inflow?.total || [];
-  const midLong = mf.dispatch?.mid_long || [];
-  const last = lastPoint(dispatchTotal);
-  const lastInflow = lastPoint(inflowTotal);
-  const lastMidLong = lastPoint(midLong);
+  const lastYear = lastPoint(dispatchTotal);
+  const lastMidLong = lastPoint(mf.dispatch?.mid_long || []);
   const pre2019Raw = dispatchTotal.find(([yr]) => yr === 2019);
   /* 分母(2019年度実績)が正の有限数のときだけ回復率を計算する（0除算・NaN%を防ぐ） */
   const pre2019 = pre2019Raw && Number.isFinite(pre2019Raw[1]) && pre2019Raw[1] > 0 ? pre2019Raw : null;
-  if (last && Number.isFinite(last[1]) && lastInflow && Number.isFinite(lastInflow[1]) && lastMidLong && Number.isFinite(lastMidLong[1])) {
-    const recovery = pre2019 ? Math.round((last[1] / pre2019[1]) * 100) : null;
-    const ledeEl = $("#global-lede");
-    if (ledeEl) {
-      /* 数値はすべてfmtInt経由の数値文字列なのでHTML挿入しても安全 */
-      ledeEl.innerHTML =
-        `${last[0]}年度の海外派遣は延べ${fmtInt(last[1])}人${pre2019 ? `で、コロナ前（${pre2019[0]}年度${fmtInt(pre2019[1])}人）の約${recovery}%まで回復` : ""}。受入は延べ${fmtInt(lastInflow[1])}人、中・長期派遣は延べ${fmtInt(lastMidLong[1])}人 — 第7期科学技術・イノベーション基本計画は2030年度までの累計3万人を目標に掲げる（<a href="policy.html">政策</a>）。`;
+  const recovery = pre2019 && lastYear && Number.isFinite(lastYear[1]) ? Math.round((lastYear[1] / pre2019[1]) * 100) : null;
+
+  const defNote = (mf.definition_changes || []).map((d) => `${d.year}年度（${d.note}）`).join("、");
+  const sourceEl = $("#mob-flows-source");
+  if (sourceEl) {
+    /* 数値はすべてfmtInt経由の数値文字列なのでHTML挿入しても安全 */
+    sourceEl.innerHTML =
+      `出典: ${escapeHtml(mf.source?.title || "")}。単位: ${escapeHtml(mf.unit || "")}。${escapeHtml(mf.note || "")}${defNote ? ` 定義変更: ${escapeHtml(defNote)}。` : ""}` +
+      `${lastYear && recovery != null ? ` ${lastYear[0]}年度の海外派遣は延べ${fmtInt(lastYear[1])}人で、コロナ前（${pre2019[0]}年度${fmtInt(pre2019[1])}人）の約${recovery}%まで回復。` : ""}` +
+      `${lastMidLong ? ` 中・長期派遣は延べ${fmtInt(lastMidLong[1])}人 — 第7期科学技術・イノベーション基本計画は2030年度までの累計3万人を目標に掲げる（<a href="policy.html">政策</a>）。` : ""}`;
+  }
+}
+
+/* ================================================================ 03-C 地球の上の移動（世界地図フロー）
+   投影: d3.geoNaturalEarth1().rotate([-140,0]) — 太平洋中心、日本が画面中央付近に来る。
+   陸のドットハーフトーンは d3.geoContains による球面上の点包含判定（投影に依存しない）なので、
+   初期化時に1回だけ計算してキャッシュする。リサイズで再計算するのは投影後の画面座標だけ。
+   データはOECD二国間移動推計（mobility.oecd_bilateral）— 日本⇔上位20か国。
+   amber粒子=日本→海外（流出）／cyan粒子=海外→日本（流入）。base canvas=静的レイヤー（陸ドット・
+   航路線・アンカー）、fx canvas=destination-outで残光を作る動的レイヤー（粒子・東京のパルス）。
+   直後の図D（OECDダイバージングバー）が、この地図の国別詳細数値にあたる。 */
+
+/* 国の代表点（演出上の目安。首都・重心の主張はしない）。投影上で重ならないよう座標を選んでいる */
+const MOBMAP_COUNTRY_ANCHORS = {
+  USA: [-98, 39], CHN: [104, 35], GBR: [-2, 54], DEU: [10, 51], IND: [78, 22],
+  KOR: [127.5, 36.5], FRA: [2, 47], IDN: [117, -2], THA: [101, 15], CAN: [-106, 56],
+  AUS: [134, -25], TWN: [121, 23.7], BGD: [90, 24], MYS: [102, 4], EGY: [30, 26],
+  VNM: [106, 16], CHE: [8, 46.8], SGP: [103.8, 1.3], ITA: [12.5, 42.8], SWE: [15, 62],
+};
+/* ラベルの3段階（密集地帯の判読性のため）。tier1=国名+数値を常設（空間的に孤立した国のみ）、
+   tier2=国名のみ常設・数値はホバー、tier3=リング点のみ常設・国名/数値ともホバー */
+const MOBMAP_LABEL_TIER = {
+  USA: 1, CHN: 1, CAN: 1, AUS: 1, IDN: 1, EGY: 1,
+  KOR: 2, TWN: 2, IND: 2, GBR: 2, DEU: 2, THA: 2,
+  FRA: 3, ITA: 3, CHE: 3, SWE: 3, VNM: 3, MYS: 3, SGP: 3, BGD: 3,
+};
+/* 東京・隣国が密集する東アジア／西ヨーロッパのラベル衝突を避けるための個別オフセット表
+   （dx,dy=国名の位置、dyVal=数値の位置、align=テキストの基準）。表にない国はデフォルト値を使う */
+const MOBMAP_LABEL_OFFSET = {
+  KOR: { dx: -10, dy: 3.5, dyVal: 15, align: "right" }, /* 東京の反対（左）側に置く */
+  TWN: { dx: -10, dy: 14, dyVal: 25, align: "right" }, /* 左下 */
+  CHN: { dx: -10, dy: 3.5, dyVal: 15, align: "right" }, /* 左 */
+  GBR: { dx: -10, dy: -6, dyVal: -17, align: "right" }, /* 左上 */
+  DEU: { dx: 10, dy: 3.5, dyVal: 15, align: "left" }, /* 右 */
+  IND: { dx: -10, dy: 14, dyVal: 25, align: "right" }, /* 左下 */
+  THA: { dx: -10, dy: 3.5, dyVal: 15, align: "right" }, /* 左 */
+};
+const MOBMAP_DEFAULT_OFFSET = { dx: 9, dy: 3.5, dyVal: 15, align: "left" };
+const MOBMAP_TOKYO = [139.7, 35.7];
+/* 常時飛行中の粒子1つ ≈ 600人（2010-2024年累積の推計値に対する演出用の比例定数。実数の描写ではない） */
+const MOBMAP_PER_PARTICLE = 600;
+/* 日本列島のおおよそのバウンディングボックス（陸ドットへの淡いamber着色に使う演出上の目安） */
+const MOBMAP_JP_BOUNDS = { lonMin: 122, lonMax: 146, latMin: 24, latMax: 46 };
+
+function renderMobMap(mobility, landTopology) {
+  const stage = $("#mobmap-stage");
+  const base = $("#mobmap-base");
+  const fx = $("#mobmap-fx");
+  const hoverEl = $("#mobmap-hover");
+  if (!stage || !base || !fx) return;
+  const block = mobility?.oecd_bilateral;
+  const landObj = landTopology?.objects?.land;
+  /* land-110m.json の取得・変換に失敗した場合はこの図だけ空表示にする。地域別内訳(図B)や
+     国別ダイバージングバー(図D)などmobility.jsonだけに依存する図は影響を受けない */
+  if (!block || block.status !== "ok" || !(block.japan_outflows || []).length || !landObj || typeof topojson === "undefined") {
+    stage.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  const outMap = new Map(block.japan_outflows.map((d) => [d.country_code, d]));
+  const inMap = new Map(block.japan_inflows.map((d) => [d.country_code, d]));
+  const codes = Object.keys(MOBMAP_COUNTRY_ANCHORS).filter((c) => outMap.has(c) || inMap.has(c));
+  if (!codes.length) { stage.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  /* データ更新で上位20か国の顔ぶれが変わり座標表に無い国が現れた場合、黙って落とさず注記する */
+  const unmapped = [...new Set([...outMap.keys(), ...inMap.keys()])].filter((c) => !MOBMAP_COUNTRY_ANCHORS[c]);
+  if (unmapped.length) console.warn("[people] mobmap: no anchor coords for", unmapped);
+
+  const countryData = codes.map((code) => {
+    const outRec = outMap.get(code), inRec = inMap.get(code);
+    const outflow = Number.isFinite(outRec?.persons) ? outRec.persons : null;
+    const inflow = Number.isFinite(inRec?.persons) ? inRec.persons : null;
+    return {
+      code,
+      name: outRec?.country_name_ja || inRec?.country_name_ja || code,
+      anchor: MOBMAP_COUNTRY_ANCHORS[code],
+      outflow, inflow,
+      tier: MOBMAP_LABEL_TIER[code] || 3,
+      offset: MOBMAP_LABEL_OFFSET[code] || MOBMAP_DEFAULT_OFFSET,
+    };
+  });
+
+  let landFeature;
+  try {
+    landFeature = topojson.feature(landTopology, landObj);
+  } catch (error) {
+    stage.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+
+  /* 陸ドット用の点群（球面判定のみ・投影に依存しない）。1回だけ計算する */
+  const landPoints = [];
+  const STEP = 1.4;
+  for (let lat = -85; lat <= 85; lat += STEP) {
+    for (let lon = -180; lon < 180; lon += STEP) {
+      if (d3.geoContains(landFeature, [lon, lat])) {
+        const jp = lon >= MOBMAP_JP_BOUNDS.lonMin && lon <= MOBMAP_JP_BOUNDS.lonMax && lat >= MOBMAP_JP_BOUNDS.latMin && lat <= MOBMAP_JP_BOUNDS.latMax;
+        landPoints.push({ lon, lat, jp });
+      }
     }
   }
 
-  const defNote = (mf.definition_changes || []).map((d) => `${d.year}年度（${d.note}）`).join("、");
-  setText("#mob-flows-source",
-    `出典: ${mf.source?.title || ""}。単位: ${mf.unit || ""}。${mf.note || ""}${defNote ? ` 定義変更: ${defNote}。` : ""}`);
+  const projection = d3.geoNaturalEarth1().rotate([-140, 0]);
+  const dotCache = document.createElement("canvas");
+  const dotCtx = dotCache.getContext("2d");
+
+  let geom = null;
+  let focusCode = null;
+  let running = true;
+  let particles = [];
+  const pulseStart = performance.now();
+
+  function buildDotCache(width, height, dpr) {
+    dotCache.width = Math.max(1, Math.round(width * dpr));
+    dotCache.height = Math.max(1, Math.round(height * dpr));
+    dotCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dotCtx.clearRect(0, 0, width, height);
+    for (const p of landPoints) {
+      const pos = projection([p.lon, p.lat]);
+      if (!pos) continue;
+      dotCtx.fillStyle = p.jp ? "rgba(255,181,69,0.24)" : "rgba(34,48,74,0.85)";
+      dotCtx.fillRect(pos[0] - 0.7, pos[1] - 0.7, 1.4, 1.4);
+    }
+  }
+
+  /* 進行方向に対して垂直にoffピクセルずらした平行線を作る（流出/流入の2本を分離するため） */
+  function offsetPath(points, off) {
+    const n = points.length;
+    return points.map((pt, i) => {
+      const prev = points[Math.max(0, i - 1)], next = points[Math.min(n - 1, i + 1)];
+      let dx = next[0] - prev[0], dy = next[1] - prev[1];
+      const len = Math.hypot(dx, dy) || 1;
+      dx /= len; dy /= len;
+      return [pt[0] - dy * off, pt[1] + dx * off];
+    });
+  }
+
+  function drawPath(ctx, points, color, alpha, width) {
+    if (alpha <= 0) return;
+    ctx.beginPath();
+    points.forEach((pt, i) => { if (i === 0) ctx.moveTo(pt[0], pt[1]); else ctx.lineTo(pt[0], pt[1]); });
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = width;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function layout() {
+    const { width: bw, height: bh } = fitCanvas(base);
+    fitCanvas(fx);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    projection.fitSize([bw, bh], { type: "Sphere" });
+    buildDotCache(bw, bh, dpr);
+
+    const tokyoXY = projection(MOBMAP_TOKYO);
+    const N = 56;
+    const off = MOBILE ? 1.6 : 2.4;
+    const countries = countryData.map((d) => {
+      const interp = d3.geoInterpolate(MOBMAP_TOKYO, d.anchor);
+      const center = d3.range(N + 1).map((i) => projection(interp(i / N)));
+      let pxLen = 0;
+      for (let i = 1; i < center.length; i += 1) pxLen += Math.hypot(center[i][0] - center[i - 1][0], center[i][1] - center[i - 1][1]);
+      return {
+        ...d,
+        anchorXY: projection(d.anchor),
+        pxLen,
+        outPath: d.outflow != null ? offsetPath(center, off) : null,
+        inPath: d.inflow != null ? offsetPath(center, -off) : null,
+      };
+    });
+
+    /* 東京近傍（KOR/CHN/TWNなど）は航路が画面上でごく短いため、他ルートと同じt速度で動かすと
+       粒子が団子状に密集して見える。画面上の速さ(px/フレーム)は t速度×航路長 なので、
+       短い航路ほど t速度を上げて見かけの流速を揃える（上限4倍でクランプし、
+       近距離航路の粒子が瞬間移動に見えないようにする） */
+    const maxPxLen = d3.max(countries, (c) => c.pxLen) || 1;
+    const speedScaleFor = (pxLen) => Math.max(1, Math.min(4, maxPxLen / Math.max(pxLen, 1)));
+
+    const mobileScale = MOBILE ? 0.5 : 1;
+    particles = [];
+    if (!REDUCED) {
+      for (const c of countries) {
+        const speedScale = speedScaleFor(c.pxLen);
+        if (c.outPath) {
+          const n = Math.max(1, Math.round((c.outflow / MOBMAP_PER_PARTICLE) * mobileScale));
+          for (let i = 0; i < n; i += 1) particles.push({ path: c.outPath, dir: "out", code: c.code, t: Math.random(), speed: (0.0022 + Math.random() * 0.0016) * speedScale });
+        }
+        if (c.inPath) {
+          const n = Math.max(1, Math.round((c.inflow / MOBMAP_PER_PARTICLE) * mobileScale));
+          for (let i = 0; i < n; i += 1) particles.push({ path: c.inPath, dir: "in", code: c.code, t: Math.random(), speed: (0.0022 + Math.random() * 0.0016) * speedScale });
+        }
+      }
+    }
+    geom = { width: bw, height: bh, tokyoXY, countries };
+    drawBase();
+    if (fx.getContext) { const fctx = fx.getContext("2d"); fctx.clearRect(0, 0, bw, bh); }
+  }
+
+  function drawBase() {
+    if (!geom) return;
+    const ctx = base.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, geom.width, geom.height);
+    ctx.drawImage(dotCache, 0, 0, geom.width, geom.height);
+
+    for (const c of geom.countries) {
+      const active = !focusCode || focusCode === c.code;
+      if (REDUCED) {
+        if (c.outPath) drawPath(ctx, c.outPath, MOB_DISPATCH_COLOR, active ? 0.55 : 0.15, Math.max(0.6, Math.sqrt(c.outflow) * 0.045));
+        if (c.inPath) drawPath(ctx, c.inPath, MOB_INFLOW_COLOR, active ? 0.55 : 0.15, Math.max(0.6, Math.sqrt(c.inflow) * 0.045));
+      } else {
+        if (c.outPath) drawPath(ctx, c.outPath, MOB_DISPATCH_COLOR, active ? 0.16 : 0.05, 1);
+        if (c.inPath) drawPath(ctx, c.inPath, MOB_INFLOW_COLOR, active ? 0.16 : 0.05, 1);
+      }
+    }
+
+    ctx.beginPath();
+    ctx.arc(geom.tokyoXY[0], geom.tokyoXY[1], 3.4, 0, Math.PI * 2);
+    ctx.fillStyle = MOB_DISPATCH_COLOR;
+    ctx.globalAlpha = 0.9;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = '600 10px "IBM Plex Mono", monospace';
+    ctx.fillStyle = "#e9eef7";
+    ctx.textAlign = "left";
+    /* 東京ラベルは常に右上に固定（近傍国のラベルは反対側や別方向へ逃がして衝突を避ける） */
+    ctx.fillText("東京", geom.tokyoXY[0] + 8, geom.tokyoXY[1] - 7);
+
+    for (const c of geom.countries) {
+      /* focused=この国にポインタ/タップ、dimmed=他国がフォーカスされている。
+         未フォーカス時に全国をactive扱いにするとtierの間引きが無効化されるので分離する */
+      const focused = focusCode === c.code;
+      const dimmed = !!focusCode && !focused;
+      const tier = c.tier;
+      const offset = c.offset;
+      /* tier3（リング点のみ常設）は数値・国名がないと見失われやすいので、リングの視認性を上げる */
+      ctx.globalAlpha = focused ? 1 : dimmed ? 0.18 : tier === 3 ? 0.6 : 0.45;
+      ctx.beginPath();
+      ctx.arc(c.anchorXY[0], c.anchorXY[1], 5, 0, Math.PI * 2);
+      ctx.strokeStyle = focused ? "#8b96ab" : "#4c5a72";
+      ctx.lineWidth = tier === 3 ? 1.7 : 1.2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      /* tier1・tier2は国名を常設。tier3はホバー/タップ時のみ国名を出す */
+      const showName = focused || (!dimmed && tier <= 2);
+      /* 数値の常設表示はtier1のみ、かつモバイルでは常設をやめて全てホバー/タップに委ねる */
+      const showValue = focused || (!dimmed && tier === 1 && !MOBILE);
+      ctx.textAlign = offset.align;
+      if (showName) {
+        ctx.globalAlpha = focused ? 1 : 0.7;
+        ctx.font = '500 10.5px "IBM Plex Mono", monospace';
+        ctx.fillStyle = focused ? "#e9eef7" : "#8b96ab";
+        ctx.fillText(c.name, c.anchorXY[0] + offset.dx, c.anchorXY[1] + offset.dy);
+      }
+      if (showValue) {
+        ctx.font = '400 9px "IBM Plex Mono", monospace';
+        ctx.fillStyle = focused ? "#8b96ab" : "#5c6a82";
+        const total = (c.outflow ?? 0) + (c.inflow ?? 0);
+        const valueLabel = MOBILE
+          ? `計${fmtInt(total)}`
+          : `出${c.outflow != null ? fmtInt(c.outflow) : "圏外"} / 入${c.inflow != null ? fmtInt(c.inflow) : "圏外"}`;
+        ctx.fillText(valueLabel, c.anchorXY[0] + offset.dx, c.anchorXY[1] + offset.dyVal);
+      }
+      ctx.globalAlpha = 1;
+    }
+    ctx.textAlign = "left";
+  }
+
+  function frame() {
+    if (!running || !geom) return;
+    const ctx = fx.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    /* destination-outで既存ピクセルの不透明度だけを少しずつ落とす → 透明な背景を保ったまま
+       粒子が流星のような残光の尾を引く（陸ドット・航路線・ラベルはbase canvas側で常にクリアに保たれる） */
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillRect(0, 0, geom.width, geom.height);
+    ctx.globalCompositeOperation = "lighter";
+
+    const elapsed = (performance.now() - pulseStart) % 2200;
+    const phase = elapsed / 2200;
+    ctx.beginPath();
+    ctx.arc(geom.tokyoXY[0], geom.tokyoXY[1], 3 + phase * 14, 0, Math.PI * 2);
+    ctx.strokeStyle = MOB_DISPATCH_COLOR;
+    ctx.globalAlpha = Math.max(0, 0.5 * (1 - phase));
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    for (const p of particles) {
+      p.t += p.speed;
+      if (p.t > 1) p.t -= 1;
+      const n = p.path.length;
+      const idx = p.t * (n - 1);
+      const i0 = Math.floor(idx), frac = idx - i0;
+      const a = p.path[i0], b = p.path[Math.min(n - 1, i0 + 1)];
+      const px = a[0] + (b[0] - a[0]) * frac, py = a[1] + (b[1] - a[1]) * frac;
+      const active = !focusCode || p.code === focusCode;
+      ctx.fillStyle = p.dir === "out" ? MOB_DISPATCH_COLOR : MOB_INFLOW_COLOR;
+      ctx.globalAlpha = active ? 0.85 : 0.1;
+      const size = 1.7;
+      ctx.fillRect(px - size / 2, py - size / 2, size, size);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+    requestAnimationFrame(frame);
+  }
+
+  function hitTest(mx, my) {
+    if (!geom) return null;
+    let best = null, bestDist = 26;
+    for (const c of geom.countries) {
+      const dist = Math.hypot(mx - c.anchorXY[0], my - c.anchorXY[1]);
+      if (dist < bestDist) { bestDist = dist; best = c; }
+    }
+    return best;
+  }
+
+  function showHover(c, event) {
+    if (!hoverEl) return;
+    const bounds = stage.getBoundingClientRect();
+    const outText = c.outflow != null ? `${fmtInt(c.outflow)}人` : "上位20位外";
+    const inText = c.inflow != null ? `${fmtInt(c.inflow)}人` : "上位20位外";
+    const netText = c.outflow != null && c.inflow != null
+      ? `純差 ${fmtInt(Math.abs(c.outflow - c.inflow))}人の${c.outflow >= c.inflow ? "出超" : "入超"}`
+      : "純差 不明（片方が圏外）";
+    hoverEl.innerHTML = `<b>${escapeHtml(c.name)}</b><br>日本 → 同国 ${outText}<br>同国 → 日本 ${inText}<br>${netText}`;
+    hoverEl.style.left = `${Math.min(event.clientX - bounds.left + 14, bounds.width - 190)}px`;
+    hoverEl.style.top = `${Math.max(0, event.clientY - bounds.top - 24)}px`;
+    hoverEl.classList.add("is-on");
+  }
+  function hideHover() { hoverEl?.classList.remove("is-on"); }
+
+  function handlePointer(event) {
+    if (!geom) return;
+    const rect = base.getBoundingClientRect();
+    const mx = event.clientX - rect.left, my = event.clientY - rect.top;
+    const hit = hitTest(mx, my);
+    const nextFocus = hit?.code || null;
+    if (nextFocus !== focusCode) { focusCode = nextFocus; drawBase(); }
+    if (hit) showHover(hit, event); else hideHover();
+  }
+  base.addEventListener("pointermove", handlePointer);
+  base.addEventListener("pointerdown", handlePointer);
+  base.addEventListener("pointerleave", () => {
+    if (focusCode) { focusCode = null; drawBase(); }
+    hideHover();
+  });
+
+  layout();
+  if (!REDUCED) {
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries[0]?.isIntersecting;
+      if (visible && !running) { running = true; frame(); }
+      else if (!visible) running = false;
+    }, { threshold: 0.05 });
+    observer.observe(base);
+    frame();
+  }
+  /* 連続リサイズ中に投影・航路・ドットキャッシュの再構築が毎イベント走らないようrAFでまとめる。
+     MOBILE はサイト全体の慣例に合わせてロード時定数のまま（ブレークポイントをまたぐリサイズは再読込で反映） */
+  let resizeRaf = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => layout());
+  }, { passive: true });
+
+  setText("#mobmap-source",
+    `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 粒子の数・速さは人数に比例させた演出であり実数の描写ではない。航路は実際の渡航経路ではなく、日本と各国の代表点を結んだ大圏航路（最短距離の弧）。国のアンカーは代表点であり、首都や重心を意味しない。片方の上位20位内にのみ入る国は、もう片方を「圏外」と表示する（0人という意味ではない）。地図が混み合う地域は常設ラベルを間引いている — 小さな点だけの国もポインタを合わせる／タップすると数値を表示する。後出の参考セクション（図E・F、MEXT「延べ渡航者数」＝所属を保った渡航イベントの統計）とは測っているものが異なる — こちらは著者の所属国の変化を移動とみなした推計で、単一の累積スナップショット（年次推移はない）。国別の詳細な数値は直後の図Cを参照。陸の形状: world-atlas land-110m（Natural Earth由来、パブリックドメイン）。${unmapped.length ? `座標未登録のため地図に表示していない国: ${unmapped.join("、")}（数値は図Cを参照）。` : ""}`);
 }
 
 function drawMobRegionPanel(container, title, data, order, color, ariaLabel) {
@@ -1374,7 +1879,7 @@ function renderMobBilateral(mobility) {
   const totals = block.totals || {};
   const net = (totals.outflow_total ?? 0) - (totals.inflow_total ?? 0);
   setText("#mob-bilateral-source",
-    `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 2010〜2024年累積で、日本から海外への移動${fmtInt(totals.outflow_total ?? 0)}人に対し、海外から日本への移動${fmtInt(totals.inflow_total ?? 0)}人（差は${fmtInt(Math.abs(net))}人の${net >= 0 ? "出超" : "入超"}）。国別の値は日本→海外・海外→日本それぞれ独立の上位20か国のみ公表されており、片方の上位20位内にのみ入る国は「上位20位外」と表示している（0人という意味ではない）。上図Aの延べ渡航者数（同一人物の複数回渡航を含む渡航イベントの集計）とは測っているものが異なる — こちらは著者の所属国の変化を移動とみなした推計。`);
+    `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 2010〜2024年累積で、日本から海外への移動${fmtInt(totals.outflow_total ?? 0)}人に対し、海外から日本への移動${fmtInt(totals.inflow_total ?? 0)}人（差は${fmtInt(Math.abs(net))}人の${net >= 0 ? "出超" : "入超"}）。国別の値は日本→海外・海外→日本それぞれ独立の上位20か国のみ公表されており、片方の上位20位内にのみ入る国は「上位20位外」と表示している（0人という意味ではない）。後出の参考セクション（図E）の延べ渡航者数（同一人物の複数回渡航を含む渡航イベントの集計）とは測っているものが異なる — こちらは著者の所属国の変化を移動とみなした推計。`);
 }
 
 function renderMobFacultyChip(mobility) {
@@ -1388,17 +1893,172 @@ function renderMobFacultyChip(mobility) {
     `出典: ${block.source?.title || ""}。単位: ${block.unit || ""}。${block.note || ""} 男${fmtInt(point.male ?? 0)}人・女${fmtInt(point.female ?? 0)}人。`);
 }
 
+/* ================================================================ 03-D 博士たちの選択（3つの断面） */
+
+/* JSPS海外特別研究員の進路: 6区分の100%積み上げ横棒（HTML+CSSのみ、cmp-stackを再利用）。
+   色は「海外」を含むラベル＝amber、「非研究職」＝濃灰、それ以外（国内）＝slate、というラベル文字列
+   ベースの判定にしている（ハードコードの対応表を作ると区分が増えたときに追従できないため） */
+function renderMobJsps(mount, block) {
+  if (!mount) return;
+  mount.innerHTML = "";
+  const dest = block?.status === "ok" ? (block.destinations || []) : [];
+  if (!block || block.status !== "ok" || !dest.length || !block.abroad_total) {
+    mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  const colorFor = (label) => (label.includes("海外") ? MOB_DISPATCH_COLOR : label.includes("非研究職") ? "#2c3648" : "#4f7ca6");
+  const stack = dest.map((d) => `<i style="width:${Math.max(0, d.pct)}%;background:${colorFor(d.label)}" title="${escapeHtml(d.label)}: ${fmtInt(d.count)}人（${d.pct}%）"></i>`).join("");
+  const abroad = block.abroad_total;
+  mount.innerHTML = `
+    <div class="cmp-stack" style="height:20px">${stack}</div>
+    <p class="mob-subnote" style="margin-top:6px">オレンジ=海外 / 青灰=国内 / 濃灰=非研究職</p>
+    <div style="margin-top:10px"><span class="mob-headline">${fmtInt(abroad.count)}</span><span class="mob-unit">人（${abroad.pct}%）が任期終了後も海外に残った</span></div>`;
+}
+
+/* JD-Pro: 修了後経過年ごとのコホート別の小さな折れ線（実線=2012年度コホート・破線=2015年度コホート） */
+function drawJdproMini(mount, seriesList, color, ariaLabel) {
+  if (!mount) return;
+  const allPts = seriesList.flatMap((s) => s.pts || []);
+  if (!allPts.length) { mount.innerHTML = '<p class="data-empty" style="padding:6px 0">データを取得できませんでした。</p>'; return; }
+  const width = 240, height = 76;
+  const margin = { top: 8, right: 44, bottom: 18, left: 8 };
+  const maxYears = d3.max(allPts, (p) => p.elapsed_years) || 1;
+  const maxPct = d3.max(allPts, (p) => p.pct) || 1;
+  const x = d3.scaleLinear().domain([0, maxYears * 1.05]).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, maxPct * 1.25]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", ariaLabel);
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(4).tickFormat((v) => `${v}年`)).select(".domain").attr("stroke", "#1c2839");
+  const line = d3.line().x((p) => x(p.elapsed_years)).y((p) => y(p.pct)).curve(d3.curveMonotoneX);
+  for (const s of seriesList) {
+    if (!s.pts?.length) continue;
+    const path = svg.append("path").attr("d", line(s.pts)).attr("fill", "none").attr("stroke", color)
+      .attr("stroke-width", 1.8).attr("opacity", s.dash ? 0.55 : 0.95);
+    if (s.dash) path.attr("stroke-dasharray", "3 3");
+    svg.append("g").selectAll("circle").data(s.pts).join("circle")
+      .attr("cx", (p) => x(p.elapsed_years)).attr("cy", (p) => y(p.pct)).attr("r", 2.2)
+      .attr("fill", color).attr("opacity", s.dash ? 0.55 : 0.95);
+    const last = s.pts[s.pts.length - 1];
+    svg.append("text").attr("x", x(last.elapsed_years) + 5).attr("y", y(last.pct) + 3)
+      .attr("font-size", 9).attr("fill", color).attr("opacity", s.dash ? 0.75 : 1).text(`${last.pct}%`);
+  }
+}
+
+function renderMobJdpro(mount, block) {
+  if (!mount) return;
+  mount.innerHTML = "";
+  if (!block || block.status !== "ok") { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const jaC12 = block.japanese_abroad?.cohort2012 || [];
+  const jaC15 = block.japanese_abroad?.cohort2015 || [];
+  const fsC12 = block.foreign_stay_japan?.cohort2012 || [];
+  const fsC15 = block.foreign_stay_japan?.cohort2015 || [];
+  if (!jaC12.length && !jaC15.length && !fsC12.length && !fsC15.length) {
+    mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = `
+    <p class="mob-subnote" style="margin-top:0">海外に出る日本人博士（国籍別・修了後経過年）</p>
+    <div class="fig-body" id="mob-jdpro-ja"></div>
+    <p class="mob-subnote" style="margin-top:10px">日本に残る外国籍博士（同）</p>
+    <div class="fig-body" id="mob-jdpro-fs"></div>`;
+  drawJdproMini($("#mob-jdpro-ja"),
+    [{ pts: jaC12, dash: false }, { pts: jaC15, dash: true }],
+    MOB_DISPATCH_COLOR, "日本人博士のうち海外居住・研究活動実施の割合、コホート別の推移");
+  drawJdproMini($("#mob-jdpro-fs"),
+    [{ pts: fsC12, dash: false }, { pts: fsC15, dash: true }],
+    MOB_INFLOW_COLOR, "外国籍博士のうち日本居住継続の割合、コホート別の推移。経過年とともに低下している。");
+}
+
+/* NSF SED: 米国博士取得者数（一時ビザ）の見出し数値＋米国残留意向の国際比較横棒 */
+function drawNsfStayBars(mount, rows, avgPct) {
+  const width = 240, height = rows.length * 26 + 26;
+  const margin = { top: 6, right: 40, bottom: 20, left: 44 };
+  const maxV = Math.max(d3.max(rows, (r) => r.cumulative_2018_24_pct) || 0, avgPct ?? 0) * 1.12 || 1;
+  const x = d3.scaleLinear().domain([0, maxV]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.country_name_ja)).range([margin.top, height - margin.bottom]).padding(0.32);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "米国博士取得者（一時ビザ保有者）の米国残留意向、国籍別の2018-2024年累積比較。日本は全平均を下回る。");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(4).tickFormat((v) => `${v}%`)).select(".domain").attr("stroke", "#1c2839");
+  if (Number.isFinite(avgPct)) {
+    svg.append("line").attr("x1", x(avgPct)).attr("x2", x(avgPct)).attr("y1", margin.top).attr("y2", height - margin.bottom)
+      .attr("stroke", "#8b96ab").attr("stroke-dasharray", "3 4");
+    svg.append("text").attr("x", x(avgPct) + 3).attr("y", margin.top + 8).attr("font-size", 8.5).attr("fill", "#8b96ab").text(`全平均${avgPct}%`);
+  }
+  const bars = svg.append("g").selectAll("rect").data(rows).join("rect")
+    .attr("x", x(0)).attr("y", (r) => y(r.country_name_ja)).attr("height", y.bandwidth())
+    .attr("width", (r) => x(r.cumulative_2018_24_pct) - x(0))
+    .attr("fill", (r) => (r.code === "JPN" ? MOB_DISPATCH_COLOR : "#4f7ca6"))
+    .attr("opacity", (r) => (r.code === "JPN" ? 0.95 : 0.55));
+  bars.append("title").text((r) => `${r.country_name_ja}: ${r.cumulative_2018_24_pct}%（2018-2024年累積、n=${fmtInt(r.cumulative_2018_24_n ?? 0)}）`);
+  svg.append("g").selectAll("text.nsflabel").data(rows).join("text")
+    .attr("x", margin.left - 6).attr("y", (r) => y(r.country_name_ja) + y.bandwidth() / 2 + 3.5)
+    .attr("text-anchor", "end").attr("font-size", 9.5)
+    .attr("fill", (r) => (r.code === "JPN" ? MOB_DISPATCH_COLOR : "#8b96ab")).text((r) => r.country_name_ja);
+  svg.append("g").selectAll("text.nsfvalue").data(rows).join("text")
+    .attr("x", (r) => x(r.cumulative_2018_24_pct) + 5).attr("y", (r) => y(r.country_name_ja) + y.bandwidth() / 2 + 3.5)
+    .attr("font-size", 9.5).attr("fill", "#e9eef7").text((r) => `${r.cumulative_2018_24_pct}%`);
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { width: 0 }, duration: 0.8, ease: "power3.out", stagger: 0.04, scrollTrigger: { trigger: mount, start: "top 88%" } });
+  }
+}
+
+function renderMobNsf(mount, block) {
+  if (!mount) return;
+  mount.innerHTML = "";
+  if (!block || block.status !== "ok") { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const jp2024 = block.rank_by_year?.["2024"]?.countries?.JPN;
+  const totalCountries = block.rank_by_year?.["2024"]?.total_countries;
+  const stay = block.stay_intent || {};
+  const rows = ["JPN", "KOR", "CHN", "IND"]
+    .map((code) => (stay[code] ? { code, ...stay[code] } : null))
+    .filter((r) => r && Number.isFinite(r.cumulative_2018_24_pct));
+  if (!jp2024 && !rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const headline = jp2024
+    ? `<div><span class="mob-headline">${fmtInt(jp2024.count)}</span><span class="mob-unit">人・${jp2024.rank}位${totalCountries ? `/${totalCountries}か国` : ""}（2024年）</span></div>`
+    : "";
+  mount.innerHTML = `${headline}<div class="fig-body" id="mob-nsf-bars" style="margin-top:${headline ? "10px" : "0"}"></div>`;
+  if (rows.length) {
+    const avgPct = Number.isFinite(stay.ALL?.cumulative_2018_24_pct) ? stay.ALL.cumulative_2018_24_pct : null;
+    drawNsfStayBars($("#mob-nsf-bars"), rows, avgPct);
+  } else {
+    $("#mob-nsf-bars").innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+  }
+}
+
+function renderMobChoices(mobility) {
+  const jsps = mobility?.jsps_overseas_fellows;
+  const jdpro = mobility?.jdpro;
+  const nsf = mobility?.nsf_sed;
+  renderMobJsps($("#mob-jsps"), jsps);
+  renderMobJdpro($("#mob-jdpro"), jdpro);
+  renderMobNsf($("#mob-nsf"), nsf);
+
+  const notes = [];
+  if (jsps?.status === "ok") notes.push(`JSPS海外特別研究員: 出典${jsps.source?.title || ""}。${jsps.note || ""}`);
+  if (jdpro?.status === "ok") {
+    const jdSources = (jdpro.source || []).map((s) => s.title).filter(Boolean).join(" / ");
+    notes.push(`JD-Pro: 出典${jdSources}。${jdpro.note || ""}実線=2012年度コホート・破線=2015年度コホート。`);
+  }
+  if (nsf?.status === "ok") {
+    const nsfSources = (nsf.source || []).map((s) => s.title).filter(Boolean).join(" / ");
+    notes.push(`NSF SED: 出典${nsfSources}。${nsf.note || ""}`);
+  }
+  setText("#mob-choices-source", notes.join(" "));
+}
+
 /* ================================================================ boot */
 
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult, landTopologyResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/economy.json"),
     fetchJson("data/phd_support.json"),
     fetchJson("data/mobility.json"),
+    fetchJson("data/land-110m.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
@@ -1406,6 +2066,8 @@ async function init() {
   const phdSupport = phdSupportResult.status === "fulfilled" ? phdSupportResult.value : null;
   /* mobility.json取得失敗は03章のみに影響させる（他の章は独立して動く） */
   const mobility = mobilityResult.status === "fulfilled" ? mobilityResult.value : null;
+  /* land-110m.json取得失敗は図Bだけに影響させる（renderMobMap内で.data-emptyにする） */
+  const landTopology = landTopologyResult.status === "fulfilled" ? landTopologyResult.value : null;
   if (!indicators && !analytics) {
     setText("#header-status", "人材データを取得できません");
     return;
@@ -1438,9 +2100,14 @@ async function init() {
   renderDcRealValue(phdSupport, economy);
   renderDcAcceptance(phdSupport);
   renderPhdLivingSupport(phdSupport);
+  /* 章の視覚的な並び: A純流出(reico) → B地図 → C出入りのバランス(bilateral) → D博士たちの選択
+     → 参考セクション: E32年の往来(flows) → F地域別(regional) → 外国人本務教員 */
+  safeCall("renderMobReico", () => renderMobReico(mobility));
+  safeCall("renderMobMap", () => renderMobMap(mobility, landTopology));
+  safeCall("renderMobBilateral", () => renderMobBilateral(mobility));
+  safeCall("renderMobChoices", () => renderMobChoices(mobility));
   safeCall("renderMobFlows", () => renderMobFlows(mobility));
   safeCall("renderMobRegional", () => renderMobRegional(mobility));
-  safeCall("renderMobBilateral", () => renderMobBilateral(mobility));
   safeCall("renderMobFacultyChip", () => renderMobFacultyChip(mobility));
 
   const hireRows = indicators?.faculty_age?.hire_rows || [];
@@ -1460,9 +2127,15 @@ async function init() {
     blockEntry(indicators?.intl_grad_students),
     blockEntry(economy?.cpi), blockEntry(phdSupport?.dc_acceptance), blockEntry(phdSupport?.living_support),
     blockEntry(mobility?.mext_flows), blockEntry(mobility?.oecd_bilateral), blockEntry(mobility?.foreign_faculty),
+    blockEntry(mobility?.reico_flows), blockEntry(mobility?.jsps_overseas_fellows),
     /* dc_stipend_history.source は複数出典の配列（国会会議録・Wayback保存ページ複数点）のため個別展開 */
     ...(phdSupport?.dc_stipend_history?.source || []).map((s) => ({ title: s.title, url: s.url, status: phdSupport.dc_stipend_history.status === "ok" ? "ok" : "unavailable" })),
     ...(analytics?.reality?.sources || []).map((s) => ({ title: s.title, url: s.url, status: s.status === "ok" ? "ok" : "unavailable" })),
+    /* nsf_sed / jdpro も source が複数出典の配列なので個別展開 */
+    ...(mobility?.nsf_sed?.source || []).map((s) => ({ title: s.title, url: s.url, status: mobility.nsf_sed.status === "ok" ? "ok" : "unavailable" })),
+    ...(mobility?.jdpro?.source || []).map((s) => ({ title: s.title, url: s.url, status: mobility.jdpro.status === "ok" ? "ok" : "unavailable" })),
+    /* 地図(図B)の陸形状。リポジトリ同梱の静的ファイル(world-atlas、Natural Earth由来) */
+    { title: "world-atlas land-110m（Natural Earth由来・陸形状）", url: "https://github.com/topojson/world-atlas", status: "ok" },
   ].filter(Boolean);
   renderLedgerEntries(entries);
 }

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Fetch international researcher mobility data for the 人材 atlas ("研究者の国際移動" 章).
 
-Three blocks, three very different provenance stories:
+章の主役は「移動（頭脳流出/還流）」、MEXTの「交流」統計は補助という構成。7ブロック、
+それぞれ別の来歴を持つ:
 
-- mext_flows: 文部科学省「国際研究交流の概況」の年度別推移（派遣／受入 × 短期／中・長期）。
-  この調査は集計表（xlsx等）を公開しておらず、公表資料はグラフ画像に数値ラベルが
-  印字された形でしか存在しない。そのため時系列本体（1993〜2024年度、32年×4系列）は
+- mext_flows: 文部科学省「国際研究交流の概況」の年度別推移（派遣／受入 × 短期／中・長期、
+  補助データ）。この調査は集計表（xlsx等）を公開しておらず、公表資料はグラフ画像に数値
+  ラベルが印字された形でしか存在しない。そのため時系列本体（1993〜2024年度、32年×4系列）は
   スクリプト内の検証済み定数として持つ「手動転記スナップショット」方式を取る
   （data/phd_support.json の dc_stipend_history と同じ流儀）。転記は該当PDFページを
   2回独立に読んで突合し、不一致は3回目の読み直しで確定させた（詳細は転記時の作業
@@ -17,6 +18,15 @@ Three blocks, three very different provenance stories:
 - foreign_faculty: e-Stat「学校教員統計調査」の大学における外国人本務教員数（ストック）。
   3年周期の調査。令和7年度（中間報告）のみ実データ取得を確認できた（過去回のファイル
   探索は15分のタイムボックス内で見つからず、無理に推測はしていない）。
+- reico_flows（本命）: OECD ReICO「R&I talent circulation」（SDMX API、認証不要）。
+  Scopus著者データに基づく年次の流入/流出/帰国者数の推計。日本は2011年を除き毎年
+  純流出。実URLから取得し、既知の2024年内訳（流入/流出/帰国/残留）と突合検証する。
+- jsps_overseas_fellows: JSPS海外特別研究員の帰国後進路（検証済み静的定数）。単一コホート
+  147人の円グラフPDFからの手動転記。
+- nsf_sed: 米国で博士号を取得した日本人（一時ビザ）の人数推移と米国残留意向
+  （検証済み静的定数）。NCSES Survey of Earned Doctorates の公式xlsxから手動転記・検証済み。
+- jdpro: NISTEP「博士人材追跡調査」の国籍別国際移動（検証済み静的定数）。国籍別クロス集計は
+  第3次報告書（2020年公表）のみに存在し、それ以降は再掲されていない。
 
 Every block carries {status, source, unit, note} so the frontend can state provenance
 honestly and degrade gracefully when a source is unavailable. On fetch failure, the
@@ -407,6 +417,323 @@ def block_foreign_faculty() -> dict[str, object]:
     }
 
 
+# =============================================================================================
+# Block 4: reico_flows — OECD ReICO「R&I talent circulation」（本命データ）
+# =============================================================================================
+#
+# Scopus著者データに基づき、著者の所属国変遷から年次の国際流入/流出/帰国者数を按分推計した
+# OECDの新しいデータセット（DSD_REICO_FULL@DF_RDC）。既存の oecd_bilateral（2010-2024年の
+# 累積・国別マトリクス）とは別物で、こちらは「ある年に何人流出/流入したか」の年次時系列と
+# 多国間比較ができる。実URLから取得し、既知の2024年内訳（調査で確認済み）と突合検証する。
+
+REICO_URL = (
+    "https://sdmx.oecd.org/public/rest/data/OECD.STI.STP,DSD_REICO_FULL@DF_RDC,2.0/"
+    "JPN+USA+GBR+DEU+FRA+KOR+CAN+ITA+CHN+AUS.RDC.ANNUAL_FLOWS_NB+INFLOW_NB+OUTFLOW_NB+"
+    "RETURN_NB+STAY_NB+MOBILITY_NB+AUTHORS_NB.BIBLIO/all?format=csvfilewithlabels"
+)
+REICO_SOURCE = {
+    "title": "OECD ReICO（Research and Innovation Careers Observatory）「R&I talent circulation」",
+    "url": "https://sdmx.oecd.org/public/rest/dataflow/OECD.STI.STP/DSD_REICO_FULL@DF_RDC/2.0/?references=all&format=jsondata",
+}
+REICO_COUNTRIES = ["JPN", "USA", "GBR", "DEU", "FRA", "KOR", "CAN", "ITA", "CHN", "AUS"]
+REICO_COUNTRY_NAME_JA: dict[str, str] = {
+    "JPN": "日本", "USA": "アメリカ合衆国", "GBR": "イギリス", "DEU": "ドイツ",
+    "FRA": "フランス", "KOR": "韓国", "CAN": "カナダ", "ITA": "イタリア",
+    "CHN": "中国", "AUS": "オーストラリア",
+}
+REICO_LATEST_YEAR = 2024
+# 検証用の既知値（2024年・日本）。取得値がこれと大きくズレたらAPI仕様変更や取得ミスを疑う。
+REICO_EXPECTED_JPN_2024 = {"INFLOW_NB": 3036, "OUTFLOW_NB": 4795, "RETURN_NB": 1438, "STAY_NB": 187284}
+
+
+def block_reico_flows() -> dict[str, object]:
+    text = fetch(REICO_URL).decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(text))
+    # values[country_code][VAR][year] = observation value
+    values: dict[str, dict[str, dict[int, float]]] = {}
+    for row in reader:
+        country = row.get("REF_AREA", "")
+        var = row.get("VAR", "")
+        year_text = row.get("TIME_PERIOD", "")
+        obs_text = row.get("OBS_VALUE", "")
+        if not (country and var and year_text and obs_text):
+            continue
+        try:
+            year = int(year_text)
+            value = float(obs_text)
+        except ValueError:
+            continue
+        values.setdefault(country, {}).setdefault(var, {})[year] = value
+
+    jpn = values.get("JPN", {})
+    annual_net_map = jpn.get("ANNUAL_FLOWS_NB", {})
+    if not annual_net_map:
+        raise ValueError("no ANNUAL_FLOWS_NB series for Japan")
+    annual_net = [[year, round(annual_net_map[year], 2)] for year in sorted(annual_net_map)]
+
+    latest_breakdown = {
+        "fiscal_year": REICO_LATEST_YEAR,
+        "inflow": jpn.get("INFLOW_NB", {}).get(REICO_LATEST_YEAR),
+        "outflow": jpn.get("OUTFLOW_NB", {}).get(REICO_LATEST_YEAR),
+        "returnees": jpn.get("RETURN_NB", {}).get(REICO_LATEST_YEAR),
+        "stay": jpn.get("STAY_NB", {}).get(REICO_LATEST_YEAR),
+        "mobility": jpn.get("MOBILITY_NB", {}).get(REICO_LATEST_YEAR),
+        "authors_total": jpn.get("AUTHORS_NB", {}).get(REICO_LATEST_YEAR),
+    }
+    for key, var in (("inflow", "INFLOW_NB"), ("outflow", "OUTFLOW_NB"), ("returnees", "RETURN_NB"), ("stay", "STAY_NB")):
+        expected = REICO_EXPECTED_JPN_2024[var]
+        actual = latest_breakdown[key]
+        if actual is None or abs(actual - expected) > 1:
+            raise ValueError(f"reico {var} {REICO_LATEST_YEAR}: got {actual}, expected ~{expected}")
+    # 検証値のないmobility/authors_totalも、欠損のままstatus:okで公開しない
+    for key in ("mobility", "authors_total"):
+        value = latest_breakdown[key]
+        if value is None or not isinstance(value, (int, float)) or value <= 0:
+            raise ValueError(f"reico {key} {REICO_LATEST_YEAR}: missing or non-positive ({value})")
+
+    country_comparison = []
+    for code in REICO_COUNTRIES:
+        net = values.get(code, {}).get("ANNUAL_FLOWS_NB", {}).get(REICO_LATEST_YEAR)
+        authors = values.get(code, {}).get("AUTHORS_NB", {}).get(REICO_LATEST_YEAR)
+        if net is None or authors is None or authors <= 0:
+            continue
+        country_comparison.append({
+            "country_code": code,
+            "country_name_ja": REICO_COUNTRY_NAME_JA.get(code, code),
+            "annual_net": round(net, 2),
+            "authors_total": int(authors),
+            "net_flow_rate_pct": round(net / authors * 100, 3),
+        })
+
+    return {
+        "status": "ok",
+        "unit": "人（Scopus著者データに基づく年次推計。按分のため小数）",
+        "source": REICO_SOURCE,
+        "note": (
+            "Scopus著者データに基づくOECDの推計（按分のため小数）。著者の所属国変遷から流入・"
+            "流出・帰国を年次で推定している。ReICOは新しいプロジェクトで方法論の詳細公開が"
+            "限定的。内訳指標（流入/流出/帰国/残留/移動経験者数）は2024年分のみ提供されており、"
+            "過去年（2011-2024）は純流入数（annual_net）のみ利用可能。net_flow_rate_pctは"
+            "純流入数を総著者数（残留者+国際移動経験者）で割った比率で、OECD提供の事前計算"
+            "比率変数（ANNUAL_FLOWS_NBXAUTHORS）は値が未整備だったためスクリプト内で算出した。"
+        ),
+        "annual_net": annual_net,
+        "latest_breakdown": latest_breakdown,
+        "country_comparison": country_comparison,
+    }
+
+
+# =============================================================================================
+# Block 5: jsps_overseas_fellows — JSPS海外特別研究員の帰国後進路（検証済み静的定数）
+# =============================================================================================
+
+JSPS_SOURCE = {
+    "title": "日本学術振興会「海外特別研究員の就職状況調査結果について」（令和7年度調査、令和4年度採用者分）",
+    "url": "https://www.jsps.go.jp/file/storage/j-ab/data/syusyoku/ab_syusyoku_r7.pdf",
+}
+# 円グラフPDF（採用終了後の身分、令和4年度採用者147人）からの手動転記。合計=147人になることを検証。
+JSPS_DESTINATIONS = [
+    {"label": "常勤の研究職（国内）", "count": 60, "pct": 40.8},
+    {"label": "常勤の研究職（海外）", "count": 25, "pct": 17.0},
+    {"label": "非常勤の研究職", "count": 5, "pct": 3.4},
+    {"label": "ポスドク（国内）", "count": 3, "pct": 2.0},
+    {"label": "ポスドク（海外）", "count": 43, "pct": 29.3},
+    {"label": "非研究職", "count": 11, "pct": 7.5},
+]
+# 採用状況発表ページの各年度値（令和4〜8年度）。
+JSPS_ACCEPTANCE_TREND = [
+    {"fiscal_year": 2022, "accepted": 149, "rate_pct": 26.4},
+    {"fiscal_year": 2023, "accepted": 135, "rate_pct": 26.5},
+    {"fiscal_year": 2024, "accepted": 160, "rate_pct": 27.3},
+    {"fiscal_year": 2025, "accepted": 188, "rate_pct": 31.2},
+    {"fiscal_year": 2026, "accepted": 195, "rate_pct": 27.6},
+]
+
+
+def block_jsps_overseas_fellows() -> dict[str, object]:
+    n_total = sum(d["count"] for d in JSPS_DESTINATIONS)
+    if n_total != 147:
+        raise ValueError(f"JSPS destinations do not sum to 147: got {n_total}")
+    # 転記したpctが人数から再計算した値と一致するか（原典の丸め±0.15ppまで許容）
+    for d in JSPS_DESTINATIONS:
+        recomputed = d["count"] / n_total * 100
+        if abs(recomputed - d["pct"]) > 0.15:
+            raise ValueError(f"JSPS pct mismatch for {d['label']}: {d['pct']} vs recomputed {recomputed:.1f}")
+    abroad_count = sum(d["count"] for d in JSPS_DESTINATIONS if "海外" in d["label"])
+    return {
+        "status": "ok",
+        "unit": "人",
+        "source": JSPS_SOURCE,
+        "note": (
+            "選抜された若手研究者（単年コホート147人、令和4年度採用者）であり博士人材全体を"
+            "代表しない。円グラフPDFからの手動転記。abroad_totalは「常勤の研究職（海外）」と"
+            "「ポスドク（海外）」の合計＝任期終了後も日本に戻らず海外に残った者。"
+        ),
+        "cohort_fiscal_year": 2022,
+        "survey_fiscal_year": 2025,
+        "n_total": n_total,
+        "destinations": JSPS_DESTINATIONS,
+        "abroad_total": {"count": abroad_count, "pct": round(abroad_count / n_total * 100, 1)},
+        "acceptance_trend": JSPS_ACCEPTANCE_TREND,
+    }
+
+
+# =============================================================================================
+# Block 6: nsf_sed — 米国博士号取得者の国籍別人数・米国残留意向（検証済み静的定数）
+# =============================================================================================
+# NCSES Survey of Earned Doctorates の公式xlsx（Table 7-8, Table 2-8）から、openpyxlで
+# 全行を機械的に確認して転記した数値（手読みではなくセル値の直接検証）。
+
+NSF_SED_SOURCE = [
+    {
+        "title": "NCSES Survey of Earned Doctorates, Table 7-8（2024年、一時ビザ保有者・上位40か国）",
+        "url": "https://ncses.nsf.gov/pubs/nsf25349/assets/data-tables/tables/nsf25349-tab007-008.xlsx",
+    },
+    {
+        "title": "NCSES Survey of Earned Doctorates, Table 7-8（2022年、比較用）",
+        "url": "https://ncses.nsf.gov/pubs/nsf24300/assets/data-tables/tables/nsf24300-tab007-008.xlsx",
+    },
+    {
+        "title": "NCSES Survey of Earned Doctorates, Table 2-8（米国残留意向、2018-2024年）",
+        "url": "https://ncses.nsf.gov/pubs/nsf25349/assets/data-tables/tables/nsf25349-tab002-008.xlsx",
+    },
+]
+
+NSF_SED_RANK_BY_YEAR = {
+    2022: {
+        "total_all": 19107, "total_countries": 157,
+        "countries": {
+            "JPN": {"rank": 25, "count": 121}, "CHN": {"rank": 1, "count": 6664},
+            "IND": {"rank": 2, "count": 2671}, "KOR": {"rank": 3, "count": 1076},
+        },
+    },
+    2024: {
+        "total_all": 18819, "total_countries": 159,
+        "countries": {
+            "JPN": {"rank": 23, "count": 138}, "CHN": {"rank": 1, "count": 6756},
+            "IND": {"rank": 2, "count": 2649}, "KOR": {"rank": 3, "count": 1061},
+        },
+    },
+}
+
+# "definite plans to stay in the United States" 率（％）、2018-2024年次推移＋累計。
+NSF_SED_STAY_INTENT = {
+    "JPN": {
+        "country_name_ja": "日本",
+        "series": [[2018, 50.0], [2019, 51.6], [2020, 50.0], [2021, 49.6], [2022, 52.1], [2023, 50.4], [2024, 55.8]],
+        "cumulative_2018_24_pct": 51.5, "cumulative_2018_24_n": 857,
+    },
+    "CHN": {
+        "country_name_ja": "中国",
+        "series": [[2018, 79.4], [2019, 79.2], [2020, 80.1], [2021, 73.8], [2022, 76.7], [2023, 77.6], [2024, 79.3]],
+        "cumulative_2018_24_pct": 78.0, "cumulative_2018_24_n": 45103,
+    },
+    "IND": {
+        "country_name_ja": "インド",
+        "series": [[2018, 87.1], [2019, 85.9], [2020, 88.0], [2021, 85.8], [2022, 88.2], [2023, 89.0], [2024, 88.4]],
+        "cumulative_2018_24_pct": 87.6, "cumulative_2018_24_n": 16738,
+    },
+    "KOR": {
+        "country_name_ja": "韓国",
+        "series": [[2018, 63.6], [2019, 65.3], [2020, 66.9], [2021, 63.8], [2022, 65.1], [2023, 71.1], [2024, 69.7]],
+        "cumulative_2018_24_pct": 66.5, "cumulative_2018_24_n": 7543,
+    },
+    "ALL": {
+        "country_name_ja": "全一時ビザ保有者平均",
+        "series": [[2018, 72.0], [2019, 71.2], [2020, 73.0], [2021, 70.8], [2022, 74.3], [2023, 76.2], [2024, 75.8]],
+        "cumulative_2018_24_pct": 73.4, "cumulative_2018_24_n": 130525,
+    },
+}
+
+
+def block_nsf_sed() -> dict[str, object]:
+    # 手動転記定数の構造検証: 率は0-100%、系列は2018-2024の連続年、人数・母数は正
+    for year, table in NSF_SED_RANK_BY_YEAR.items():
+        if table["total_all"] <= 0 or table["total_countries"] <= 0:
+            raise ValueError(f"nsf_sed rank table {year}: non-positive totals")
+        for code, row in table["countries"].items():
+            if row["rank"] <= 0 or row["count"] <= 0:
+                raise ValueError(f"nsf_sed rank table {year}/{code}: invalid rank/count")
+    for code, entry in NSF_SED_STAY_INTENT.items():
+        years = [y for y, _ in entry["series"]]
+        if years != list(range(2018, 2025)):
+            raise ValueError(f"nsf_sed stay_intent {code}: years not continuous 2018-2024")
+        if not all(0 <= pct <= 100 for _, pct in entry["series"]):
+            raise ValueError(f"nsf_sed stay_intent {code}: pct out of range")
+        if not 0 <= entry["cumulative_2018_24_pct"] <= 100 or entry["cumulative_2018_24_n"] <= 0:
+            raise ValueError(f"nsf_sed stay_intent {code}: invalid cumulative values")
+    return {
+        "status": "ok",
+        "unit": "人（一時ビザ保有者の博士号取得者数）／％（米国残留意向）",
+        "source": NSF_SED_SOURCE,
+        "note": (
+            "一時ビザ保有者のみが対象（米国永住権者・市民権者は含まない）。残留『意向』であり"
+            "博士号取得後に実際に米国に居住し続けたかを検証した数値ではない（SED回答時点の"
+            "自己申告）。日本は年間100人台と絶対数が小さいため、年次のパーセンテージ変動は"
+            "統計的ノイズを含みうる。"
+        ),
+        "rank_by_year": NSF_SED_RANK_BY_YEAR,
+        "stay_intent": NSF_SED_STAY_INTENT,
+    }
+
+
+# =============================================================================================
+# Block 7: jdpro — NISTEP「博士人材追跡調査」の国籍別国際移動（検証済み静的定数）
+# =============================================================================================
+
+JDPRO_SOURCE = [
+    {"title": "NISTEP「博士人材追跡調査」第3次報告書（NISTEP Report No.188、2020年11月）", "url": "https://doi.org/10.15108/nr188"},
+    {"title": "NISTEP「博士人材追跡調査」第4次報告書（NISTEP RM317、2022年1月）", "url": "https://doi.org/10.15108/rm317"},
+    {"title": "NISTEP「博士人材追跡調査」第5次報告書（NISTEP RM356、2026年5月）", "url": "https://doi.org/10.15108/rm356"},
+]
+
+# 第3次報告書 概要図表9-3・9-4より。日本国籍の博士課程修了者のうち「海外居住・研究活動実施」の割合。
+JDPRO_JAPANESE_ABROAD = {
+    "cohort2012": [{"elapsed_years": 1.5, "pct": 5.2}, {"elapsed_years": 3.5, "pct": 4.7}, {"elapsed_years": 6.5, "pct": 2.5}],
+    "cohort2015": [{"elapsed_years": 0.5, "pct": 4.0}, {"elapsed_years": 3.5, "pct": 5.3}],
+}
+# 第3次報告書 概要図表9-1・9-2より。外国籍の博士課程修了者のうち「日本居住継続・研究活動実施」の割合。
+JDPRO_FOREIGN_STAY_JAPAN = {
+    "cohort2012": [{"elapsed_years": 1.5, "pct": 44.3}, {"elapsed_years": 6.5, "pct": 24.1}],
+    "cohort2015": [{"elapsed_years": 0.5, "pct": 38.9}, {"elapsed_years": 3.5, "pct": 28.1}],
+}
+# 参考値: 国籍非区分（全回答者、外国籍を含む）の「現在の居住国」単純集計。第4次・第5次報告書。
+JDPRO_LATEST_RESIDENCE = [
+    {"cohort_fiscal_year": 2018, "report": "第4次報告書", "japan_pct": 80.0},
+    {"cohort_fiscal_year": 2021, "report": "第5次報告書", "japan_pct": 80.9},
+]
+
+
+def block_jdpro() -> dict[str, object]:
+    # 手動転記定数の構造検証: 経過年数は昇順、率は0-100%
+    for name, table in (("japanese_abroad", JDPRO_JAPANESE_ABROAD), ("foreign_stay_japan", JDPRO_FOREIGN_STAY_JAPAN)):
+        for cohort, points in table.items():
+            elapsed = [p["elapsed_years"] for p in points]
+            if elapsed != sorted(elapsed):
+                raise ValueError(f"jdpro {name}/{cohort}: elapsed_years not ascending")
+            if not all(0 <= p["pct"] <= 100 for p in points):
+                raise ValueError(f"jdpro {name}/{cohort}: pct out of range")
+    if not all(0 <= r["japan_pct"] <= 100 for r in JDPRO_LATEST_RESIDENCE):
+        raise ValueError("jdpro latest_residence: pct out of range")
+    return {
+        "status": "ok",
+        "unit": "%（コホート内割合）",
+        "source": JDPRO_SOURCE,
+        "note": (
+            "国籍別の国際移動集計は第3次報告書のみに存在し、第4次・第5次報告書では再掲されて"
+            "いない。コホートごとに追跡経過年数が異なり単純な時系列比較はできない（2012年度"
+            "コホートは1.5/3.5/6.5年後、2015年度コホートは0.5/3.5年後）。japanese_abroad=日本"
+            "国籍修了者のうち海外居住・研究活動実施の割合、foreign_stay_japan=外国籍修了者の"
+            "うち日本居住継続・研究活動実施の割合（低下＝離日の増加）。latest_residenceは国籍"
+            "非区分（外国籍を含む全回答者のうち日本居住の割合）の参考値で、海外就職率とは"
+            "別の指標。PDF掲載値の手動転記。"
+        ),
+        "japanese_abroad": JDPRO_JAPANESE_ABROAD,
+        "foreign_stay_japan": JDPRO_FOREIGN_STAY_JAPAN,
+        "latest_residence": JDPRO_LATEST_RESIDENCE,
+    }
+
+
 def run_block(name: str, builder) -> dict[str, object]:
     try:
         block = builder()
@@ -428,6 +755,10 @@ def main() -> int:
         "mext_flows": run_block("mext_flows", block_mext_flows),
         "oecd_bilateral": run_block("oecd_bilateral", block_oecd_bilateral),
         "foreign_faculty": run_block("foreign_faculty", block_foreign_faculty),
+        "reico_flows": run_block("reico_flows", block_reico_flows),
+        "jsps_overseas_fellows": run_block("jsps_overseas_fellows", block_jsps_overseas_fellows),
+        "nsf_sed": run_block("nsf_sed", block_nsf_sed),
+        "jdpro": run_block("jdpro", block_jdpro),
     }
 
     # 一時的な取得失敗で公開済みの正常データを潰さない: 前回ファイルの正常ブロックを保持
@@ -436,7 +767,7 @@ def main() -> int:
             previous = json.loads(args.output.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             previous = {}
-        for key in ("mext_flows", "oecd_bilateral", "foreign_faculty"):
+        for key in ("mext_flows", "oecd_bilateral", "foreign_faculty", "reico_flows", "jsps_overseas_fellows", "nsf_sed", "jdpro"):
             if payload[key].get("status") != "ok" and previous.get(key, {}).get("status") == "ok":
                 kept = previous[key]
                 kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()

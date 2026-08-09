@@ -146,40 +146,87 @@
         <div class="ch-head">
           <p class="ch-no">03 / INTERNATIONAL MOBILITY</p>
           <h2 id="global-title">国際移動</h2>
-          <p class="ch-lede" id="global-lede">日本の研究者の海外派遣・受入と、国際的な研究者移動の出入りのバランスを公的統計で描く。</p>
+          <p class="ch-lede" id="global-lede">論文著者データから見た、日本の研究者の国際的な移動（移籍）を描く。</p>
         </div>
 
+        <!-- A: 純流出（ReICO、移籍の主指標） -->
         <figure class="fig fig-wide">
-          <figcaption><span class="fig-kicker">A</span>32年の往来 — 延べ派遣・受入研究者数の推移 1993〜2024年度</figcaption>
-          <div class="duo">
-            <div>
-              <p class="mob-panel-title">短期（30日以内）</p>
-              <div class="fig-body" id="mob-flows-short"></div>
-            </div>
-            <div>
-              <p class="mob-panel-title">中・長期（30日超）</p>
-              <div class="fig-body" id="mob-flows-midlong"></div>
-            </div>
-          </div>
-          <p class="method-note" id="mob-flows-source">出典を確認中</p>
+          <figcaption><span class="fig-kicker">A</span>純流出の14年 — 論文著者データから推計した日本の研究者移動 2011〜2024年</figcaption>
+          <div class="fig-body" id="mob-reico-net"></div>
+          <div class="money-strip" id="mob-reico-breakdown"></div>
+          <div class="fig-body" id="mob-reico-countries" style="margin-top: 28px"></div>
+          <p class="method-note" id="mob-reico-source">出典を確認中</p>
         </figure>
 
+        <!-- B: 地球の上の移動（既存の世界地図フロー） -->
         <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">B</span>地域別の内訳 — 令和6年度</figcaption>
-          <div class="mob-quad" id="mob-regional"></div>
-          <p class="method-note" id="mob-regional-source">出典を確認中</p>
+          <figcaption><span class="fig-kicker">B</span>地球の上の移動 — 研究者の国際移動（推計） 2010–2024年累積</figcaption>
+          <div class="flow-stage mobmap-stage" id="mobmap-stage">
+            <canvas class="mobmap-canvas" id="mobmap-base"></canvas>
+            <canvas class="mobmap-canvas mobmap-fx" id="mobmap-fx" aria-hidden="true"></canvas>
+            <div class="terrain-hover" id="mobmap-hover" aria-live="polite"></div>
+          </div>
+          <p class="method-note" id="mobmap-source">出典を確認中</p>
         </figure>
 
+        <!-- C: 15年の出入りのバランス（既存のOECDダイバージングバー） -->
         <figure class="fig fig-wide" style="margin-top: 56px">
           <figcaption><span class="fig-kicker">C</span>15年の出入りのバランス — OECD推計、国別 2010〜2024年累積</figcaption>
           <div class="fig-body" id="mob-bilateral"></div>
           <p class="method-note" id="mob-bilateral-source">出典を確認中</p>
         </figure>
 
-        <div style="margin-top: 56px">
-          <h3 class="sub-title" style="margin: 0 0 16px">補助統計 — 外国人本務教員<span>ストックの1時点のみ</span></h3>
-          <div class="mob-stat-chip" id="mob-faculty-chip"></div>
-          <p class="method-note" id="mob-faculty-source">出典を確認中</p>
+        <!-- D: 博士たちの選択（JSPS海外特別研究員／JD-Pro／NSF SED） -->
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">D</span>博士たちの選択 — 3つの断面</figcaption>
+          <div class="mob-trio">
+            <div>
+              <p class="mob-panel-title">JSPS海外特別研究員の進路（令和4年度採用コホート）</p>
+              <div id="mob-jsps"></div>
+            </div>
+            <div>
+              <p class="mob-panel-title">海外に出る日本人博士は少なく、日本を離れる外国人博士が多い（JD-Pro）</p>
+              <div id="mob-jdpro"></div>
+            </div>
+            <div>
+              <p class="mob-panel-title">米国博士取得後の米国残留意向（NSF SED）</p>
+              <div id="mob-nsf"></div>
+            </div>
+          </div>
+          <p class="method-note" id="mob-choices-source">出典を確認中</p>
+        </figure>
+
+        <!-- 参考: 所属を保った渡航イベントの統計（移住ではない） -->
+        <div style="margin-top: 72px; padding-top: 40px; border-top: 1px solid var(--hair)">
+          <h3 class="sub-title" style="margin: 0 0 10px">参考 — 所属を保った行き来</h3>
+          <p class="method-note" style="margin-top: 0">以下は移住ではなく、所属を保ったままの渡航イベント（延べ）の統計。上の移動（移籍）統計とは測っているものが別物。</p>
+
+          <figure class="fig fig-wide" style="margin-top: 28px">
+            <figcaption><span class="fig-kicker">E</span>32年の往来 — 延べ派遣・受入研究者数の推移 1993〜2024年度</figcaption>
+            <div class="duo">
+              <div>
+                <p class="mob-panel-title">短期（30日以内）</p>
+                <div class="fig-body" id="mob-flows-short"></div>
+              </div>
+              <div>
+                <p class="mob-panel-title">中・長期（30日超）</p>
+                <div class="fig-body" id="mob-flows-midlong"></div>
+              </div>
+            </div>
+            <p class="method-note" id="mob-flows-source">出典を確認中</p>
+          </figure>
+
+          <figure class="fig fig-wide" style="margin-top: 56px">
+            <figcaption><span class="fig-kicker">F</span>地域別の内訳 — 令和6年度</figcaption>
+            <div class="mob-quad" id="mob-regional"></div>
+            <p class="method-note" id="mob-regional-source">出典を確認中</p>
+          </figure>
+
+          <div style="margin-top: 56px">
+            <h3 class="sub-title" style="margin: 0 0 16px">補助統計 — 外国人本務教員<span>ストックの1時点のみ</span></h3>
+            <div class="mob-stat-chip" id="mob-faculty-chip"></div>
+            <p class="method-note" id="mob-faculty-source">出典を確認中</p>
+          </div>
         </div>
       </section>
 
@@ -222,9 +269,10 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817a" defer></script>
-    <script src="people.js?v=20260819a" defer></script>
+    <script src="people.js?v=20260819g" defer></script>
   </body>
 </html>

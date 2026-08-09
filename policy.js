@@ -255,7 +255,149 @@ function initHistoryTimeline(policy) {
   setText("#history-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 
-/* ============================================================ 01 indicators */
+/* ============================================================ 01 language spectrum */
+
+function renderLanguageSpectrum(policy) {
+  const mount = $("#language-spectrum");
+  const block = policy?.plan_language;
+  if (!mount) return;
+  if (!block || block.status !== "ok" || !Array.isArray(block.terms) || !block.terms.length
+    || !Array.isArray(block.periods_covered) || !block.periods_covered.length) {
+    mount.innerHTML = '<p class="data-empty">用語頻度のデータを取得できませんでした。</p>';
+    setText("#language-source", "出典を取得できませんでした。");
+    return;
+  }
+  mount.innerHTML = "";
+  const periods = block.periods_covered;
+  const periodMeta = new Map((policy.plans_history?.periods || []).map((r) => [r.period, r]));
+  const yearOf = (p) => periodMeta.get(p)?.fiscal_years?.split("-")[0] || null;
+
+  /* 行=用語。第7期per10k − 第3期per10kの降順（=30年で伸びた語が上）に並べる。
+     rowMaxは各語自身の対象期間中の最大per10k（行内の明るさはこの相対値）。
+     firstIdxは出現回数>0になる最初の列。0番目より後ならその語は途中から現れた語とみなす。 */
+  const rows = block.terms.map((t) => {
+    const seq = periods.map((p) => t.counts?.[String(p)] || { n: 0, per10k: 0 });
+    const rowMax = d3.max(seq, (c) => c.per10k || 0) || 0;
+    const firstIdx = seq.findIndex((c) => (c.n || 0) > 0);
+    const isNew = firstIdx > 0;
+    const delta = (seq[seq.length - 1].per10k || 0) - (seq[0].per10k || 0);
+    return { term: t.term, rule: t.rule, seq, rowMax, firstIdx, isNew, delta, lastPer10k: seq[seq.length - 1].per10k || 0 };
+  }).sort((a, b) => b.delta - a.delta);
+
+  const width = mount.clientWidth || 1000;
+  const rowH = MOBILE ? 27 : 32;
+  const margin = { top: 50, right: MOBILE ? 50 : 104, bottom: 6, left: MOBILE ? 82 : 148 };
+  const height = margin.top + margin.bottom + rows.length * rowH;
+  const x = d3.scalePoint().domain(periods).range([margin.left, width - margin.right]).padding(MOBILE ? 0.55 : 0.75);
+  const maxBarH = rowH * 0.68;
+  const cellW = x.step() * (MOBILE ? 0.62 : 0.8);
+
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "第3期から第7期までの科学技術基本計画本文に現れる18語の出現頻度");
+
+  /* 高輝度セルだけに薄いにじみを掛ける共有フィルタ */
+  const defs = svg.append("defs");
+  const glow = defs.append("filter").attr("id", "policy-lang-glow").attr("x", "-60%").attr("y", "-60%").attr("width", "220%").attr("height", "220%");
+  glow.append("feGaussianBlur").attr("stdDeviation", 2).attr("result", "blur");
+  const merge = glow.append("feMerge");
+  merge.append("feMergeNode").attr("in", "blur");
+  merge.append("feMergeNode").attr("in", "SourceGraphic");
+
+  /* 列ヘッダ: 第N期 + 開始年度 */
+  periods.forEach((p) => {
+    const cx = x(p);
+    svg.append("text").attr("x", cx).attr("y", margin.top - 30).attr("text-anchor", "middle")
+      .attr("font-size", MOBILE ? 9.5 : 11).attr("font-weight", 600).attr("fill", "#ffb545")
+      .text(MOBILE ? `${p}期` : `第${p}期`);
+    const yr = yearOf(p);
+    if (yr) {
+      svg.append("text").attr("x", cx).attr("y", margin.top - 17).attr("text-anchor", "middle")
+        .attr("font-size", 9).attr("fill", "#8b96ab")
+        .text(`${yr}〜`);
+    }
+  });
+
+  const hover = hoverBox("#language-hover");
+  const barEls = [];
+  const markerEls = [];
+
+  rows.forEach((row, ri) => {
+    const y0 = margin.top + ri * rowH;
+    const cy = y0 + rowH / 2;
+    const baseline = y0 + rowH - 5;
+
+    svg.append("text").attr("x", margin.left - 12).attr("y", cy + 4).attr("text-anchor", "end")
+      .attr("font-size", MOBILE ? 10 : 11.5).attr("fill", "#e9eef7")
+      .text(row.term);
+    svg.append("text").attr("x", width - margin.right + 14).attr("y", cy + 4).attr("text-anchor", "start")
+      .attr("font-size", MOBILE ? 9.5 : 10.5).attr("fill", "#ffb545")
+      .text(row.lastPer10k.toFixed(1));
+
+    row.seq.forEach((c, ci) => {
+      const p = periods[ci];
+      const cx = x(p);
+      const ratio = row.rowMax > 0 ? (c.per10k || 0) / row.rowMax : 0;
+      const isZero = !(c.n > 0);
+      const barW = MOBILE ? 7 : 11;
+      const barH = isZero ? 2 : Math.max(3, ratio * maxBarH);
+      const rect = svg.append("rect")
+        .attr("x", cx - barW / 2).attr("width", barW)
+        .attr("y", baseline - barH).attr("height", barH).attr("rx", 1)
+        .attr("fill", isZero ? "#4c5a72" : "#ffb545")
+        .attr("opacity", isZero ? 0.35 : Math.min(1, 0.3 + ratio * 0.7));
+      if (!isZero && ratio > 0.7) rect.attr("filter", "url(#policy-lang-glow)");
+      barEls.push({ rect, baseline });
+
+      /* 初出マーク: n=0の期が続いたあと最初に現れたセルにcyanの点 */
+      if (row.isNew && ci === row.firstIdx) {
+        const marker = svg.append("circle").attr("cx", cx).attr("cy", baseline - barH - 8).attr("r", 2.4)
+          .attr("fill", "#4fd8ff").attr("filter", "url(#policy-lang-glow)");
+        markerEls.push(marker);
+      }
+
+      /* ホバー/タップ用の透明な当たり判定（セル全体） */
+      svg.append("rect").attr("x", cx - cellW / 2).attr("width", cellW)
+        .attr("y", y0).attr("height", rowH).attr("fill", "transparent")
+        .on("pointerenter pointermove", (event) => {
+          const yr = yearOf(p);
+          const isFirst = row.isNew && ci === row.firstIdx;
+          hover.show(`<b>${escapeHtml(row.term)}</b> — 第${escapeHtml(String(p))}期${yr ? `（${escapeHtml(String(yr))}年度〜）` : ""}<br>${escapeHtml(String(c.n ?? 0))}回 / ${escapeHtml((c.per10k ?? 0).toFixed(2))}回・1万字${isFirst ? `<br><b style="color:#4fd8ff">初出</b>` : ""}<br><span style="color:var(--faint)">${escapeHtml(row.rule || "")}</span>`, event, mount);
+        })
+        .on("pointerleave", () => hover.hide());
+    });
+  });
+
+  if (!REDUCED && gsap) {
+    gsap.from(barEls.map((b) => b.rect.node()), {
+      attr: { height: 0 }, y: (i) => barEls[i].baseline, duration: 0.9, ease: "power3.out", stagger: 0.006,
+      scrollTrigger: { trigger: mount, start: "top 80%" },
+    });
+    gsap.from(markerEls.map((m) => m.node()), { attr: { r: 0 }, duration: 0.5, delay: 0.5, ease: "power3.out", scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+
+  /* lede: 最も伸びた語（行の並び順=先頭）と、途中から現れた語のうち直近で最も高頻度な語を動的に取り上げる */
+  const topRiser = rows[0];
+  const newest = rows.filter((r) => r.isNew).sort((a, b) => b.lastPer10k - a.lastPer10k)[0];
+  const firstP = periods[0];
+  const lastP = periods[periods.length - 1];
+  let ledeText = "";
+  if (topRiser) {
+    const riserFirst = topRiser.seq[0], riserLast = topRiser.seq[topRiser.seq.length - 1];
+    ledeText = `閣議決定文書の中で使われた言葉を数えると、国の関心の移動が見える。「${topRiser.term}」は第${firstP}期の${riserFirst.per10k.toFixed(2)}回/1万字から第${lastP}期の${riserLast.per10k.toFixed(2)}回へ。`;
+  }
+  if (newest) ledeText += `「${newest.term}」は第${firstP}期には一度も現れなかった。`;
+  setText("#language-lede", ledeText);
+
+  const lengths = Object.values(block.doc_lengths || {});
+  const minLen = lengths.length ? d3.min(lengths) : null;
+  const maxLen = lengths.length ? d3.max(lengths) : null;
+  const lenNote = minLen != null && maxLen != null
+    ? ` 本文の長さは期により約${(minLen / 10000).toFixed(1)}万字〜${(maxLen / 10000).toFixed(1)}万字とばらつきがあるため、単純な出現回数ではなく${block.unit}（1万字あたりの出現回数）で正規化している。行内の明るさは各語自身の対象期間中の最大値に対する相対値で、語どうしの頻度の大小は右端の第${lastP}期の数値を参照。`
+    : "";
+  setText("#language-source", `出典: ${block.source?.title || ""}。${block.note || ""}${lenNote}`);
+}
+
+/* ============================================================ 02 indicators */
 
 function renderIndicators(policy) {
   const mount = $("#targets-groups");
@@ -325,7 +467,7 @@ function renderIndicators(policy) {
   setText("#targets-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 
-/* ============================================================ 02 tech domains */
+/* ============================================================ 03 tech domains */
 
 function renderDomains(policy) {
   const mount = $("#domains-grid");
@@ -359,7 +501,7 @@ async function init() {
   } catch (error) {
     console.error(error);
   }
-  const blockKeys = ["plans_history", "plan7_indicators", "tech_domains"];
+  const blockKeys = ["plans_history", "plan_language", "plan7_indicators", "tech_domains"];
   const okCount = policy ? blockKeys.filter((k) => policy[k]?.status === "ok").length : 0;
   if (!policy || okCount === 0) {
     setText("#header-status", "政策データを取得できません");
@@ -374,6 +516,7 @@ async function init() {
     : `観測中 — ${okCount}/${blockKeys.length}系統の公開データ`);
 
   safeCall("initHistoryTimeline", () => initHistoryTimeline(policy));
+  safeCall("renderLanguageSpectrum", () => renderLanguageSpectrum(policy));
   safeCall("renderIndicators", () => renderIndicators(policy));
   safeCall("renderDomains", () => renderDomains(policy));
 

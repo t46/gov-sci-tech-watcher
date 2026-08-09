@@ -749,6 +749,21 @@ a.signal-title:hover { color: var(--jp); }
 @media (max-width: 640px) {
   .mob-quad { grid-template-columns: 1fr; }
 }
+/* 図: 地球の上の移動(世界地図フロー) */
+.mobmap-stage { overflow: hidden; }
+.mobmap-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(360px, 56vw, 620px);
+}
+.mobmap-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+@media (max-width: 640px) {
+  .mobmap-canvas { height: clamp(300px, 92vw, 440px); }
+}
 
 /* ------------------------------------------------ policy: 政策ページ */
 .policy-period-link { cursor: pointer; }
@@ -798,4 +813,50 @@ a.signal-title:hover { color: var(--jp); }
 .policy-domain-summary { font-size: 12px; color: var(--dim); line-height: 1.8; }
 @media (max-width: 760px) {
   .policy-ind-grid, .policy-domain-grid { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------ policy: 計画の言葉 */
+.policy-lang-annotate {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 400 10.5px var(--mono);
+  color: var(--dim);
+}
+.policy-lang-annotate i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cn);
+  box-shadow: 0 0 6px rgba(79, 216, 255, 0.65);
+}
+@media (max-width: 760px) {
+  .policy-lang-annotate { font-size: 10px; }
+}
+
+/* ------------------------------------------------ people: 国際移動の再構成分 */
+.mob-trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+}
+@media (max-width: 1100px) {
+  .mob-trio { grid-template-columns: 1fr; row-gap: 32px; }
+}
+.mob-headline {
+  font: 600 22px var(--mono);
+  color: var(--jp);
+  font-variant-numeric: tabular-nums;
+}
+.mob-unit {
+  font: 500 11px var(--mono);
+  color: var(--dim);
+  margin-left: 4px;
+}
+.mob-subnote {
+  margin-top: 8px;
+  font: 400 9.5px var(--mono);
+  color: var(--faint);
 }
