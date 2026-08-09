@@ -1126,10 +1126,8 @@ async function init() {
   if (phdRows.length) {
     const peak = phdRows.reduce((a, b) => (b.total > a.total ? b : a));
     const last = phdRows[phdRows.length - 1];
-    const title = $("#people-title");
-    if (title) title.innerHTML = `博士課程入学者、<em>${fmtInt(peak.total)}人</em> → <em>${fmtInt(last.total)}人</em>。`;
-    setText("#people-lede", `${peak.year}年をピークに減り続ける日本の博士。博士号・キャリアの構造・研究者の移動を一次データで描く。`);
-    setText("#header-status", `観測中 — 学校基本調査${phdRows[0].year}–${last.year}年度 / 複数系統の一次データ`);
+    setText("#people-lede", `博士号・博士課程入学者・研究者の移動をデータで描く。博士課程入学者はピークの${fmtInt(peak.total)}人（${peak.year}年度）から、直近は${fmtInt(last.total)}人。`);
+    setText("#header-status", `観測中 — 学校基本調査${phdRows[0].year}–${last.year}年度 / 複数系統の公的統計`);
   } else {
     setText("#header-status", "観測中 — 人材データ");
   }

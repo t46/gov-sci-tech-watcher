@@ -531,10 +531,8 @@ async function init() {
   if (shareValues.length) {
     const peak = shareValues.reduce((a, b) => (b[1] > a[1] ? b : a));
     const last = lastPoint(shareValues);
-    const title = $("#papers-title");
-    if (title) title.innerHTML = `論文シェア、<em>${fmtPct(peak[1])}</em> → <em>${fmtPct(last[1])}</em>。`;
-    setText("#papers-lede", `日本が世界の論文に占める割合、${peak[0]}年から${last[0]}年。論文数・注目論文・分野構成・機関の40年。`);
-    setText("#header-status", `観測中 — 7か国×${shareValues[0][0]}–${last[0]}年 / 3系統の一次データ`);
+    setText("#papers-lede", `日本が世界の論文に占める割合はピーク時${fmtPct(peak[1])}、直近は${fmtPct(last[1])}。論文数・注目論文・分野構成・機関を観測。`);
+    setText("#header-status", `観測中 — 7か国×${shareValues[0][0]}–${last[0]}年 / 3系統の公開データ`);
   } else {
     setText("#header-status", "観測中 — 研究データ");
   }

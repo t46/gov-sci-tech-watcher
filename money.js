@@ -205,9 +205,9 @@ function initFlowHero(indicators) {
 
   const total = d3.sum(links, (l) => l.value);
   const gov = d3.sum(links.filter((l) => l.source === "政府"), (l) => l.value);
-  const title = $("#flow-title");
-  if (title) title.innerHTML = `研究開発費<em>${choFromMillion(total)}</em>。<br />政府のカネは、<em>${choFromMillion(gov)}</em>。`;
-  setText("#flow-lede", `${funding.year_label}、負担部門から使用部門への研究開発費の流れ。政府負担は全体の${fmtPct((gov / total) * 100)}。粒子1つ＝250億円。`);
+  if (total > 0) {
+    setText("#flow-lede", `${funding.year_label}の研究開発費は${choFromMillion(total)}、うち政府負担は${choFromMillion(gov)}（全体の${fmtPct((gov / total) * 100)}）。負担部門から使用部門への流れを描く。粒子1つ＝250億円。`);
+  }
   setText("#flow-source", `出典: ${funding.source?.title || ""}。${funding.note || ""}`);
 }
 
@@ -258,7 +258,7 @@ function renderGovStream(indicators) {
     if (hit) hover.show(`<b>${escapeHtml(hit.key)}</b><br>${year}年度 ${fmtPct(row[hit.key] ?? 0)}`, event, mount);
     else hover.hide();
   }).on("pointerleave", () => hover.hide());
-  setText("#gov-lede", `${first.year}年度、政府マネーの${fmtPct(first["大学"])}は大学で使われていた。${last.year}年度は${fmtPct(last["大学"])}。企業へは${fmtPct(first["企業"])}→${fmtPct(last["企業"])}。`);
+  setText("#gov-lede", `${first.year}年度、政府資金の${fmtPct(first["大学"])}は大学で使われていた。${last.year}年度は${fmtPct(last["大学"])}。企業へは${fmtPct(first["企業"])}→${fmtPct(last["企業"])}。`);
   setText("#gov-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 
@@ -835,7 +835,7 @@ function renderInstitutes(finance) {
     });
   }
   const kyodo = rows.filter((r) => r.category === "大学共同利用機関法人").length;
-  setText("#inst-source", `出典: ${block.source?.title || ""}。国立研究開発法人${rows.length - kyodo}機関＋大学共同利用機関法人${kyodo}機関、各機関の最新年度。棒=経常収益、明るい帯=運営費交付金収益、右=経常収益の推移。行をクリックすると08章の解剖ビューが開く。${block.note || ""}`);
+  setText("#inst-source", `出典: ${block.source?.title || ""}。国立研究開発法人${rows.length - kyodo}機関＋大学共同利用機関法人${kyodo}機関、各機関の最新年度。棒=経常収益、明るい帯=運営費交付金収益、右=経常収益の推移。行をクリックすると09章の解剖ビューが開く。${block.note || ""}`);
 }
 
 function renderSectorLines(finance) {
@@ -2018,7 +2018,7 @@ async function init() {
   }
   $("#header-status-dot")?.classList.add("is-live");
   const total = d3.sum(indicators.funding_flow?.links || [], (l) => l.value);
-  setText("#header-status", `観測中 — 研究開発費${total ? choFromMillion(total) : ""} / 6系統の一次データ`);
+  setText("#header-status", `観測中 — 研究開発費${total ? choFromMillion(total) : ""} / 6系統の公開データ`);
 
   initFlowHero(indicators);
   renderGovStream(indicators);

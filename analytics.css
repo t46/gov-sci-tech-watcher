@@ -73,10 +73,20 @@ canvas { display: block; }
   font: 600 13px var(--mono); letter-spacing: 0.14em;
 }
 .obs-brand-dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--jp); }
-.obs-nav { display: flex; gap: 22px; font: 500 12px var(--mono); letter-spacing: 0.06em; }
-.obs-nav a { color: var(--dim); padding: 4px 0; border-bottom: 1px solid transparent; transition: color 0.25s; }
-.obs-nav a:hover { color: var(--text); }
-.obs-nav a.active { color: var(--jp); border-bottom-color: var(--jp); }
+.obs-nav { display: flex; gap: 24px; font: 500 12px var(--mono); letter-spacing: 0.08em; }
+.obs-nav a {
+  position: relative; color: var(--dim); padding: 4px 0 9px;
+  transition: color 0.3s cubic-bezier(0.19, 1, 0.22, 1), text-shadow 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.obs-nav a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+  background: var(--jp); transform: scaleX(0); transform-origin: left; opacity: 0;
+  transition: transform 0.36s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.36s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.obs-nav a:hover { color: var(--text); text-shadow: 0 0 10px rgba(255, 181, 69, 0.3); }
+.obs-nav a:hover::after { transform: scaleX(1); opacity: 0.45; }
+.obs-nav a.active { color: var(--jp); }
+.obs-nav a.active::after { transform: scaleX(1); opacity: 1; box-shadow: 0 0 8px rgba(255, 181, 69, 0.6); }
 .obs-status { display: flex; align-items: center; gap: 8px; font: 400 11px var(--mono); color: var(--dim); }
 .obs-status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
 .obs-status-dot.is-live { background: var(--good); box-shadow: 0 0 8px rgba(90, 216, 161, 0.7); }
@@ -84,16 +94,51 @@ canvas { display: block; }
 /* ---------------------------------------------------------------- rail */
 .chapter-rail {
   position: fixed; left: 22px; top: 50%; transform: translateY(-50%); z-index: 40;
-  display: flex; flex-direction: column; gap: 18px;
+  display: flex; flex-direction: column; gap: 15px;
+  padding-left: 18px;
 }
-.chapter-rail a { display: flex; align-items: baseline; gap: 8px; color: var(--faint); transition: color 0.3s; }
-.chapter-rail a i { font: 500 10px var(--mono); font-style: normal; }
+.chapter-rail::before {
+  content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; width: 1px;
+  background: var(--hair);
+}
+.chapter-rail::after {
+  content: ""; position: absolute; left: 0; top: 3px; width: 1px; height: calc(100% - 6px);
+  background: linear-gradient(to bottom, var(--jp), rgba(255, 181, 69, 0.3));
+  transform: scaleY(var(--rail-progress, 0)); transform-origin: top;
+  box-shadow: 0 0 6px rgba(255, 181, 69, 0.45);
+}
+.chapter-rail a {
+  position: relative; display: flex; align-items: baseline; gap: 9px;
+  color: var(--faint);
+  transition: color 0.32s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.chapter-rail a::before {
+  content: ""; position: absolute; left: -20.5px; top: 50%; width: 6px; height: 6px;
+  transform: translateY(-50%); border-radius: 50%;
+  background: var(--bg0); border: 1px solid var(--faint);
+  transition: border-color 0.32s cubic-bezier(0.19, 1, 0.22, 1), background 0.32s cubic-bezier(0.19, 1, 0.22, 1), box-shadow 0.32s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.chapter-rail a i {
+  font: 500 10px var(--mono); font-style: normal; font-variant-numeric: tabular-nums;
+  color: var(--faint);
+  transition: color 0.32s cubic-bezier(0.19, 1, 0.22, 1);
+}
 .chapter-rail a span {
-  font: 500 10px var(--mono); letter-spacing: 0.08em;
-  opacity: 0; transform: translateX(-6px); transition: opacity 0.3s, transform 0.3s;
+  font: 500 10px var(--mono); letter-spacing: 0.07em; white-space: nowrap;
+  opacity: 0; transform: translateX(-6px);
+  transition: opacity 0.32s cubic-bezier(0.19, 1, 0.22, 1), transform 0.32s cubic-bezier(0.19, 1, 0.22, 1), color 0.32s cubic-bezier(0.19, 1, 0.22, 1);
 }
-.chapter-rail a:hover span, .chapter-rail a.is-active span { opacity: 1; transform: none; }
+.chapter-rail a:hover span { opacity: 0.85; transform: none; }
+.chapter-rail a:hover i { color: var(--dim); }
+.chapter-rail a:hover::before { border-color: var(--dim); }
 .chapter-rail a.is-active { color: var(--jp); }
+.chapter-rail a.is-active i { color: var(--jp); }
+.chapter-rail a.is-active span { opacity: 1; transform: none; color: var(--text); }
+.chapter-rail a.is-active::before {
+  background: var(--jp); border-color: var(--jp);
+  box-shadow: 0 0 0 3px rgba(255, 181, 69, 0.18), 0 0 10px rgba(255, 181, 69, 0.7);
+}
+.chapter-rail a:focus-visible { outline-offset: 5px; }
 
 /* ---------------------------------------------------------------- chapters */
 .chapter { position: relative; padding: 120px 8vw 90px; }

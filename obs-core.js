@@ -75,6 +75,7 @@ const noise3 = (() => {
 })();
 
 function initRail() {
+  const rail = $(".chapter-rail");
   const links = $$(".chapter-rail a");
   if (!links.length) return;
   const observer = new IntersectionObserver((entries) => {
@@ -86,7 +87,31 @@ function initRail() {
   }, { rootMargin: "-38% 0px -52% 0px" });
   /* レール項目を持つ章だけ監視する（レール外の補助セクションが現在位置表示を消さないように） */
   const railIds = new Set(links.map((link) => link.dataset.rail));
-  $$(".chapter").forEach((section) => { if (railIds.has(section.id)) observer.observe(section); });
+  const sections = $$(".chapter").filter((section) => railIds.has(section.id));
+  sections.forEach((section) => observer.observe(section));
+
+  /* スクロール位置に応じてレールのトラック塗りつぶし（--rail-progress）を更新。transform/opacityのみ、rAFで間引き。 */
+  if (rail && sections.length) {
+    const first = sections[0];
+    const last = sections[sections.length - 1];
+    let queued = false;
+    const updateProgress = () => {
+      queued = false;
+      const start = first.offsetTop;
+      const end = last.offsetTop + last.offsetHeight;
+      const line = window.scrollY + window.innerHeight * 0.43;
+      const progress = end > start ? Math.min(1, Math.max(0, (line - start) / (end - start))) : 0;
+      rail.style.setProperty("--rail-progress", progress.toFixed(4));
+    };
+    const queueUpdate = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(updateProgress);
+    };
+    updateProgress();
+    window.addEventListener("scroll", queueUpdate, { passive: true });
+    window.addEventListener("resize", queueUpdate, { passive: true });
+  }
 }
 
 /* entries: [{title, url, status}] — 各ページが自分の出典だけを渡す */
