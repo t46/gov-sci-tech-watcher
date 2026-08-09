@@ -579,3 +579,4 @@ a.signal-title:hover { color: var(--jp); }
   .econ-yardstick { padding-top: 40px; padding-bottom: 44px; }
 }
 .theme-legend .tl i { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; }
+#themes-stream svg text { user-select: none; }
