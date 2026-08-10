@@ -31,14 +31,14 @@
     <nav class="chapter-rail is-dense" aria-label="章ナビゲーション">
       <span class="rail-group">論文の数と質</span>
       <a href="#ch-race" data-rail="ch-race"><i>00</i><span>40年の競争</span></a>
-      <a href="#ch-yardsticks" data-rail="ch-yardsticks"><i>01</i><span>二つの物差し</span></a>
-      <a href="#ch-topjournals" data-rail="ch-topjournals"><i>02</i><span>トップ誌への浸透</span></a>
+      <a href="#ch-topjournals" data-rail="ch-topjournals"><i>01</i><span>トップ誌への浸透</span></a>
+      <a href="#ch-yardsticks" data-rail="ch-yardsticks"><i>02</i><span>二つの物差し</span></a>
       <span class="rail-group">分野とテーマ</span>
       <a href="#ch-fields" data-rail="ch-fields"><i>03</i><span>分野の地形</span></a>
-      <a href="#ch-themes" data-rail="ch-themes"><i>04</i><span>下位分野の浮沈</span></a>
+      <a href="#ch-themes" data-rail="ch-themes"><i>04</i><span>テーマの変遷</span></a>
       <span class="rail-group">研究のかたち</span>
       <a href="#ch-teams" data-rail="ch-teams"><i>05</i><span>チームの時代</span></a>
-      <a href="#ch-domestic" data-rail="ch-domestic"><i>06</i><span>国内誌の退場</span></a>
+      <a href="#ch-domestic" data-rail="ch-domestic"><i>06</i><span>国内誌シェア</span></a>
       <a href="#ch-system" data-rail="ch-system"><i>07</i><span>研究というシステム</span></a>
     </nav>
 
@@ -73,12 +73,26 @@
         <p class="method-note" id="race-source">出典を確認中</p>
       </section>
 
-      <!-- 01 · TWO YARDSTICKS -->
+      <!-- 01 · TOP JOURNAL PENETRATION -->
+      <section class="chapter" id="ch-topjournals" aria-labelledby="topjournals-title">
+        <div class="ch-head">
+          <p class="ch-no">01 / TOP JOURNAL PENETRATION 1990–2024</p>
+          <h2 id="topjournals-title">トップ誌への浸透</h2>
+          <p class="ch-lede" id="topjournals-lede">総合科学系の主要5誌に占める日本の論文シェアの推移。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption>Nature・Science・Cell・PNAS・Nature Communications 5誌に占める日本のシェア</figcaption>
+          <div class="fig-body" id="topjournals-chart"></div>
+          <p class="method-note" id="topjournals-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- 02 · TWO YARDSTICKS -->
       <section class="chapter" id="ch-yardsticks" aria-labelledby="yardsticks-title">
         <div class="ch-head">
-          <p class="ch-no">01 / TWO YARDSTICKS 1982–2024</p>
+          <p class="ch-no">02 / TWO YARDSTICKS 1982–2024</p>
           <h2 id="yardsticks-title">二つの物差し</h2>
-          <p class="ch-lede">日本の研究力は上がっているのか下がっているのか — 答えは物差しで変わる。OpenAlexの物差しでは日本のTop10%論文の比率は上がり、NISTEPの物差しでは低い水準のまま推移する。二つの系列は測っている量が異なり、水準を直接比較することはできない。見るべきは「同じ日本を測って逆方向に動く」ことそれ自体。</p>
+          <p class="ch-lede">ここまでの2章で使った論文シェア・注目論文シェア・トップ誌シェアという物差しは、いずれも「どう数えるか」に依存する。日本の研究力は上がっているのか下がっているのか — 答えは物差しで変わる。OpenAlexの物差しでは日本のTop10%論文の比率は上がり、NISTEPの物差しでは低い水準のまま推移する。二つの系列は測っている量が異なり、水準を直接比較することはできない。見るべきは「同じ日本を測って逆方向に動く」ことそれ自体。</p>
         </div>
         <div class="duo yardsticks-duo">
           <figure class="fig">
@@ -99,21 +113,6 @@
           <p class="method-note" id="yard-collab-source">出典を確認中</p>
         </figure>
       </section>
-
-      <!-- 02 · TOP JOURNAL PENETRATION -->
-      <section class="chapter" id="ch-topjournals" aria-labelledby="topjournals-title">
-        <div class="ch-head">
-          <p class="ch-no">02 / TOP JOURNAL PENETRATION 1990–2024</p>
-          <h2 id="topjournals-title">トップ誌への浸透</h2>
-          <p class="ch-lede" id="topjournals-lede">総合科学系の主要5誌に占める日本の論文シェアの推移。</p>
-        </div>
-        <figure class="fig fig-wide">
-          <figcaption>Nature・Science・Cell・PNAS・Nature Communications 5誌に占める日本のシェア</figcaption>
-          <div class="fig-body" id="topjournals-chart"></div>
-          <p class="method-note" id="topjournals-source">出典を確認中</p>
-        </figure>
-      </section>
-
       <!-- 03 · FIELD TERRAIN -->
       <section class="chapter" id="ch-fields" aria-labelledby="fields-title">
         <div class="ch-head">
@@ -138,7 +137,7 @@
       <section class="chapter" id="ch-themes" aria-labelledby="themes-title">
         <div class="ch-head">
           <p class="ch-no">04 / SUBFIELD BUMP 1980–2025</p>
-          <h2 id="themes-title">研究テーマの変遷 — 下位分野の浮沈</h2>
+          <h2 id="themes-title">研究テーマの変遷</h2>
           <p class="ch-lede">03は8大分野で国の形を比べた。ここでは一段細かい下位分野（OpenAlex subfield、252分類）の解像度に降りて、日本の論文シェアの中で順位が上がったテーマ・下がったテーマを追う。論文という成果側の構成であり、予算配分ではない。<span id="themes-lede-fact"></span></p>
         </div>
         <figure class="fig fig-wide">
@@ -167,8 +166,8 @@
       <section class="chapter" id="ch-domestic" aria-labelledby="domestic-title">
         <div class="ch-head">
           <p class="ch-no">06 / DOMESTIC JOURNALS 1990–2024</p>
-          <h2 id="domestic-title">国内誌の静かな退場</h2>
-          <p class="ch-lede">日本の研究がどこで発表されるかは、この30年で静かに入れ替わった — 国内学会誌の割合は8%から4%へ。</p>
+          <h2 id="domestic-title">国内誌への掲載シェアの推移</h2>
+          <p class="ch-lede">日本の学会・協会が発行する査読誌39誌への掲載シェアは、1990年の8%から2024年の4%へ半減した。発表の場が国際誌へ移ってきた34年の記録。</p>
         </div>
         <figure class="fig fig-wide">
           <figcaption>日本の学会・協会発行の査読誌39誌への掲載シェア<span class="fig-fact" id="domestic-fact"></span></figcaption>

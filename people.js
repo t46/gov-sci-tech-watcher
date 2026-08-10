@@ -1027,6 +1027,71 @@ function renderDcRealValue(phdSupport, economy) {
     `出典: 国会会議録検索システム（kokkai.ndl.go.jp）＋Wayback Machineに保存されたJSPS公式ページ・PDF、直近はJSPS特別研究員-DC募集要項（令和9年度採用分）。JSPSはDC月額改定の沿革表を公開しておらず、断片的な一次資料から復元した確認済み年度のみを点として描いている（灰色の帯は未確認区間、補間はしていない）。${first.fiscal_year}${first.approx ? "年頃" : "年度"}${fmtMan(first.amount_yen)}${first.approx ? "（概数）" : ""}→2000〜01年度の20.5万円をピークに2003〜04年度にかけて減額→2004〜${plateauEndYear}年度は月額20万円で据え置き→2027年度に${planned ? fmtMan(planned.amount_yen) : "?"}へ増額予定（新規採用分、+13.5%）。${summary}${eventsText}`);
 }
 
+/* 図Aの実質価値換算に使ったCPIそのものを見せる参考図。基準を「直近年度=100」に再基準化して
+   描くことで、「物価がここまで上がった分だけ、据え置きの名目額の実質が目減りした」という
+   図Aの読み方と直接つながるようにする。実質の線と同じシアン系で家族関係を示す。 */
+function renderCpiContext(economy) {
+  const mount = $("#cpi-context");
+  const cpiBlock = economy?.cpi;
+  if (!mount || !cpiBlock || cpiBlock.status !== "ok" || !(cpiBlock.fiscal_year || []).length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  const raw = cpiBlock.fiscal_year.filter(([y, v]) => y >= 1985 && Number.isFinite(v) && v > 0);
+  if (raw.length < 2) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const latest = raw[raw.length - 1];
+  const series = raw.map(([y, v]) => [y, (v / latest[1]) * 100]);
+
+  const width = mount.clientWidth || 900, height = Math.max(230, width * 0.24);
+  const margin = { top: 26, right: 30, bottom: 30, left: 44 };
+  const x = d3.scaleLinear().domain(d3.extent(series, (d) => d[0])).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([d3.min(series, (d) => d[1]) * 0.96, 104]).range([height - margin.bottom, margin.top]);
+
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", `消費者物価指数（年度平均）を${latest[0]}年度=100として再基準化した推移。1990年代半ばから2010年代前半までほぼ横ばいで、2022年度以降に上昇している。`);
+
+  const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickSize(-(width - margin.left - margin.right)));
+  gy.select(".domain").remove();
+  gy.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(MOBILE ? 5 : 8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+
+  svg.append("line").attr("x1", margin.left).attr("x2", width - margin.right)
+    .attr("y1", y(100)).attr("y2", y(100)).attr("stroke", "#5fb3c9").attr("stroke-width", 1).attr("stroke-dasharray", "1 3").attr("opacity", 0.5);
+
+  const line = d3.line().x((d) => x(d[0])).y((d) => y(d[1])).curve(d3.curveMonotoneX);
+  svg.append("path").attr("d", line(series)).attr("fill", "none").attr("stroke", "#5fb3c9").attr("stroke-width", 2);
+
+  const first = series[0];
+  svg.append("circle").attr("cx", x(first[0])).attr("cy", y(first[1])).attr("r", 2.6).attr("fill", "#5fb3c9");
+  svg.append("text").attr("x", x(first[0])).attr("y", y(first[1]) - 9).attr("text-anchor", "start")
+    .attr("font-size", 9.5).attr("fill", "#8b96ab").text(`${first[0]}年度 ${first[1].toFixed(0)}`);
+  svg.append("circle").attr("cx", x(latest[0])).attr("cy", y(100)).attr("r", 2.6).attr("fill", "#5fb3c9");
+  svg.append("text").attr("x", x(latest[0]) - 6).attr("y", y(100) - 9).attr("text-anchor", "end")
+    .attr("font-size", 9.5).attr("fill", "#e9eef7").text(`${latest[0]}年度 100`);
+
+  /* 平坦期（1995〜2013年度ごろ）の目印。値はデータから取り、レンジ表記にする */
+  const flat = series.filter(([yy]) => yy >= 1995 && yy <= 2013);
+  if (flat.length > 2 && !MOBILE) {
+    const flatY = y(d3.mean(flat, (d) => d[1])) + 18;
+    svg.append("line").attr("x1", x(1995)).attr("x2", x(2013)).attr("y1", flatY).attr("y2", flatY).attr("stroke", "#4c5a72").attr("stroke-width", 1);
+    [1995, 2013].forEach((yy) => svg.append("line").attr("x1", x(yy)).attr("x2", x(yy)).attr("y1", flatY - 3).attr("y2", flatY + 3).attr("stroke", "#4c5a72"));
+    svg.append("text").attr("x", x(2004)).attr("y", flatY + 13).attr("text-anchor", "middle")
+      .attr("font-size", 9.5).attr("fill", "#8b96ab").text("1995〜2013年度 ほぼ横ばい");
+  }
+
+  const riseFrom = series.find(([yy]) => yy === 2021);
+  if (riseFrom && !MOBILE) {
+    svg.append("text").attr("x", x(2021) - 8).attr("y", y(riseFrom[1]) - 16).attr("text-anchor", "end")
+      .attr("font-size", 9.5).attr("fill", "#5fb3c9").text("2022年度以降 上昇");
+  }
+
+  setText("#cpi-context-source",
+    `出典: ${cpiBlock.source?.title || "総務省統計局 消費者物価指数"}（総合、年度平均、${cpiBlock.base_year || "2020年"}基準）を${latest[0]}年度=100に再基準化。図Aの実質価値は各年度の名目額をこの指数で割って${latest[0]}年度価格に換算したもの。物価がほぼ動かなかった期間は名目据え置きでも実質価値が保たれる一方、物価上昇局面では同じ据え置きが実質の減額として働く。`);
+}
+
 const DC_ACCEPTANCE_COLORS = { applicants: "#4f7ca6", accepted: "#ffb545" };
 
 function renderDcAcceptance(phdSupport) {
@@ -1469,7 +1534,7 @@ const MOBMAP_LABEL_OFFSET = {
 const MOBMAP_DEFAULT_OFFSET = { dx: 9, dy: 3.5, dyVal: 15, align: "left" };
 const MOBMAP_TOKYO = [139.7, 35.7];
 /* 常時飛行中の粒子1つ ≈ 600人（2010-2024年累積の推計値に対する演出用の比例定数。実数の描写ではない） */
-const MOBMAP_PER_PARTICLE = 600;
+const MOBMAP_PER_PARTICLE = 800;
 /* 日本列島のおおよそのバウンディングボックス（陸ドットへの淡いamber着色に使う演出上の目安） */
 const MOBMAP_JP_BOUNDS = { lonMin: 122, lonMax: 146, latMin: 24, latMax: 46 };
 
@@ -1577,7 +1642,14 @@ function renderMobMap(mobility, landTopology) {
 
   function layout() {
     const { width: bw, height: bh } = fitCanvas(base);
-    fitCanvas(fx);
+    /* fx（粒子とトレイル）は毎フレーム全面合成が走るため、静的なbaseと違いDPRを1.5に抑える。
+       柔らかい残光表現なので解像度低下は視認できず、高DPR端末での描画コストが約半分になる。 */
+    {
+      const rect = fx.getBoundingClientRect();
+      const dprFx = Math.min(window.devicePixelRatio || 1, 1.5);
+      fx.width = Math.max(1, Math.round(rect.width * dprFx));
+      fx.height = Math.max(1, Math.round(rect.height * dprFx));
+    }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     projection.fitSize([bw, bh], { type: "Sphere" });
     buildDotCache(bw, bh, dpr);
@@ -1703,7 +1775,7 @@ function renderMobMap(mobility, landTopology) {
   function frame() {
     if (!running || !geom) return;
     const ctx = fx.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     /* destination-outで既存ピクセルの不透明度だけを少しずつ落とす → 透明な背景を保ったまま
        粒子が流星のような残光の尾を引く（陸ドット・航路線・ラベルはbase canvas側で常にクリアに保たれる） */
@@ -2187,6 +2259,7 @@ async function init() {
   initFlows(analytics);
   renderIntlStudents(indicators);
   renderDcRealValue(phdSupport, economy);
+  renderCpiContext(economy);
   renderDcAcceptance(phdSupport);
   renderPhdLivingSupport(phdSupport);
   /* 章の視覚的な並び: A純流出(reico) → B地図 → C出入りのバランス(bilateral) → D博士たちの選択

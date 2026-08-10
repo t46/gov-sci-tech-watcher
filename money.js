@@ -542,6 +542,149 @@ function renderKakenhiTrend(funders) {
   setText("#kakenhi-trend-source", `出典: ${block.source?.title || ""}。${block.note || ""} ${shareDrift}`);
 }
 
+/* ==================================================== 04b corporate R&D */
+
+function renderCorporateTrend(indicators) {
+  const mount = $("#corporate-trend");
+  const block = indicators?.corporate_rd;
+  if (!mount || !block || block.status !== "ok" || !(block.rows || []).length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  const rows = block.rows;
+  setText("#corporate-trend-years", `${rows[0].year}–${rows[rows.length - 1].year}年度`);
+  const width = mount.clientWidth || 1000, height = Math.max(360, width * 0.42);
+  /* margin.topは右上に重ねる企業シェアの隅ドーナツ分だけ多めに確保する（末尾値ラベルとの重なりを避ける） */
+  const margin = { top: 96, right: 92, bottom: 34, left: 60 };
+  const x = d3.scaleLinear().domain(d3.extent(rows, (r) => r.year)).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.value) * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "日本の企業部門研究開発費（名目）の長期推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => choFromMillion(v)).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const line = d3.line().x((r) => x(r.year)).y((r) => y(r.value)).curve(d3.curveMonotoneX);
+  const path = svg.append("path").attr("d", line(rows)).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 2.4)
+    .attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.5))");
+  if (!REDUCED && gsap) {
+    const length = path.node().getTotalLength();
+    path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+    gsap.to(path.node(), { strokeDashoffset: 0, duration: 2, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 78%" } });
+  }
+  const last = rows[rows.length - 1];
+  svg.append("text").attr("x", x(last.year) + 7).attr("y", y(last.value) + 4)
+    .attr("fill", "#ffb545").attr("font-size", 12).attr("font-weight", 600).text(choFromMillion(last.value));
+
+  /* 総研究開発費に占める企業部門の割合は、対GDP比などと重ねる第2軸ではなく、
+     隅の小さなドーナツ（%表示のみ）として添える。 */
+  const sharedRows = rows.filter((r) => r.share != null);
+  const latestShare = sharedRows[sharedRows.length - 1];
+  if (latestShare) {
+    const R = 30, C = 2 * Math.PI * R;
+    const offset = C * (1 - Math.min(100, Math.max(0, latestShare.share)) / 100);
+    const donut = d3.select(mount).append("div").attr("class", "corner-donut");
+    const dsvg = donut.append("svg").attr("viewBox", "0 0 72 72").attr("role", "img")
+      .attr("aria-label", `総研究開発費に占める企業部門の割合 ${latestShare.share}%（${latestShare.year}年度）`);
+    dsvg.append("circle").attr("cx", 36).attr("cy", 36).attr("r", R).attr("fill", "none").attr("stroke", "#1c2839").attr("stroke-width", 6);
+    dsvg.append("circle").attr("cx", 36).attr("cy", 36).attr("r", R).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 6)
+      .attr("stroke-linecap", "round").attr("stroke-dasharray", C).attr("stroke-dashoffset", offset)
+      .attr("transform", "rotate(-90 36 36)");
+    dsvg.append("text").attr("class", "corner-donut-num").attr("x", 36).attr("y", 34).attr("text-anchor", "middle").text(latestShare.share.toFixed(1));
+    dsvg.append("text").attr("class", "corner-donut-unit").attr("x", 36).attr("y", 45).attr("text-anchor", "middle").text("%");
+    donut.append("p").attr("class", "corner-donut-caption").text(`企業シェア（${latestShare.year}）`);
+    const firstShare = sharedRows[0];
+    setText("#corporate-lede", `${last.year}年度、日本の研究開発費${choFromMillion(last.total ?? last.value)}のうち企業部門は${choFromMillion(last.value)}（${fmtPct(latestShare.share)}）。企業部門の割合は${firstShare.year}年度の${fmtPct(firstShare.share)}から${latestShare.year}年度の${fmtPct(latestShare.share)}まで拡大してきた。`);
+  }
+  setText("#corporate-trend-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+}
+
+function renderCorporateIntl(indicators) {
+  const mount = $("#corporate-intl");
+  const block = indicators?.corporate_rd?.intl;
+  if (!mount || !block || block.status !== "ok" || !(block.series || []).length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  const data = seriesMap(block);
+  const KEYS = ["jp", "us", "de", "fr", "gb", "cn", "kr"].filter((k) => data[k]?.length);
+  if (!KEYS.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+  const width = mount.clientWidth || 1000, height = Math.max(360, width * 0.42);
+  const margin = { top: 24, right: 84, bottom: 34, left: 48 };
+  const allYears = KEYS.flatMap((k) => data[k].map(([y]) => y));
+  const x = d3.scaleLinear().domain(d3.extent(allYears)).range([margin.left, width - margin.right]);
+  const maxV = d3.max(KEYS.flatMap((k) => data[k].map(([, v]) => v)));
+  const y = d3.scaleLinear().domain([0, maxV * 1.08]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "主要国の企業部門研究開発費、対GDP比の推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(5).tickFormat((v) => `${v}%`).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const line = d3.line().x(([yr]) => x(yr)).y(([, v]) => y(v)).curve(d3.curveMonotoneX);
+  const tips = KEYS.map((key) => ({ key, y: y(lastPoint(data[key])[1]) })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < tips.length; i += 1) { if (tips[i].y - tips[i - 1].y < 13) tips[i].y = tips[i - 1].y + 13; }
+  const tipY = Object.fromEntries(tips.map((t) => [t.key, t.y]));
+  for (const key of KEYS) {
+    const isJp = key === "jp";
+    const path = svg.append("path").attr("d", line(data[key])).attr("fill", "none")
+      .attr("stroke", COLORS[key] || "#8b96ab").attr("stroke-width", isJp ? 2.6 : 1.2).attr("opacity", isJp ? 1 : 0.65);
+    if (isJp) path.attr("filter", "drop-shadow(0 0 6px rgba(255,181,69,0.55))");
+    if (!REDUCED && gsap) {
+      const length = path.node().getTotalLength();
+      path.attr("stroke-dasharray", length).attr("stroke-dashoffset", length);
+      gsap.to(path.node(), { strokeDashoffset: 0, duration: isJp ? 2.2 : 1.5, ease: "power2.out", scrollTrigger: { trigger: mount, start: "top 75%" } });
+    }
+    const tip = lastPoint(data[key]);
+    svg.append("text").attr("x", x(tip[0]) + 7).attr("y", tipY[key] + 4)
+      .attr("fill", isJp ? COLORS.jp : "#8b96ab").attr("font-size", isJp ? 12 : 10).attr("font-weight", isJp ? 600 : 400)
+      .text(`${SHORT[key]} ${tip[1].toFixed(1)}%`);
+  }
+  setText("#corporate-intl-source", `出典: ${block.source?.title || ""}`);
+}
+
+function renderCorporateIndustries(indicators) {
+  const mount = $("#corporate-industries");
+  const block = indicators?.corporate_rd?.industries;
+  if (!mount || !block || block.status !== "ok" || !(block.rows || []).length) {
+    if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
+    return;
+  }
+  mount.innerHTML = "";
+  setText("#corporate-industries-year", block.year_label || "");
+  const rows = block.rows; /* 既に降順 */
+  const width = mount.clientWidth || 1000, height = rows.length * 34 + 50;
+  const margin = { top: 10, right: 92, bottom: 10, left: 200 };
+  const x = d3.scaleLinear().domain([0, rows[0].value * 1.05]).range([margin.left, width - margin.right]);
+  const y = d3.scaleBand().domain(rows.map((r) => r.label)).range([margin.top, height - margin.bottom]).padding(0.3);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", "企業部門研究開発費の産業分類別内訳、直近年度。輸送用機器製造業が最大。");
+  const bars = svg.append("g").selectAll("rect").data(rows).join("rect")
+    .attr("x", x(0)).attr("y", (r) => y(r.label)).attr("height", y.bandwidth())
+    .attr("width", (r) => x(r.value) - x(0))
+    .attr("fill", (r, i) => (i === 0 ? "#ffb545" : "#4fd8ff")).attr("opacity", (r, i) => (i === 0 ? 0.95 : 0.55));
+  svg.append("g").selectAll("text.ilabel").data(rows).join("text")
+    .attr("x", margin.left - 8).attr("y", (r) => y(r.label) + y.bandwidth() / 2 + 4)
+    .attr("text-anchor", "end").attr("font-size", 11).attr("fill", "#e9eef7").text((r) => r.label);
+  svg.append("g").selectAll("text.ivalue").data(rows).join("text")
+    .attr("x", (r) => x(r.value) + 6).attr("y", (r) => y(r.label) + y.bandwidth() / 2 + 4)
+    .attr("font-size", 10).attr("fill", "#8b96ab").text((r) => okuFromMillion(r.value));
+  if (!REDUCED && gsap) {
+    gsap.from(bars.nodes(), { attr: { width: 0 }, duration: 1, ease: "power3.out", stagger: 0.04, scrollTrigger: { trigger: mount, start: "top 80%" } });
+  }
+  const top = rows[0];
+  const topShare = block.total ? (top.value / block.total) * 100 : null;
+  setText("#corporate-industries-source", `出典: ${block.source?.title || ""}。${block.note || ""}${topShare != null ? ` ${top.label}が企業部門全体の${fmtPct(topShare)}を占める。` : ""}`);
+}
+
+function renderCorporateRd(indicators) {
+  renderCorporateTrend(indicators);
+  renderCorporateIntl(indicators);
+  renderCorporateIndustries(indicators);
+}
+
 /* ====================================================== 05 support scatter */
 
 function renderSupportScatter(indicators) {
@@ -1970,6 +2113,7 @@ function renderLedger(indicators, finance, publishing, funders, economy) {
   const ind = indicators || {};
   push(ind.funding_flow); push(ind.gov_spending_dest); push(ind.ministry_budget);
   push(ind.industry_academia); push(ind.joint_research); push(ind.kakenhi);
+  push(ind.corporate_rd); push(ind.corporate_rd?.intl); push(ind.corporate_rd?.industries);
   push(ind.gov_support_business); push(ind.plan_budget);
   push(finance?.national); push(finance?.private); push(finance?.private?.sector); push(finance?.institutes);
   push(publishing?.subscription); push(publishing?.apc); push(publishing?.openalex);
@@ -2026,6 +2170,7 @@ async function init() {
   renderSangaku(indicators);
   safeCall("renderKakenhi", () => renderKakenhi(indicators, funders));
   safeCall("renderKakenhiTrend", () => renderKakenhiTrend(funders));
+  safeCall("renderCorporateRd", () => renderCorporateRd(indicators));
   renderSupportScatter(indicators);
   renderPlanBars(indicators);
   renderNatlScatter(finance);

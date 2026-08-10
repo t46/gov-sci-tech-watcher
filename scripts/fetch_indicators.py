@@ -693,6 +693,95 @@ def block_joint_research() -> dict[str, object]:
     }
 
 
+CORPORATE_RD_INDUSTRY_FIELDS = {
+    "C": "化学製品等製造業", "E": "医薬品等製造業", "G": "コンピュータ、電子・光学製品製造業",
+    "I": "電気機器製造業", "K": "輸送用機器製造業", "M": "その他の製造業",
+    "R": "情報通信業", "T": "金融・保険業", "V": "専門・科学・技術サービス業", "X": "その他の非製造業",
+}
+
+# 表1-1-6・1-3-4・1-3-6は科学技術指標2026版で初めて参照する表で、2025版とは行構成・収録年が異なる
+# （表番号がNISTEP_BASE=2025版と一致しても中身は別物）。他ブロックのNISTEP_BASEは意図的に変更せず、
+# この章専用に2026版のURLを直接指定する。
+NISTEP_BASE_2026 = "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/"
+NISTEP_INDEX_2026 = "https://www.nistep.go.jp/sti_indicator/2026/NR212_table.html"
+
+
+def nistep_table_2026(name: str) -> bytes:
+    return fetch(f"{NISTEP_BASE_2026}STI2026_{name}.xlsx")
+
+
+def nistep_source_2026(table_no: str, title: str) -> dict[str, str]:
+    return {"title": f"NISTEP 科学技術指標2026 表{table_no} {title}", "url": NISTEP_INDEX_2026}
+
+
+def block_corporate_rd() -> dict[str, object]:
+    """表1-1-6（(A)日本ブロック、行5-48）: 企業部門研究開発費の長期系列と総研究開発費に占める割合。
+    表1-3-4: 主要国の企業部門研究開発費の対GDP比率の推移。
+    表1-3-6（(A)日本ブロック、行6-22）: 企業部門の産業分類別研究開発費（直近年度）。
+    表1-1-6・1-3-6は国ごとにブロックが縦に連なる構成のため、日本ブロックの行範囲を明示的に区切って読む。
+    """
+    rows_sector = read_sheet(nistep_table_2026("1-1-06"), "xl/worksheets/sheet2.xml")
+    entries: list[dict[str, object]] = []
+    for index in sorted(row for row in rows_sector if 5 <= row <= 48):
+        values = rows_sector[index]
+        year_text = values.get("A", "")
+        if not re.fullmatch(r"\d{4}", year_text):
+            continue
+        value = number(values.get("B"))
+        if value is None:
+            continue
+        entry: dict[str, object] = {"year": int(year_text), "value": value}
+        total = number(values.get("J"))
+        if total is not None:
+            entry["total"] = total
+        share = number(values.get("L"))
+        if share is not None:
+            entry["share"] = round(share, 1)
+        entries.append(entry)
+    entries.sort(key=lambda e: e["year"])
+
+    rows_gdp = read_sheet(nistep_table_2026("1-3-04"), "xl/worksheets/sheet2.xml")
+    gdp_columns = {"B": "jp", "C": "us", "D": "de", "E": "fr", "F": "gb", "G": "cn", "H": "kr"}
+    intl_series = year_series(rows_gdp, 4, "A", gdp_columns)
+
+    rows_industry = read_sheet(nistep_table_2026("1-3-06"), "xl/worksheets/sheet2.xml")
+    japan_years = {
+        index: values for index, values in rows_industry.items()
+        if 6 <= index <= 22 and re.fullmatch(r"\d{4}", values.get("A", ""))
+    }
+    industries: list[dict[str, object]] = []
+    industry_year_label = ""
+    industry_total = None
+    if japan_years:
+        latest = japan_years[max(japan_years)]
+        industry_year_label = f"{latest.get('A')}年度"
+        industry_total = number(latest.get("AB"))
+        for column, label in CORPORATE_RD_INDUSTRY_FIELDS.items():
+            value = number(latest.get(column))
+            if value is not None:
+                industries.append({"label": label, "value": value})
+        industries.sort(key=lambda e: -e["value"])
+
+    return {
+        "status": "ok", "unit": "百万円",
+        "source": nistep_source_2026("1-1-6", "主要国における部門別の研究開発費の使用額と割合（日本）"),
+        "note": "名目額。企業部門割合（share, %）は総研究開発費に占める割合。原資料は総務省 科学技術研究調査。",
+        "rows": entries,
+        "intl": {
+            "status": "ok" if any(intl_series.values()) else "unavailable", "unit": "%",
+            "source": nistep_source_2026("1-3-4", "主要国における企業部門の研究開発費の対GDP比率の推移"),
+            "series": to_series_list(intl_series),
+        },
+        "industries": {
+            "status": "ok" if industries else "unavailable", "unit": "百万円",
+            "year_label": industry_year_label, "total": industry_total,
+            "source": nistep_source_2026("1-3-6", "主要国における企業部門の産業分類別研究開発費（日本）"),
+            "note": "OECD Analytical Business Enterprise R&D (ANBERD) データベースに基づく推計。国際標準産業分類(ISIC Rev.4)準拠のため、総務省調査の産業分類とは区分が異なる。",
+            "rows": industries,
+        },
+    }
+
+
 def block_gov_support_business() -> dict[str, object]:
     """表1-3-10: 企業の研究開発への政府の直接的・間接的支援（対GDP比%）."""
     rows = read_sheet(nistep_table("1-3-10"), "xl/worksheets/sheet2.xml")
@@ -1035,6 +1124,7 @@ def main() -> int:
         "ministry_budget": run_block("ministry_budget", block_ministry_budget),
         "industry_academia": run_block("industry_academia", block_industry_academia),
         "joint_research": run_block("joint_research", block_joint_research),
+        "corporate_rd": run_block("corporate_rd", block_corporate_rd),
         "gov_support_business": run_block("gov_support_business", block_gov_support_business),
         "plan_budget": run_block("plan_budget", block_plan_budget),
         "kakenhi": run_block("kakenhi", block_kakenhi),
