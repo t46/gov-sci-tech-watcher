@@ -1582,21 +1582,20 @@ function renderMobMap(mobility, landTopology) {
     return;
   }
 
-  /* 陸ドット用の点群（球面判定のみ・投影に依存しない）。1回だけ計算する */
+  /* 陸ドット用の点群（球面判定のみ・投影に依存しない）。約3.1万回のd3.geoContainsを
+     一括で回すとメインスレッドが数百ms固まり、遅延初期化の発火時（＝スクロール中）に
+     図Bの表示もスクロールも止まって見える。そこで緯度1行ずつのチャンクに分け、約8msごとに
+     制御を返しながら計算し、判明した分から順にドットを描き足す。地図の骨格（航路・ラベル・粒子）は
+     初回layoutの時点で即表示され、陸は最初の数百msで塗り上がっていく。 */
   const landPoints = [];
   const STEP = 1.4;
-  for (let lat = -85; lat <= 85; lat += STEP) {
-    for (let lon = -180; lon < 180; lon += STEP) {
-      if (d3.geoContains(landFeature, [lon, lat])) {
-        const jp = lon >= MOBMAP_JP_BOUNDS.lonMin && lon <= MOBMAP_JP_BOUNDS.lonMax && lat >= MOBMAP_JP_BOUNDS.latMin && lat <= MOBMAP_JP_BOUNDS.latMax;
-        landPoints.push({ lon, lat, jp });
-      }
-    }
-  }
+  let landScanLat = -85;
+  let landScanDone = false;
 
   const projection = d3.geoNaturalEarth1().rotate([-140, 0]);
   const dotCache = document.createElement("canvas");
   const dotCtx = dotCache.getContext("2d");
+  let dotDpr = 1;
 
   let geom = null;
   let focusCode = null;
@@ -1604,17 +1603,54 @@ function renderMobMap(mobility, landTopology) {
   let particles = [];
   const pulseStart = performance.now();
 
+  function paintDot(p) {
+    const pos = projection([p.lon, p.lat]);
+    if (!pos) return;
+    dotCtx.fillStyle = p.jp ? "rgba(255,181,69,0.32)" : "rgba(96,118,156,0.6)";
+    dotCtx.fillRect(pos[0] - 0.7, pos[1] - 0.7, 1.4, 1.4);
+  }
+
   function buildDotCache(width, height, dpr) {
+    dotDpr = dpr;
     dotCache.width = Math.max(1, Math.round(width * dpr));
     dotCache.height = Math.max(1, Math.round(height * dpr));
     dotCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     dotCtx.clearRect(0, 0, width, height);
-    for (const p of landPoints) {
-      const pos = projection([p.lon, p.lat]);
-      if (!pos) continue;
-      dotCtx.fillStyle = p.jp ? "rgba(255,181,69,0.32)" : "rgba(96,118,156,0.6)";
-      dotCtx.fillRect(pos[0] - 0.7, pos[1] - 0.7, 1.4, 1.4);
+    for (const p of landPoints) paintDot(p);
+  }
+
+  let landScanLon = -180;
+  function scanLandChunk() {
+    const deadline = performance.now() + 8;
+    const startIdx = landPoints.length;
+    let sinceCheck = 0;
+    /* 緯度1行でも数十msかかる環境があるため、経度方向の途中位置も保存し、
+       64判定ごとに締め切りを確認して確実に8ms前後で制御を返す */
+    while (!landScanDone) {
+      if (d3.geoContains(landFeature, [landScanLon, landScanLat])) {
+        const jp = landScanLon >= MOBMAP_JP_BOUNDS.lonMin && landScanLon <= MOBMAP_JP_BOUNDS.lonMax
+          && landScanLat >= MOBMAP_JP_BOUNDS.latMin && landScanLat <= MOBMAP_JP_BOUNDS.latMax;
+        landPoints.push({ lon: landScanLon, lat: landScanLat, jp });
+      }
+      landScanLon += STEP;
+      if (landScanLon >= 180) {
+        landScanLon = -180;
+        landScanLat += STEP;
+        if (landScanLat > 85) landScanDone = true;
+      }
+      sinceCheck += 1;
+      if (sinceCheck >= 64) {
+        sinceCheck = 0;
+        if (performance.now() >= deadline) break;
+      }
     }
+    /* 新しく判明した点をキャッシュへ描き足してbaseを更新（リサイズ時はbuildDotCacheが全点を再描画する） */
+    if (geom && landPoints.length > startIdx) {
+      dotCtx.setTransform(dotDpr, 0, 0, dotDpr, 0, 0);
+      for (let i = startIdx; i < landPoints.length; i += 1) paintDot(landPoints[i]);
+      drawBase();
+    }
+    if (!landScanDone) setTimeout(scanLandChunk, 0);
   }
 
   /* 進行方向に対して垂直にoffピクセルずらした平行線を作る（流出/流入の2本を分離するため） */
@@ -1863,6 +1899,7 @@ function renderMobMap(mobility, landTopology) {
   });
 
   layout();
+  scanLandChunk();
   if (!REDUCED) {
     const observer = new IntersectionObserver((entries) => {
       const visible = entries[0]?.isIntersecting;
@@ -2215,7 +2252,9 @@ function initMobMapLazy(mobility) {
       observer.disconnect();
       trigger();
     }
-  }, { rootMargin: "600px 0px" });
+  /* 発火はセクションの2.5画面手前。land-110m.jsonの取得と陸ドットのチャンク計算が
+     ユーザーの到着前に終わるだけの助走を取る */
+  }, { rootMargin: "1600px 0px" });
   observer.observe(target);
 }
 
