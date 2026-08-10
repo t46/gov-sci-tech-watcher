@@ -36,5 +36,23 @@
       ]
     },
     "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
+  },
+  "https://www5.cao.go.jp/keizai3/watcher_index.html": {
+    "content_hash": "09e7a81873938c44606fbeb604cd267351ccd3b81466e2a724f1649fab8da67b",
+    "result": {
+      "summary": "景気ウォッチャー調査の令和8年7月調査結果を公表。季節調整値の再計算により過去の値と異なる場合がある。",
+      "points": [
+        "令和8年7月の季節調整値を公表。",
+        "季節調整値の再計算により過去の値と異なる場合がある。",
+        "最新の季節調整値は統計表（Excel表形式）を参照。"
+      ],
+      "why_it_matters": "最新の季節調整値を確認することで、経済の動向をより正確に把握できる。",
+      "signals": [
+        "季節調整値",
+        "令和8年7月",
+        "季節調整値の再計算"
+      ]
+    },
+    "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
   }
 }
