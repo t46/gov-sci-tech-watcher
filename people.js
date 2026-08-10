@@ -1772,15 +1772,24 @@ function renderMobMap(mobility, landTopology) {
     ctx.textAlign = "left";
   }
 
-  function frame() {
+  /* 粒子レイヤーは30fpsで描く。全面のdestination-out合成+加算合成が毎フレーム走るため、
+     60fps時はスクロール合成と競合して高DPR環境でジャンクの主因になる。残光と粒子移動は
+     フレーム間隔ぶん補正するので、見た目の尾の長さ・速度は60fps時と同じ。 */
+  let lastFrameTime = 0;
+  function frame(now) {
     if (!running || !geom) return;
+    requestAnimationFrame(frame);
+    if (now != null && now - lastFrameTime < 30) return;
+    const frameGap = now != null && lastFrameTime ? Math.min(3, (now - lastFrameTime) / 16.7) : 2;
+    lastFrameTime = now || performance.now();
     const ctx = fx.getContext("2d");
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     /* destination-outで既存ピクセルの不透明度だけを少しずつ落とす → 透明な背景を保ったまま
-       粒子が流星のような残光の尾を引く（陸ドット・航路線・ラベルはbase canvas側で常にクリアに保たれる） */
+       粒子が流星のような残光の尾を引く（陸ドット・航路線・ラベルはbase canvas側で常にクリアに保たれる）。
+       減衰率は60fps基準の0.12をフレーム間隔で複利補正する。 */
     ctx.globalCompositeOperation = "destination-out";
-    ctx.fillStyle = "rgba(0,0,0,0.12)";
+    ctx.fillStyle = `rgba(0,0,0,${Math.min(0.45, 1 - Math.pow(1 - 0.12, frameGap)).toFixed(3)})`;
     ctx.fillRect(0, 0, geom.width, geom.height);
     ctx.globalCompositeOperation = "lighter";
 
@@ -1795,7 +1804,7 @@ function renderMobMap(mobility, landTopology) {
     ctx.globalAlpha = 1;
 
     for (const p of particles) {
-      p.t += p.speed;
+      p.t += p.speed * frameGap;
       if (p.t > 1) p.t -= 1;
       const n = p.path.length;
       const idx = p.t * (n - 1);
@@ -1810,7 +1819,6 @@ function renderMobMap(mobility, landTopology) {
     }
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
-    requestAnimationFrame(frame);
   }
 
   function hitTest(mx, my) {
