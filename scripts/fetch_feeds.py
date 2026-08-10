@@ -34,7 +34,6 @@ SCIENCE_TERMS = (
     "イノベーション",
     "研究",
     "研究開発",
-    "AI",
     "人工知能",
     "量子",
     "半導体",
@@ -43,7 +42,6 @@ SCIENCE_TERMS = (
     "生命",
     "核融合",
     "ロボット",
-    "GX",
     "カーボンニュートラル",
     "大学",
     "研究者",
@@ -52,6 +50,16 @@ SCIENCE_TERMS = (
     "安全保障",
     "スタートアップ",
 )
+
+# 半角英字の語は単純な部分一致にすると偽陽性を生む（例: URLの "keizai" が "AI" に一致して
+# 景気ウォッチャー調査が混入した）。大文字のまま・前後が英数字でない場合のみ一致させる。
+SCIENCE_TERMS_ASCII_RE = re.compile(r"(?<![A-Za-z0-9])(?:AI|GX)(?![A-Za-z0-9])")
+
+
+def is_science_related(text: str) -> bool:
+    if SCIENCE_TERMS_ASCII_RE.search(text):
+        return True
+    return any(term in text for term in SCIENCE_TERMS)
 
 SOURCES = (
     {
@@ -410,10 +418,10 @@ def parse_feed(source: dict[str, str]) -> tuple[list[dict[str, object]], dict[st
         description = child_text(node, "description", "summary")
         if not title or not link or not date:
             continue
-        searchable = f"{title} {description} {link}"
-        if any(term.lower() in searchable.lower() for term in source.get("exclude_terms", ())):
+        if any(term.lower() in f"{title} {description} {link}".lower() for term in source.get("exclude_terms", ())):
             continue
-        if not any(term.lower() in searchable.lower() for term in SCIENCE_TERMS):
+        # URLは判定対象に含めない — ローマ字（keizai等）が英字キーワードに偶然一致するため
+        if not is_science_related(f"{title} {description}"):
             continue
         items.append(base_item(source, title, link.strip(), date, description))
 
