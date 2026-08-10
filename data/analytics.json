@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-09T21:49:50.008197Z",
+  "generated_at": "2026-08-10T02:36:21.423474Z",
   "policy": {
     "item_count": 30,
     "period": {
@@ -36,7 +36,7 @@
     "document_type_counts": [
       {
         "label": "会議・審議",
-        "count": 10
+        "count": 9
       },
       {
         "label": "予算資料",
@@ -44,7 +44,7 @@
       },
       {
         "label": "発表・報告",
-        "count": 5
+        "count": 6
       },
       {
         "label": "基本計画",
@@ -134,11 +134,11 @@
       },
       {
         "month": "2026-06",
-        "count": 2
+        "count": 3
       },
       {
         "month": "2026-07",
-        "count": 4
+        "count": 3
       },
       {
         "month": "2026-08",
@@ -294,12 +294,12 @@
       {
         "year": "2026",
         "month": "06",
-        "count": 2
+        "count": 3
       },
       {
         "year": "2026",
         "month": "07",
-        "count": 4
+        "count": 3
       },
       {
         "year": "2026",
@@ -331,12 +331,12 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 8
+        "count": 7
       },
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 3
+        "count": 4
       },
       {
         "category": "生命・健康",
