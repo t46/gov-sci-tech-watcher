@@ -417,6 +417,47 @@ function renderSangaku(indicators) {
   } else if (mountB) mountB.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>';
 }
 
+/* ============================================================ 17 university startups */
+
+function renderUniversityStartups(startups) {
+  const block = startups;
+  const trendMount = $("#startups-trend");
+  const uniMount = $("#startups-universities");
+  if (!block || block.status !== "ok") {
+    [trendMount, uniMount].forEach((mount) => { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; });
+    return;
+  }
+  const trend = block.trend || [];
+  if (trendMount && trend.length) {
+    const width = trendMount.clientWidth || 560, height = Math.max(300, width * 0.58);
+    const margin = { top: 20, right: 22, bottom: 34, left: 52 };
+    const svg = d3.select(trendMount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "大学発ベンチャー数の推移");
+    const x = d3.scaleLinear().domain(d3.extent(trend, (d) => d.year)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([0, d3.max(trend, (d) => d.count) * 1.12]).nice().range([height - margin.bottom, margin.top]);
+    baseAxis(svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(trend.length)));
+    baseAxis(svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => `${d3.format(",")(d)}社`)));
+    const line = d3.line().x((d) => x(d.year)).y((d) => y(d.count)).curve(d3.curveMonotoneX);
+    svg.append("path").datum(trend).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 3).attr("d", line);
+    svg.selectAll(".startup-dot").data(trend).join("circle").attr("class", "startup-dot").attr("cx", (d) => x(d.year)).attr("cy", (d) => y(d.count)).attr("r", 4).attr("fill", "#ffb545").attr("stroke", "#06090f").attr("stroke-width", 2);
+    svg.selectAll(".startup-label").data(trend).join("text").attr("class", "chart-value startup-label").attr("x", (d) => x(d.year)).attr("y", (d) => y(d.count) - 11).attr("text-anchor", "middle").text((d) => d3.format(",")(d.count));
+    setText("#startups-trend-years", `${trend[0].year}–${trend.at(-1).year}`);
+    setText("#startups-trend-source", `出典: ${block.source.title}。2025年度は${d3.format(",")(trend.at(-1).count)}社（前年比+${d3.format(",")(trend.at(-1).increase)}社）。${block.note}`);
+  }
+  if (uniMount && (block.universities || []).length) {
+    const width = uniMount.clientWidth || 560, height = Math.max(360, width * 0.72);
+    const margin = { top: 12, right: 44, bottom: 26, left: MOBILE ? 98 : 126 };
+    const rows = block.universities.map((d) => ({ name: d.name, value: d.values.at(-1), previous: d.values.at(-2) })).sort((a, b) => b.value - a.value);
+    const x = d3.scaleLinear().domain([0, d3.max(rows, (d) => d.value) * 1.15]).range([margin.left, width - margin.right]);
+    const y = d3.scaleBand().domain(rows.map((d) => d.name)).range([margin.top, height - margin.bottom]).padding(0.28);
+    const svg = d3.select(uniMount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "大学別の大学発ベンチャー数");
+    baseAxis(svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(4).tickFormat((d) => `${d}社`)));
+    svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).tickSize(0)).select(".domain").remove();
+    svg.selectAll(".startup-bar").data(rows).join("rect").attr("class", "startup-bar").attr("x", margin.left).attr("y", (d) => y(d.name)).attr("width", (d) => x(d.value) - margin.left).attr("height", y.bandwidth()).attr("rx", 2).attr("fill", (d, i) => i < 3 ? "#ffb545" : "#4fd8ff");
+    svg.selectAll(".startup-rank-value").data(rows).join("text").attr("class", "chart-value startup-rank-value").attr("x", (d) => x(d.value) + 7).attr("y", (d) => y(d.name) + y.bandwidth() / 2 + 4).text((d) => d3.format(",")(d.value));
+    setText("#startups-universities-source", `出典: ${block.source.title}。大学別の企業数は調査回答に基づき、複数大学との関連を重複計上し得る。`);
+  }
+}
+
 /* ============================================================== 04 kakenhi */
 
 function renderKakenhi(indicators, funders) {
@@ -2102,7 +2143,7 @@ function renderEconYardstick(economy) {
 
 /* ================================================================= ledger */
 
-function renderLedger(indicators, finance, publishing, funders, economy) {
+function renderLedger(indicators, finance, publishing, funders, economy, startups) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -2122,6 +2163,7 @@ function renderLedger(indicators, finance, publishing, funders, economy) {
   }
   push(funders?.dual_support); push(funders?.kakenhi_years); push(funders?.csti_programs);
   push(economy?.cpi); push(economy?.fx_usdjpy);
+  push(startups);
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -2140,19 +2182,22 @@ async function init() {
   let publishing = null;
   let funders = null;
   let economy = null;
+  let startups = null;
   try {
-    const [indicatorsResult, financeResult, publishingResult, fundersResult, economyResult] = await Promise.allSettled([
+    const [indicatorsResult, financeResult, publishingResult, fundersResult, economyResult, startupsResult] = await Promise.allSettled([
       fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/publishing.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/funders.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/economy.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/university_startups.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
     ]);
     indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
     finance = financeResult.status === "fulfilled" ? financeResult.value : null;
     publishing = publishingResult.status === "fulfilled" ? publishingResult.value : null;
     funders = fundersResult.status === "fulfilled" ? fundersResult.value : null;
     economy = economyResult.status === "fulfilled" ? economyResult.value : null;
+    startups = startupsResult.status === "fulfilled" ? startupsResult.value : null;
   } catch (error) {
     console.error(error);
   }
@@ -2168,6 +2213,7 @@ async function init() {
   renderGovStream(indicators);
   renderMinistryStream(indicators);
   renderSangaku(indicators);
+  safeCall("renderUniversityStartups", () => renderUniversityStartups(startups));
   safeCall("renderKakenhi", () => renderKakenhi(indicators, funders));
   safeCall("renderKakenhiTrend", () => renderKakenhiTrend(funders));
   safeCall("renderCorporateRd", () => renderCorporateRd(indicators));
@@ -2182,7 +2228,7 @@ async function init() {
   safeCall("renderFundingDualStream", () => renderFundingDualStream(funders));
   safeCall("renderFundingCsti", () => renderFundingCsti(funders));
   safeCall("renderEconYardstick", () => renderEconYardstick(economy));
-  renderLedger(indicators, finance, publishing, funders, economy);
+  renderLedger(indicators, finance, publishing, funders, economy, startups);
 }
 
 init().catch((error) => {
