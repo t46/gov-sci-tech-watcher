@@ -4,3 +4,6 @@ node_modules/
 output/
 __pycache__/
 .playwright-mcp/
+.DS_Store
+.claude/
+.wrangler/

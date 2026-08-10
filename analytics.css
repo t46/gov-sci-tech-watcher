@@ -1281,3 +1281,7 @@ a.signal-title:hover { color: var(--jp); }
 .youth-rate-chip-label { font: 500 11px var(--mono); color: var(--dim); letter-spacing: 0.04em; }
 .youth-rate-chip-value { margin-top: 8px; font: 600 26px var(--mono); color: var(--jp); font-variant-numeric: tabular-nums; }
 .youth-rate-chip-note { margin-top: 8px; font: 400 9.5px var(--mono); color: var(--faint); line-height: 1.65; }
+
+/* ==== footer: repo link (2026-08) ==== */
+.footer-repo { color: var(--faint); text-decoration: none; border-bottom: 1px solid var(--hair); }
+.footer-repo:hover { color: var(--dim); }
