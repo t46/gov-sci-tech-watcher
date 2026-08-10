@@ -48,12 +48,16 @@ function initConsole(updates) {
       feed.innerHTML = '<p class="data-empty">条件に合う更新はありません。</p>';
     } else {
       feed.innerHTML = list.map((item, index) => {
-        const fresh = item.published_at && now - new Date(item.published_at).getTime() < 1000 * 60 * 60 * 24 * 4;
+        /* 配信元が開催予定日を記事日付として配信するケース（例: 分科会の開催案内）があるため、
+           未来日付は「開催予定」と明示し、新着ハイライトの対象からは外す */
+        const age = item.published_at ? now - new Date(item.published_at).getTime() : NaN;
+        const future = Number.isFinite(age) && age < 0;
+        const fresh = Number.isFinite(age) && age >= 0 && age < 1000 * 60 * 60 * 24 * 4;
         const points = parseList(item.ai_points);
         const hasDetail = Boolean(points.length || item.ai_why_it_matters || item.document_role);
         return `
         <div class="signal-row${fresh ? " is-fresh" : ""}${hasDetail ? " has-detail" : ""}" data-index="${index}">
-          <span class="signal-date">${shortDate(item.published_at)}</span>
+          <span class="signal-date">${shortDate(item.published_at)}${future ? '<i class="signal-future">開催予定</i>' : ""}</span>
           <div class="signal-main">
             <a class="signal-title" href="${escapeHtml(safeUrl(item.url))}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
             <p class="signal-meta">${escapeHtml(item.source || "")}${item.ai_summary ? ` — ${escapeHtml(item.ai_summary)}` : ""}</p>

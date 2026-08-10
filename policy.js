@@ -241,7 +241,8 @@ function initHistoryTimeline(policy) {
       ? escapeHtml(`実績 ${String(r.actual_govt_investment_trillion_yen)}兆円`)
       : "実績の公式集計なし";
     const decisionText = fullDateJa(r.cabinet_decision_date);
-    hover.show(`<b>第${periodText}期 ${escapeHtml(r.name)}</b><br>${escapeHtml(r.fiscal_years)}年度${decisionText ? `・${escapeHtml(decisionText)}閣議決定` : ""}<br>${targetText} / ${actualText}${joint ? `<br>${escapeHtml(joint)}` : ""}`, event, mount);
+    const linkHint = r.honbun_url ? `<br><span style="color:var(--cn)">クリックで原文へ${r.period === 2 ? "（NDL保存版）" : ""}</span>` : "";
+    hover.show(`<b>第${periodText}期 ${escapeHtml(r.name)}</b><br>${escapeHtml(r.fiscal_years)}年度${decisionText ? `・${escapeHtml(decisionText)}閣議決定` : ""}<br>${targetText} / ${actualText}${joint ? `<br>${escapeHtml(joint)}` : ""}${linkHint}`, event, mount);
   }).on("pointerleave", () => hover.hide());
 
   /* lede: 最新期を動的に生成 */
@@ -253,6 +254,20 @@ function initHistoryTimeline(policy) {
   const decisionText = fullDateJa(latest.cabinet_decision_date);
   setText("#history-lede", `現行は第${latest.period}期${latest.name}（${latest.fiscal_years}年度${decisionText ? `、${decisionText}閣議決定` : ""}）。政府研究開発投資の目標は5年間で${latest.target_govt_investment_trillion_yen}兆円、進捗を測る指標は${policy?.plan7_indicators?.count ?? "—"}。第1期（${first.fiscal_years.split("-")[0]}年度）から数えて${yearsSince}年目にあたる。`);
   setText("#history-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+
+  /* 期ごとの原文リンク行（実<a>要素でキーボード・スクリーンリーダーからも到達可能にする。
+     SVG側のクリック領域と重複するが、こちらが正式なアクセシブル経路）。第2期はPDFではなく
+     NDL WARP保存版HTMLのため、その旨がわかるラベルにする（honbun_urlの由来はplans_history
+     ブロックのnoteを参照）。 */
+  const linksMount = $("#history-links");
+  if (linksMount) {
+    linksMount.innerHTML = rows.map((r) => {
+      const label = r.period === 2 ? "第2期(NDL保存版)" : `第${r.period}期`;
+      const url = r.honbun_url ? safeUrl(r.honbun_url) : null;
+      if (!url || url === "#") return `<span class="policy-period-links-item is-empty">${escapeHtml(label)}（原文リンクなし）</span>`;
+      return `<a class="policy-period-links-item" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} 原文 ↗</a>`;
+    }).join("");
+  }
 }
 
 /* ============================================================ 01 language spectrum */
@@ -397,7 +412,7 @@ function renderLanguageSpectrum(policy) {
   setText("#language-source", `出典: ${block.source?.title || ""}。${block.note || ""}${lenNote}`);
 }
 
-/* ============================================================ 02 strategy language spectrum */
+/* ============================================================ 03 strategy language spectrum */
 
 /* 年単位で急伸/急落する語のうち、可視化に短い注釈（annot-line/annot-text）を添える2語。
    行の並び順は動的に変わるため、行番号ではなく用語名で引く。 */
@@ -642,51 +657,225 @@ function strategyAnnotationLines(row, years, block) {
   return null;
 }
 
-/* ============================================================ 03 indicators */
+/* ============================================================ 04 strategy document shelf */
 
-/* 19指標 × このサイトの実測系列との対応表。indicator.name の完全一致で引く。
-   status: direct=サイトの実測系列で直接追える / approx=近い指標だが定義が異なる / none=未計測（外部一次資料のみ）。
-   note: approxは定義差の注記（verbatim）、noneは一次資料名。sparklineは直接系列のミニグラフ用マウントID。 */
-const TARGETS_AUDIT_MAP = {
+/* 統合イノベーション戦略2018〜2026の書架。データはstrategy_languageブロックを再利用する
+   （書架専用のブロックは新設しない — source_urls_by_year/decision_dates_by_year/doc_lengths
+   がそのまま使える）。背表紙の高さは各年の本文文字数（doc_lengths）に比例した線形スケール、
+   判読性のため最小高さ(18%)を設ける。2024年以降は別紙等を含む「全体版」PDFのため対象範囲が
+   2018〜2023年（本文のみ）と異なる点をタグと出典注記の両方で明示する。 */
+const STRATEGY_SHELF_ZENTAI_YEARS = new Set([2024, 2025, 2026]);
+
+function strategyShelfNote(block) {
+  return "原文はいずれも内閣府サイトのPDF。背表紙の高さは本文の文字数に比例（2024年以降は別紙等を含む全体版のため文書の範囲が異なる）。"
+    + (block?.note ? ` ${block.note}` : "");
+}
+
+function renderStrategyShelf(policy) {
+  const mount = $("#strategy-shelf");
+  const block = policy?.strategy_language;
+  if (!mount) return;
+  if (!block || block.status !== "ok" || !Array.isArray(block.years_covered) || !block.years_covered.length
+    || !block.source_urls_by_year || !block.decision_dates_by_year || !block.doc_lengths) {
+    mount.innerHTML = '<p class="data-empty">統合イノベーション戦略の原文データを取得できませんでした。</p>';
+    setText("#strategy-shelf-source", "出典を取得できませんでした。");
+    return;
+  }
+  const years = block.years_covered;
+  const lens = years.map((y) => block.doc_lengths[String(y)] || 0);
+  const maxLen = d3.max(lens) || 1;
+
+  /* スパイン面は狭いため、完全な日付（フックボックス用）とは別に「M/D決定」の短縮表記を持つ */
+  const shortMonthDay = (iso) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? null : `${d.getMonth() + 1}/${d.getDate()}決定`;
+  };
+
+  const items = years.map((y) => {
+    const len = block.doc_lengths[String(y)] || 0;
+    const url = safeUrl(block.source_urls_by_year[String(y)] || "");
+    const iso = block.decision_dates_by_year[String(y)];
+    const decisionText = fullDateJa(iso);
+    const decisionShort = shortMonthDay(iso);
+    const isZentai = STRATEGY_SHELF_ZENTAI_YEARS.has(y);
+    /* 判読性のための最小高さ。全体版タグを持つ年は「全体版」バッジ分の行が1行増えるため、
+       タグなしより高い床を設ける（低いと年/決定日/字数の3行とタグが重なって読めなくなる）。 */
+    const heightPct = Math.max(isZentai ? 30 : 18, (len / maxLen) * 100);
+    return { year: y, len, url: url === "#" ? null : url, decisionText, decisionShort, heightPct, isZentai };
+  });
+
+  setText("#strategy-shelf-lede", `統合イノベーション戦略は${years[0]}年から${years[years.length - 1]}年まで${MOBILE ? "毎年" : "毎年閣議決定される"}${years.length}冊。背表紙の高さは本文字数に比例し、クリックすると内閣府の原文PDFが開く。`);
+  setText("#strategy-shelf-source", `出典: ${block.source?.title || ""}。${strategyShelfNote(block)}`);
+
+  if (MOBILE) {
+    mount.innerHTML = `<div class="policy-shelf-rows">${items.map((it) => {
+      const tag = it.isZentai ? '<i class="policy-shelf-tag">全体版</i>' : "";
+      const decision = it.decisionText ? `${escapeHtml(it.decisionText)}閣議決定` : "閣議決定日 記録なし";
+      const lenText = `${(it.len / 10000).toFixed(1)}万字`;
+      if (!it.url) {
+        return `<span class="policy-shelf-row is-disabled"><span class="policy-shelf-row-year">${it.year}年${tag}</span><span class="policy-shelf-row-decision">${decision}</span><span class="policy-shelf-row-len">${lenText}</span><span class="policy-shelf-row-link">リンクなし</span></span>`;
+      }
+      return `<a class="policy-shelf-row" href="${escapeHtml(it.url)}" target="_blank" rel="noopener noreferrer"><span class="policy-shelf-row-year">${it.year}年${tag}</span><span class="policy-shelf-row-decision">${decision}</span><span class="policy-shelf-row-len">${lenText}</span><span class="policy-shelf-row-link">原文 →</span></a>`;
+    }).join("")}</div>`;
+    return;
+  }
+
+  mount.innerHTML = "";
+  const hover = hoverBox("#strategy-shelf-hover");
+  const rack = document.createElement("div");
+  rack.className = "policy-shelf-rack";
+  /* 入場アニメ（gsap.from + scaleY + ScrollTrigger）は付けない: この章の直前にch-targets
+     （非同期でindicators.json/mobility.jsonを読み込みDOM高さが変わる initTargetsLazy を
+     持つ）が来たことで、下の章のScrollTriggerが再生完了後にrefreshされてscaleY:0へ巻き
+     戻る不具合を検証で確認した。9本の背表紙は常に見えているべき一次情報のため、CSSの
+     静的表示のみにして入場演出は諦める。 */
+  items.forEach((it) => {
+    const tagName = it.url ? "a" : "div";
+    const spine = document.createElement(tagName);
+    spine.className = `policy-shelf-spine${it.url ? "" : " is-disabled"}`;
+    spine.style.setProperty("--spine-h", `${it.heightPct}%`);
+    if (it.url) {
+      spine.href = it.url;
+      spine.target = "_blank";
+      spine.rel = "noopener noreferrer";
+    }
+    spine.innerHTML = `
+      ${it.isZentai ? '<span class="policy-shelf-tag">全体版</span>' : ""}
+      <span class="policy-shelf-year">${escapeHtml(String(it.year))}</span>
+      <span class="policy-shelf-decision">${escapeHtml(it.decisionShort || "決定日不明")}</span>
+      <span class="policy-shelf-len">${escapeHtml((it.len / 10000).toFixed(1))}万字</span>`;
+    const showHover = (event) => {
+      const decisionText = it.decisionText ? `${escapeHtml(it.decisionText)}閣議決定` : "閣議決定日 記録なし";
+      const rangeNote = it.isZentai ? "（別紙等を含む全体版）" : "（本文のみ）";
+      const clickNote = it.url ? "<br>クリックで原文PDF(内閣府)" : "<br>原文リンクなし";
+      hover.show(`<b>統合イノベーション戦略${it.year}</b> — ${decisionText}<br>本文${(it.len / 10000).toFixed(1)}万字${escapeHtml(rangeNote)}${clickNote}`, event, mount);
+    };
+    /* ホバーの吹き出しはポインター座標に依存するためpointer系イベントのみで出す
+       （キーボードフォーカスは背表紙面に常設の年/決定日/字数表示と:focus-visibleの
+       アウトラインで十分に到達可能 — FocusEventはclientX/Yを持たないため流用しない）。 */
+    spine.addEventListener("pointerenter", showHover);
+    spine.addEventListener("pointermove", showHover);
+    spine.addEventListener("pointerleave", () => hover.hide());
+    if (!it.url) spine.setAttribute("tabindex", "-1");
+    rack.appendChild(spine);
+  });
+  mount.appendChild(rack);
+}
+
+/* ============================================================ 02 indicators */
+
+/* 19指標のうち indicator_observations（data/policy.json）でカバーされない7件だけを持つ
+   フォールバック表。indicator.name の完全一致で引く。status は内部的に既存CSS
+   （.is-direct/.is-approx/.is-none）と互換の direct/approx/none を使うが、表示ラベルは
+   「実測／近い指標／未計測」の3段階（AUDIT_LABEL参照）。sparklineは02b（mobility.json/
+   indicators.json の遅延取得）で埋まる直接系列のマウントID、site_linkは計測先への静かな
+   矢印リンク。 */
+const LEGACY_AUDIT_MAP = {
   "Top10％補正論文数": { status: "approx", note: "サイトの系列は整数カウント法のシェア（NISTEP表4-1-7）。指標の世界順位は分数カウント法で算出法が異なる。" },
-  "第１・２グループ等の大学の研究時間（教員の職務活動のうち、研究活動が占める割合）": { status: "none", note: "外部一次資料: 文科省フルタイム換算データ調査" },
-  "若手を中心とした挑戦的な研究課題の件数": { status: "none", note: "外部一次資料: 科研費等の種目別内訳" },
-  "日本人研究者の長期海外派遣数": { status: "direct", sparkline: "dispatch" },
-  "国際共著論文率": { status: "approx", note: "OpenAlex集計から算出した近似値（国際共著件数÷総論文数、whole counting）。指標の典拠とは算出法が異なる。", noteId: "policy-note-collab" },
-  "博士課程入学者数・博士号取得者数": { status: "direct", sparkline: "phd" },
-  "大学の教授等（学長、副学長及び教授）に占める女性の割合": { status: "approx", note: "サイトの系列は産官学を含む全研究者の女性割合（2024年18.5%）。指標は大学の学長・副学長・教授に限る（20.1%）。" },
+  "日本人研究者の長期海外派遣数": { status: "direct", sparkline: "dispatch", siteLink: { href: "people.html#ch-global", label: "人材 — 国際移動へ" } },
+  "博士課程入学者数・博士号取得者数": { status: "direct", sparkline: "phd", siteLink: { href: "people.html#ch-phd", label: "人材 — 博士のパイプラインへ" } },
   "第１・２グループ等の大学の若手研究者数（40歳未満の大学本務教員数）": { status: "approx", note: "サイトの系列は全大学本務教員の25〜39歳割合（2022年度20.8%）。指標は研究大学の40歳未満に限る。" },
-  "第１・２グループ等の大学の研究者１人当たりの高度専門人材数": { status: "none", note: "外部一次資料: NISTEP科学技術指標（テクニシャン）" },
-  "総論文数に対する全分野でのＡＩ関連論文数の割合": { status: "none", note: "外部一次資料: JST-CRDS（Scopus集計）" },
-  "研究設備・機器の共用化率": { status: "none", note: "外部一次資料: 内閣府調査" },
   "高等教育機関の研究開発支出に占める国内企業拠出割合": { status: "approx", note: "サイトの算出値は2023年度3.18%。指標の現状値（2021年度3.2%）と年度の対応にずれの疑いがあり参考値。" },
   "大学等における民間企業からの共同研究受入額": { status: "approx", note: "サイトの系列は2023年度1,053億円。指標の引用値（1,028億円）と約2%の差（集計版の違い）。" },
-  "相互運用性が確保され、データ連携が可能なスマートシティサービスを行っている地方公共団体・地域の数": { status: "none", note: "外部一次資料: 関係府省の実装状況調査" },
-  "ISO/IECにおける幹事国引受数": { status: "none", note: "外部一次資料: 経産省" },
-  "ＰＰＨ締結国数（実施庁数）": { status: "none", note: "外部一次資料: 特許庁" },
-  "イノベーション実現企業率": { status: "none", note: "外部一次資料: NISTEP全国イノベーション調査" },
   "政府研究開発投資額": { status: "approx", note: "サイトの予算系列は科学技術関係当初予算のみ。指標の60兆円は補正予算等を含む5年累計で範囲が異なる。" },
-  "官民研究開発投資額": { status: "none", note: "外部一次資料: 総務省科学技術研究調査" },
 };
-const TARGETS_AUDIT_LABEL = { direct: "実測", approx: "近似指標", none: "未計測" };
+const TARGETS_AUDIT_LABEL = { direct: "実測", approx: "近い指標", none: "未計測" };
 
-function renderTargetsAudit(mount, indicators) {
+/* indicator_observations（data/policy.json、eager）とLEGACY_AUDIT_MAPをindicator名で
+   マージする。優先順位はindicator_observations→LEGACY_AUDIT_MAP→未計測。observation.kind
+   が"none"のもの（スマートシティ）は必ず未計測。 */
+function resolveIndicatorAudit(name, obsByName) {
+  const obs = obsByName.get(name);
+  if (obs) {
+    const status = obs.kind === "none" ? "none" : (obs.match === "proxy" ? "approx" : "direct");
+    return { status, note: obs.note || "", observation: obs, siteLink: obs.site_link || null };
+  }
+  const legacy = LEGACY_AUDIT_MAP[name];
+  if (legacy) {
+    return { status: legacy.status, note: legacy.note || "", observation: null, sparkline: legacy.sparkline || null, siteLink: legacy.siteLink || null };
+  }
+  return { status: "none", note: "", observation: null, siteLink: null };
+}
+
+function renderTargetsAudit(mount, indicators, obsByName) {
   if (!mount) return;
-  const rows = indicators.map((ind) => ({ ind, audit: TARGETS_AUDIT_MAP[ind.name] || { status: "none", note: "" } }));
+  const rows = indicators.map((ind) => ({ ind, audit: resolveIndicatorAudit(ind.name, obsByName) }));
   const directCount = rows.filter((r) => r.audit.status === "direct").length;
   const approxCount = rows.filter((r) => r.audit.status === "approx").length;
   const noneCount = rows.filter((r) => r.audit.status === "none").length;
   const cells = rows.map((r) => `<span class="policy-audit-cell is-${r.audit.status}" title="${escapeHtml(r.ind.name)}"></span>`).join("");
   mount.innerHTML = `
     <div class="policy-audit">
-      <p class="policy-audit-headline">19の目標のうち、この観測室の実測系列で直接追えるのは <b>${directCount}</b>。</p>
-      <div class="policy-audit-strip" role="img" aria-label="19指標の測定状況。実測${directCount}件・近似指標${approxCount}件・未計測${noneCount}件">${cells}</div>
+      <div class="policy-audit-strip" role="img" aria-label="19指標の測定状況。実測${directCount}件・近い指標${approxCount}件・未計測${noneCount}件">${cells}</div>
       <div class="policy-audit-legend">
         <span class="is-direct"><i aria-hidden="true"></i>実測で追跡（${directCount}）</span>
         <span class="is-approx"><i aria-hidden="true"></i>近い指標のみ（${approxCount}）</span>
         <span class="is-none"><i aria-hidden="true"></i>未計測（${noneCount}）</span>
       </div>
     </div>`;
+}
+
+/* indicator_observations の1件分をカード内の「観測値」ブロック用に整形する。
+   kind="value"のdataは観測ごとに形が異なる（rank+top10、iso_rank+iec_rank、breakdown、
+   alt+components、単純value）ため、存在するフィールドで分岐する。 */
+function formatObsValue(obs) {
+  const d = obs.data;
+  const unit = obs.unit || "";
+  if (!d) return null;
+  if (Number.isFinite(d.rank)) {
+    const top = (d.top10 || []).slice(0, 5).map((t) => `${t.country}${fmtInt(t.count)}`).join(" / ");
+    return { big: `世界${d.rank}${unit}`, sub: `${fmtInt(d.count)}件・${d.year}年`, extra: top };
+  }
+  if (Number.isFinite(d.iso_rank) && Number.isFinite(d.iec_rank)) {
+    return { big: `ISO${d.iso_rank}位／IEC${d.iec_rank}位`, sub: `${d.year}年度` };
+  }
+  if (Array.isArray(d.breakdown)) {
+    const parts = d.breakdown.map((b) => `${b.label}${fmtInt(b.value)}`).join("＋");
+    const ref = d.reference ? `（参考: ${d.reference.label}${fmtInt(d.reference.value)}）` : "";
+    return { big: `${fmtInt(d.value)}${unit}`, sub: `${parts}${ref}・${d.year}年度` };
+  }
+  if (d.alt && d.components) {
+    return { big: `${d.value}${unit}`, sub: `${d.label || ""}（${d.alt.label} ${d.alt.value}${unit}）・${d.year}年度` };
+  }
+  if (Number.isFinite(d.value)) {
+    return { big: `${d.value}${unit}`, sub: `${d.year}年${d.as_of ? `（${d.as_of}）` : ""}` };
+  }
+  return null;
+}
+
+function renderObsValueHtml(obs) {
+  const f = formatObsValue(obs);
+  if (!f) return "";
+  return `<div class="policy-obs">
+    <p class="policy-obs-value">${escapeHtml(f.big)}</p>
+    <p class="policy-obs-sub">${escapeHtml(f.sub)}</p>
+    ${f.extra ? `<p class="policy-obs-extra">${escapeHtml(f.extra)}</p>` : ""}
+  </div>`;
+}
+
+/* kind="series"の観測（国際共著論文率・官民研究開発投資額・研究時間割合・共用化率）を、
+   ヘッドライン数値＋renderMiniSparkのミニグラフとしてマウントに描く。DOMに接続済みの
+   要素が必要なため、mount.innerHTML確定後に呼ぶ。 */
+function renderObsSeries(container, obs) {
+  if (!container) return;
+  const series = obs.data?.series;
+  const unit = obs.unit || "";
+  if (!Array.isArray(series) || !series.length) {
+    container.innerHTML = '<p class="policy-spark-empty">系列を取得できません</p>';
+    return;
+  }
+  const last = series[series.length - 1];
+  const alt = obs.data.alt;
+  const altText = alt ? `・${alt.label} ${alt.value}${unit}（${alt.year}年）` : "";
+  const head = document.createElement("div");
+  head.className = "policy-obs";
+  head.innerHTML = `<p class="policy-obs-value">${escapeHtml(String(last[1]))}${escapeHtml(unit)}</p><p class="policy-obs-sub">${escapeHtml(String(last[0]))}年${escapeHtml(altText)}</p>`;
+  container.appendChild(head);
+  const sparkMount = document.createElement("div");
+  sparkMount.className = "policy-obs-spark-mount";
+  container.appendChild(sparkMount);
+  renderMiniSpark(sparkMount, series, { ariaLabel: `${obs.indicator}の推移`, height: 40 });
 }
 
 function renderIndicators(policy) {
@@ -702,7 +891,14 @@ function renderIndicators(policy) {
   }
   const isRank = (ind) => /位/.test(ind.current_value || "") || /位/.test(ind.target_value || "");
 
-  renderTargetsAudit(auditMount, block.indicators);
+  const obsByName = new Map();
+  const obsBlock = policy?.indicator_observations;
+  if (obsBlock?.status === "ok" && Array.isArray(obsBlock.observations)) {
+    obsBlock.observations.forEach((o) => { if (o && o.indicator) obsByName.set(o.indicator, o); });
+  }
+  const indexByName = new Map(block.indicators.map((ind, i) => [ind.name, i]));
+
+  renderTargetsAudit(auditMount, block.indicators, obsByName);
 
   const groups = [];
   const indexOf = new Map();
@@ -728,13 +924,22 @@ function renderIndicators(policy) {
       const targetPct = scaleMax > 0 ? (ind.target_numeric / scaleMax) * 100 : 0;
       gaugeHtml = `<div class="policy-ind-gauge"><i style="width:${currentPct.toFixed(1)}%"></i><b style="left:${targetPct.toFixed(1)}%"></b></div>`;
     }
-    const audit = TARGETS_AUDIT_MAP[ind.name] || { status: "none", note: "" };
+    const audit = resolveIndicatorAudit(ind.name, obsByName);
     const chipHtml = `<span class="policy-audit-chip is-${audit.status}">${escapeHtml(TARGETS_AUDIT_LABEL[audit.status])}</span>`;
-    const noteHtml = audit.note
-      ? `<p class="policy-audit-note"${audit.noteId ? ` id="${escapeHtml(audit.noteId)}"` : ""}>${escapeHtml(audit.note)}</p>`
-      : "";
-    const sparkHtml = audit.sparkline
-      ? `<div class="policy-spark" id="policy-spark-${escapeHtml(audit.sparkline)}"><p class="policy-spark-loading">系列を読み込み中…</p></div>`
+    const noteHtml = audit.note ? `<p class="policy-audit-note">${escapeHtml(audit.note)}</p>` : "";
+    let obsHtml = "";
+    if (audit.observation && audit.observation.kind === "value") {
+      obsHtml = renderObsValueHtml(audit.observation);
+    } else if (audit.observation && audit.observation.kind === "series") {
+      obsHtml = `<div class="policy-obs-spark" id="policy-obs-spark-${indexByName.get(ind.name)}"></div>`;
+    } else if (audit.sparkline) {
+      obsHtml = `<div class="policy-spark" id="policy-spark-${escapeHtml(audit.sparkline)}"><p class="policy-spark-loading">系列を読み込み中…</p></div>`;
+    }
+    /* site_linkはpolicy.json由来のサイト内相対リンク。safeUrlは相対URLを"#"に落とすため使えず、
+       代わりに「ページ名.html(#アンカー)」形式のみ許可するガードをかける。 */
+    const siteHref = audit.siteLink && /^[a-z-]+\.html(#[\w-]+)?$/.test(audit.siteLink.href) ? audit.siteLink.href : null;
+    const linkHtml = siteHref
+      ? `<a class="policy-obs-link" href="${escapeHtml(siteHref)}">${escapeHtml(audit.siteLink.label)} →</a>`
       : "";
     return `
     <div class="policy-ind-card">
@@ -751,7 +956,8 @@ function renderIndicators(policy) {
       </div>
       ${gaugeHtml}
       ${noteHtml}
-      ${sparkHtml}
+      ${obsHtml}
+      ${linkHtml}
       ${ind.source_note ? `<p class="policy-ind-source">${escapeHtml(ind.source_note)}</p>` : ""}
     </div>`;
   };
@@ -761,6 +967,15 @@ function renderIndicators(policy) {
       <p class="policy-ind-group-title"><b>${escapeHtml(g.category)}</b>${g.items.length}件</p>
       <div class="policy-ind-grid">${g.items.map(cardHtml).join("")}</div>
     </div>`).join("");
+
+  /* kind="series"の観測はpolicy.jsonに既に載っているため、遅延取得を待たずここで描く
+     （kind="value"はcardHtml内でテキストとして直接埋め込み済み）。 */
+  block.indicators.forEach((ind) => {
+    const obs = obsByName.get(ind.name);
+    if (obs && obs.kind === "series") {
+      renderObsSeries(document.getElementById(`policy-obs-spark-${indexByName.get(ind.name)}`), obs);
+    }
+  });
 
   if (!REDUCED && gsap) {
     mount.querySelectorAll(".policy-ind-gauge i").forEach((bar) => {
@@ -774,7 +989,7 @@ function renderIndicators(policy) {
   setText("#targets-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
 }
 
-/* ------------------------------------------------------ 03b targets lazy data (indicators.json / mobility.json) */
+/* ------------------------------------------------------ 02b targets lazy data (indicators.json / mobility.json) */
 
 /* 小さな軸なしミニグラフ（1本の折れ線＋任意の目標水平線）。カードの中で使う「hairline」流儀。 */
 function renderMiniSpark(container, points, opts = {}) {
@@ -809,20 +1024,6 @@ function renderMiniSpark(container, points, opts = {}) {
   }
 }
 
-/* OpenAlexの国際共著率を、日本の年間論文総数に対する国際共著論文数の比として算出（暫定年は除く） */
-function computeIntlCollabRate(indicators) {
-  const oa = indicators?.openalex;
-  if (!oa || oa.status !== "ok" || !Array.isArray(oa.jp_international_collab)) return null;
-  const jpTotals = new Map((oa.by_year || []).find((s) => s.key === "jp")?.values || []);
-  const partial = oa.partial_year;
-  const usable = oa.jp_international_collab.filter(([year]) => year !== partial && jpTotals.has(year));
-  if (!usable.length) return null;
-  const [year, n] = usable[usable.length - 1];
-  const total = jpTotals.get(year);
-  if (!total) return null;
-  return { year, rate: (n / total) * 100 };
-}
-
 function fillTargetsLazy(indicators, mobility) {
   const dispatchEl = $("#policy-spark-dispatch");
   if (dispatchEl) {
@@ -853,11 +1054,6 @@ function fillTargetsLazy(indicators, mobility) {
       phdEl.innerHTML = '<p class="policy-spark-empty">系列を取得できません</p>';
     }
   }
-  const collabNote = $("#policy-note-collab");
-  if (collabNote) {
-    const rate = computeIntlCollabRate(indicators);
-    collabNote.insertAdjacentText("beforeend", rate ? `（サイトの近似値: ${rate.rate.toFixed(1)}%、${rate.year}年）` : "（近似値を算出できませんでした）");
-  }
 }
 
 /* ch-targetsが画面に近づくまでindicators.json/mobility.jsonの取得を遅らせる（people.jsのinitMobMapLazyと同じ流儀） */
@@ -871,6 +1067,10 @@ function initTargetsLazy() {
       const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value?.indicators : null;
       const mobility = mobilityResult.status === "fulfilled" ? mobilityResult.value : null;
       safeCall("fillTargetsLazy", () => fillTargetsLazy(indicators, mobility));
+      /* 遅延描画でページ高さが変わると、後続章（系譜図など）のScrollTriggerが古い座標のまま
+         「開始位置より上に戻った」と誤判定してアニメーションを巻き戻すことがある。
+         描画後に発火位置を再計算させる。 */
+      if (typeof ScrollTrigger !== "undefined" && ScrollTrigger.refresh) ScrollTrigger.refresh();
     });
   };
   if (!target || typeof IntersectionObserver === "undefined") {
@@ -886,7 +1086,7 @@ function initTargetsLazy() {
   observer.observe(target);
 }
 
-/* ============================================================ 04 domain lineage */
+/* ============================================================ 05 domain lineage */
 
 const LINEAGE_COLUMNS = ["p2", "p3", "p4", "p5", "p6", "p7"];
 
@@ -1127,7 +1327,7 @@ function renderDomainLineage(policy) {
   }
 }
 
-/* ============================================================ 05 tech domains */
+/* ============================================================ 06 tech domains */
 
 function renderDomains(policy) {
   const mount = $("#domains-grid");
@@ -1153,6 +1353,271 @@ function renderDomains(policy) {
   setText("#domains-source", `出典: ${block.source?.title || ""}${decisionText ? `（${decisionText}閣議決定）` : ""}。${block.note || ""}${correctionNote}`);
 }
 
+/* ============================================================ 07 youth programs */
+
+const YOUTH_TARGET_HEX = { "博士学生": "#4fd8ff", "若手研究者": "#ffb545", "機関支援": "#4c5a72" };
+const YOUTH_TARGET_CLASS = { "博士学生": "is-phd", "若手研究者": "is-young", "機関支援": "is-inst" };
+const YOUTH_CLUSTER_KEYS = ["act_x", "souhatsu", "spring"];
+
+/* デスクトップのレーンラベルは正式名称だと長すぎて左のsticky章レール（左端の00〜07リスト）と
+   衝突するため、短縮名を使う（フルネーム・機関名はホバー/モバイルカードで確認できる）。 */
+const YOUTH_SHORT_NAME = {
+  tokubetsu_kenkyuin: "特別研究員",
+  postdoc_10k: "ポスドク一万人計画",
+  presto: "さきがけ",
+  tenure_track: "テニュアトラック事業",
+  takuetsu: "卓越研究員",
+  act_x: "ACT-X",
+  souhatsu: "創発",
+  spring: "SPRING",
+  boost: "BOOST",
+};
+
+/* 和暦年度（4月始まり）で「現在の年度」を返す。1〜3月は前年の年度扱い（例: 2027年2月は
+   2026年度）。この章の他の年度境界（isEnded時のend_fy+1等）と単位を揃えるための基準。 */
+function currentFiscalYear() {
+  const now = new Date();
+  return now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
+}
+
+function youthPeriodText(p) {
+  if (p.end_fy != null) return `${p.start_fy}〜${p.end_fy}年度`;
+  if (p.status_note) return `${p.start_fy}年度〜`;
+  return `${p.start_fy}年度〜継続中`;
+}
+
+function youthChipsHtml(targets) {
+  return (targets || []).map((t) => `<span class="youth-chip ${YOUTH_TARGET_CLASS[t] || ""}">${escapeHtml(t)}</span>`).join("");
+}
+
+/* MOBILE: SVGの代わりに9事業を縦積みのカードで見せる（name/期間/対象chip/規模/終了・未確認status） */
+function renderYouthLifelineMobile(mount, programs) {
+  mount.innerHTML = `<div class="youth-cards">${programs.map((p) => {
+    const isEnded = p.end_fy != null;
+    const isUnclear = !isEnded && !!p.status_note;
+    const statusHtml = isEnded
+      ? '<span class="youth-status is-ended">終了</span>'
+      : isUnclear ? '<span class="youth-status is-unclear">継続状況未確認</span>' : "";
+    return `
+    <div class="youth-card">
+      <div class="youth-card-head">
+        <p class="youth-card-name">${escapeHtml(p.name)}<span class="youth-card-agency">${escapeHtml(p.agency)}</span></p>
+        ${statusHtml}
+      </div>
+      <div class="youth-card-meta">
+        <span class="youth-card-period">${escapeHtml(youthPeriodText(p))}</span>
+        ${youthChipsHtml(p.target)}
+      </div>
+      <p class="youth-card-scale">${escapeHtml(p.scale)}</p>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+/* デスクトップ: 1985→現在(+制度イベントがあれば先)の横型タイムライン。9レーンをstart_fy昇順に積む。
+   終了事業は×+「終了」、継続状況が一次資料で確認できない事業（テニュアトラック）はフェード
+   する破線+「継続状況未確認」、それ以外は現在まで実線+継続を示す白抜き丸で終える。 */
+function renderYouthLifeline(mount, block, programs) {
+  mount.innerHTML = `<div class="youth-legend">
+    <span class="is-phd"><i></i>博士学生</span>
+    <span class="is-young"><i></i>若手研究者</span>
+    <span class="is-inst"><i></i>機関支援（テニュアトラック等）</span>
+  </div>`;
+  const nowYear = currentFiscalYear();
+  const allEventYears = programs.flatMap((p) => (p.events || []).map((e) => e.fy));
+  const minYear = d3.min(programs, (p) => p.start_fy);
+  const maxYear = Math.max(nowYear + 1, d3.max(allEventYears.length ? allEventYears : [nowYear]) + 1);
+
+  const rowH = 46;
+  const margin = { top: 46, right: 46, bottom: 26, left: 214 };
+  const height = margin.top + margin.bottom + programs.length * rowH;
+  const width = mount.clientWidth || 1100;
+  const x = d3.scaleLinear().domain([minYear, maxYear]).range([margin.left, width - margin.right]);
+
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
+    .attr("aria-label", `${minYear}年から${maxYear}年までの若手研究者・博士学生支援${programs.length}事業の実施期間`);
+
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(0,${margin.top - 14})`)
+    .call(d3.axisTop(x).ticks(Math.min(9, maxYear - minYear)).tickFormat(d3.format("d"))
+      .tickSize(-(height - margin.top - margin.bottom + 14))));
+
+  const defs = svg.append("defs");
+  const fadeGrad = defs.append("linearGradient").attr("id", "youth-unclear-fade").attr("gradientUnits", "userSpaceOnUse");
+  fadeGrad.append("stop").attr("offset", "0%").attr("stop-color", "#4c5a72").attr("stop-opacity", 0.85);
+  fadeGrad.append("stop").attr("offset", "100%").attr("stop-color", "#4c5a72").attr("stop-opacity", 0.24);
+
+  const hover = hoverBox("#youth-lifeline-hover");
+  const rows = programs.map((p, i) => ({ p, i, y: margin.top + i * rowH + rowH / 2 }));
+
+  rows.forEach(({ p, y }) => {
+    const primaryColor = YOUTH_TARGET_HEX[(p.target || [])[0]] || "#8b96ab";
+    const isEnded = p.end_fy != null;
+    const isUnclear = !isEnded && !!p.status_note;
+    const x0 = x(p.start_fy);
+    /* isEndedはend_fy+1（最終年度の期末）まで、継続中はnowYear+1（今年度の期末）まで引く —
+       どちらも「年度の終わり」で線を止める同じ境界規約にそろえる（片方だけ年度開始で
+       止めるとcurrentFiscalYear年度分が視覚的に欠けてしまうため）。 */
+    const xEnd = isEnded ? x(p.end_fy + 1) : x(nowYear + 1);
+
+    if (isUnclear) {
+      fadeGrad.attr("x1", x0).attr("x2", xEnd);
+      svg.append("line").attr("class", "youth-lane-line").attr("x1", x0).attr("x2", xEnd).attr("y1", y).attr("y2", y)
+        .attr("stroke", "url(#youth-unclear-fade)").attr("stroke-width", 3.4).attr("stroke-dasharray", "5 4");
+      svg.append("text").attr("class", "youth-end-label").attr("x", xEnd + 8).attr("y", y + 3).text("継続状況未確認");
+    } else {
+      svg.append("line").attr("class", "youth-lane-line").attr("x1", x0).attr("x2", xEnd).attr("y1", y).attr("y2", y)
+        .attr("stroke", primaryColor).attr("stroke-width", 3.4).attr("opacity", 0.85);
+      if (isEnded) {
+        svg.append("text").attr("class", "youth-end-mark").attr("x", xEnd + 4).attr("y", y + 4).attr("fill", primaryColor).text("×");
+        svg.append("text").attr("class", "youth-end-label").attr("x", xEnd + 16).attr("y", y + 3).text("終了");
+      } else {
+        svg.append("circle").attr("class", "youth-continue-dot").attr("cx", xEnd).attr("cy", y).attr("r", 3.4).attr("stroke", primaryColor);
+      }
+    }
+
+    /* 制度イベント（特別研究員の2021兼業緩和/2024最終年次手当/2027増額予定）。増額予定は
+       実線の先（現在より後）に破線で伸ばし、まだ確定していないことを示す。 */
+    (p.events || []).forEach((ev) => {
+      /* 予定イベントはレーンと同じ「年度期末」境界規約（fy+1）に置く。継続中レーンの終端は
+         nowYear+1 なので、予定年度が翌年度なら破線がちょうど1年度分の長さで見える。 */
+      const ex = ev.projected ? x(ev.fy + 1) : x(ev.fy);
+      if (ev.projected) {
+        svg.append("line").attr("x1", xEnd).attr("x2", ex).attr("y1", y).attr("y2", y)
+          .attr("stroke", primaryColor).attr("stroke-width", 1.6).attr("stroke-dasharray", "2 3").attr("opacity", 0.55);
+        svg.append("circle").attr("cx", ex).attr("cy", y).attr("r", 3).attr("fill", "none")
+          .attr("stroke", primaryColor).attr("stroke-width", 1.4).attr("stroke-dasharray", "1.5 1.5");
+      } else {
+        svg.append("circle").attr("class", "youth-event-tick").attr("cx", ex).attr("cy", y).attr("r", 2.6).attr("fill", primaryColor).attr("stroke", "none");
+      }
+      svg.append("text").attr("class", "youth-event-label").attr("x", ex).attr("y", y - 9).attr("text-anchor", "middle").text(ev.label);
+    });
+
+    svg.append("text").attr("class", "youth-lane-name").attr("x", margin.left - 14).attr("y", y - 3).attr("text-anchor", "end").text(YOUTH_SHORT_NAME[p.key] || p.name);
+    svg.append("text").attr("class", "youth-lane-agency").attr("x", margin.left - 14).attr("y", y + 10).attr("text-anchor", "end").text(`${p.agency} / ${p.start_fy}年度〜`);
+
+    svg.append("rect").attr("class", "youth-lane-hit").attr("x", margin.left).attr("y", y - rowH / 2)
+      .attr("width", width - margin.left - margin.right).attr("height", rowH)
+      .on("pointerenter pointermove", (event) => {
+        const targetText = (p.target || []).join("＋");
+        hover.show(`<b>${escapeHtml(p.name)}</b>（${escapeHtml(p.agency)} / ${escapeHtml(targetText)}）<br>${escapeHtml(youthPeriodText(p))}${isEnded ? "・終了" : isUnclear ? "・継続状況未確認" : ""}<br>${escapeHtml(p.scale)}<br><span style="color:var(--faint)">出典: ${escapeHtml(p.source?.title || "")}</span>`, event, mount);
+      })
+      .on("pointerleave", () => hover.hide());
+  });
+
+  /* 2019〜2021クラスタ注釈（ACT-X・創発・SPRING）。start_fy昇順の並びでは自然に連続する3行になる */
+  const clusterRows = rows.filter((r) => YOUTH_CLUSTER_KEYS.includes(r.p.key));
+  if (clusterRows.length === 3) {
+    const top = clusterRows[0].y - rowH / 2 + 6;
+    const bottom = clusterRows[clusterRows.length - 1].y + rowH / 2 - 6;
+    const bx = x(d3.min(clusterRows, (r) => r.p.start_fy)) - 20;
+    svg.append("path").attr("class", "youth-cluster-bracket").attr("d", `M${bx + 6},${top} H${bx} V${bottom} H${bx + 6}`);
+    svg.append("text").attr("class", "youth-cluster-label").attr("x", bx - 8).attr("y", (top + bottom) / 2 + 3).attr("text-anchor", "end")
+      .text("3年間に新設が集中");
+  }
+
+  /* 注: レーン本体（youth-lane-line）は入場アニメーションを付けない。opacity付きの
+     gsap.from()+ScrollTriggerの組み合わせで検証したところ、アニメーション自体は
+     progress=1まで完了する（GSAPは正常に動く）にもかかわらず要素のopacityが0のまま
+     残る既知の再現性ある不具合が確認できたため、主情報であるレーンの可視性を優先し、
+     静的に描画する（他章の入場演出とは異なるが、正確な表示を最優先する）。 */
+}
+
+/* 図B(1) 年間の新規採用・採択（人/年度、フロー量） */
+function renderYouthAnnual(policy) {
+  const mount = $("#youth-annual");
+  const block = policy?.youth_programs;
+  if (!mount) return;
+  const data = block?.status === "ok" ? block.annual_new : null;
+  if (!data || !Array.isArray(data.items) || !data.items.length) {
+    mount.innerHTML = '<p class="data-empty">新規採用・採択のデータを取得できませんでした。</p>';
+    setText("#youth-annual-source", "出典を取得できませんでした。");
+    return;
+  }
+  const maxV = d3.max(data.items, (d) => d.value) || 1;
+  mount.innerHTML = `<div class="youth-annual-bars">${data.items.map((d) => `
+    <div class="youth-annual-row">
+      <span class="youth-annual-label">${escapeHtml(d.label)}</span>
+      <span class="youth-annual-track"><span class="youth-annual-fill${d.key === "souhatsu" ? " is-souhatsu" : ""}" style="width:${((d.value / maxV) * 100).toFixed(1)}%"></span></span>
+      <span class="youth-annual-value">${fmtInt(d.value)}<small>${escapeHtml(d.fy_label)}</small></span>
+    </div>`).join("")}</div>`;
+  setText("#youth-annual-source", `単位: ${data.unit}。${data.note || ""}`);
+}
+
+/* 図B(2) ある年度に支援を受けている人数（人、ストック量）。SPRINGの単一値と、
+   生活費相当額受給の博士学生数を政府目標とのバレット比較（.policy-ind-gauge を再利用）で示す。 */
+function renderYouthStock(policy) {
+  const mount = $("#youth-stock");
+  const block = policy?.youth_programs;
+  if (!mount) return;
+  const data = block?.status === "ok" ? block.current_stock : null;
+  if (!data) {
+    mount.innerHTML = '<p class="data-empty">受給者数のデータを取得できませんでした。</p>';
+    setText("#youth-stock-source", "出典を取得できませんでした。");
+    return;
+  }
+  const items = Array.isArray(data.items) ? data.items : [];
+  const springItem = items.find((d) => d.key === "spring");
+  const ls = data.living_support && Number.isFinite(data.living_support.value) ? data.living_support : null;
+  const targetValue = ls?.target && Number.isFinite(ls.target.value) ? ls.target.value : null;
+  const scaleMax = ls ? Math.max(ls.value, targetValue || 0) * 1.08 : 0;
+  const curPct = ls && scaleMax ? (ls.value / scaleMax) * 100 : 0;
+  const tgtPct = ls && targetValue != null && scaleMax ? (targetValue / scaleMax) * 100 : 0;
+  mount.innerHTML = `
+    ${springItem ? `<div class="fig-headline-stat"><b>${fmtInt(springItem.value)}<small>人</small></b><span>${escapeHtml(springItem.label)}（${escapeHtml(springItem.fy_label)}${springItem.note ? `・${escapeHtml(springItem.note)}` : ""}）</span></div>` : ""}
+    ${ls ? `
+    <div class="youth-stock-support">
+      <p class="youth-stock-support-label">${escapeHtml(ls.note || "")}</p>
+      <div class="fig-headline-stat"><b>${fmtInt(ls.value)}<small>人</small></b><span>${escapeHtml(String(ls.fy))}年度${targetValue != null ? `・目標 ${fmtInt(targetValue)}人（${escapeHtml(String(ls.target.fy))}年度、${escapeHtml(ls.target.note || "")}）` : ""}</span></div>
+      <div class="policy-ind-gauge"><i style="width:${curPct.toFixed(1)}%"></i>${targetValue != null ? `<b style="left:${tgtPct.toFixed(1)}%"></b>` : ""}</div>
+    </div>` : ""}`;
+  setText("#youth-stock-source", `単位: ${data.unit}。出典: ${block.overview?.source?.title || ""}`);
+}
+
+/* (c) 採用率チップ行（R8採用分、JSPS特別研究員） */
+function renderYouthRates(policy) {
+  const mount = $("#youth-rates");
+  const block = policy?.youth_programs;
+  if (!mount) return;
+  const data = block?.status === "ok" ? block.adoption_rates : null;
+  if (!data || !Array.isArray(data.items) || !data.items.length) {
+    mount.innerHTML = "";
+    return;
+  }
+  mount.innerHTML = data.items.map((d) => `
+    <div class="youth-rate-chip">
+      <p class="youth-rate-chip-label">${escapeHtml(d.label)} 採用率（${escapeHtml(data.fy_label)}）</p>
+      <p class="youth-rate-chip-value">${escapeHtml(String(d.rate))}%</p>
+      ${d.note ? `<p class="youth-rate-chip-note">${escapeHtml(d.note)}</p>` : ""}
+    </div>`).join("");
+}
+
+function renderYouthPrograms(policy) {
+  const lifelineMount = $("#youth-lifeline");
+  const block = policy?.youth_programs;
+  /* lifeline以外の3パネル（annual/stock/rates）は各自block未取得時のフォールバックHTML
+     を持っているため、lifeline側が失敗してもここで早期returnせず必ず呼ぶ
+     （途中の失敗で「出典を確認中」のプレースホルダのまま止まった見た目にしないため）。 */
+  if (!block || block.status !== "ok" || !Array.isArray(block.programs) || !block.programs.length) {
+    if (lifelineMount) lifelineMount.innerHTML = '<p class="data-empty">若手研究者支援制度のデータを取得できませんでした。</p>';
+    setText("#youth-lifeline-source", "出典を取得できませんでした。");
+    setText("#youth-source", "出典を取得できませんでした。");
+  } else {
+    const programs = [...block.programs].sort((a, b) => a.start_fy - b.start_fy);
+
+    setText("#youth-lede", "国は若手研究者をどう支えてきたか。1996年のポスドク一万人計画から、2020〜2021年の創発・SPRINGまで — 「安定したポストを用意する」型の事業は姿を消し、「経済支援と研究費を配る」型が並んだ。");
+    setText("#youth-lifeline-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+    setText("#youth-source", `出典: ${block.source?.title || ""}。${block.note || ""}`);
+
+    if (lifelineMount) {
+      if (MOBILE) renderYouthLifelineMobile(lifelineMount, programs);
+      else renderYouthLifeline(lifelineMount, block, programs);
+    }
+  }
+
+  safeCall("renderYouthAnnual", () => renderYouthAnnual(policy));
+  safeCall("renderYouthStock", () => renderYouthStock(policy));
+  safeCall("renderYouthRates", () => renderYouthRates(policy));
+}
+
 /* ==================================================================== boot */
 
 async function init() {
@@ -1164,7 +1629,7 @@ async function init() {
   } catch (error) {
     console.error(error);
   }
-  const blockKeys = ["plans_history", "plan_language", "strategy_language", "plan7_indicators", "tech_domains", "domain_lineage"];
+  const blockKeys = ["plans_history", "plan_language", "strategy_language", "plan7_indicators", "tech_domains", "domain_lineage", "indicator_observations", "youth_programs"];
   const okCount = policy ? blockKeys.filter((k) => policy[k]?.status === "ok").length : 0;
   if (!policy || okCount === 0) {
     setText("#header-status", "政策データを取得できません");
@@ -1180,13 +1645,40 @@ async function init() {
 
   safeCall("initHistoryTimeline", () => initHistoryTimeline(policy));
   safeCall("renderLanguageSpectrum", () => renderLanguageSpectrum(policy));
-  safeCall("renderStrategyLanguageSpectrum", () => renderStrategyLanguageSpectrum(policy));
   safeCall("renderIndicators", () => renderIndicators(policy));
+  safeCall("renderStrategyLanguageSpectrum", () => renderStrategyLanguageSpectrum(policy));
+  safeCall("renderStrategyShelf", () => renderStrategyShelf(policy));
   safeCall("renderDomainLineage", () => renderDomainLineage(policy));
   safeCall("renderDomains", () => renderDomains(policy));
+  safeCall("renderYouthPrograms", () => renderYouthPrograms(policy));
   initTargetsLazy();
 
   const entries = blockKeys.map((k) => blockEntry(policy[k], k)).filter(Boolean);
+  /* 戦略の書架はstrategy_languageブロックを再利用する専用章のため、台帳にも別行として
+     明示する（同一ブロックの別視点利用であることをtitleの違いで示す）。 */
+  if (policy.strategy_language?.status === "ok") {
+    entries.push({
+      title: "統合イノベーション戦略 各年版 本文/全体版PDF一覧（戦略の書架）",
+      url: policy.strategy_language.source?.url || "",
+      status: policy.strategy_language.status,
+    });
+  }
+  /* indicator_observations は observations[] ごとに別々の一次資料を持つため、台帳にも
+     観測ごとのsourceを個別行として展開する（renderLedgerEntriesがtitleで重複排除する）。 */
+  if (policy.indicator_observations?.status === "ok" && Array.isArray(policy.indicator_observations.observations)) {
+    policy.indicator_observations.observations.forEach((obs) => {
+      if (obs?.source?.title) entries.push({ title: obs.source.title, url: obs.source.url || "", status: "ok" });
+    });
+  }
+  /* 若手への投資: 事業ごとに機関(JSPS/JST/MEXT)が異なる別々の一次資料を持つため、台帳にも
+     事業ごとのsourceを個別行として展開する（indicator_observationsと同じ流儀）。 */
+  if (policy.youth_programs?.status === "ok" && Array.isArray(policy.youth_programs.programs)) {
+    policy.youth_programs.programs.forEach((p) => {
+      (p.sources || (p.source ? [p.source] : [])).forEach((s) => {
+        if (s?.title) entries.push({ title: s.title, url: s.url || "", status: "ok" });
+      });
+    });
+  }
   renderLedgerEntries(entries);
 }
 

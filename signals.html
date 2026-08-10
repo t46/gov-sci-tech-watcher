@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260821a" />
+    <link rel="stylesheet" href="analytics.css?v=20260822a" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -37,10 +37,19 @@
           <h1 id="signals-title" class="page-title">政府省庁の科学技術に関する最新情報</h1>
           <p class="ch-lede" id="live-lede">内閣府・文部科学省などの政府公式ページから3時間ごとに取得した更新の一覧。行をクリックすると要点が開く。</p>
         </div>
-        <div class="glyph-toolbar" id="signal-types" role="toolbar" aria-label="文書の種類で絞り込み"></div>
-        <div class="glyph-toolbar" id="signal-sources" role="toolbar" aria-label="提供元で絞り込み"></div>
-        <div class="glyph-toolbar">
-          <input type="search" id="signal-search" placeholder="タイトル・要約で検索" aria-label="タイトル・要約で検索" />
+        <div class="toolbar-group">
+          <p class="toolbar-label">文書の種類で絞り込み</p>
+          <div class="glyph-toolbar" id="signal-types" role="toolbar" aria-label="文書の種類で絞り込み"></div>
+        </div>
+        <div class="toolbar-group">
+          <p class="toolbar-label">提供元で絞り込み</p>
+          <div class="glyph-toolbar" id="signal-sources" role="toolbar" aria-label="提供元で絞り込み"></div>
+        </div>
+        <div class="toolbar-group">
+          <p class="toolbar-label">検索</p>
+          <div class="glyph-toolbar">
+            <input type="search" id="signal-search" placeholder="タイトル・要約で検索" aria-label="タイトル・要約で検索" />
+          </div>
         </div>
         <div class="console">
           <div class="console-feed" id="live-feed" aria-live="polite"></div>
@@ -67,6 +76,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817b" defer></script>
-    <script src="signals.js?v=20260817a" defer></script>
+    <script src="signals.js?v=20260822a" defer></script>
   </body>
 </html>

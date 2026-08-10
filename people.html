@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="analytics.css?v=20260821a" />
+    <link rel="stylesheet" href="analytics.css?v=20260822b" />
   </head>
   <body>
     <a class="skip-link" href="#main">本文へ移動</a>
@@ -29,16 +29,17 @@
     </header>
 
     <nav class="chapter-rail" aria-label="章ナビゲーション">
-      <a href="#ch-phd" data-rail="ch-phd"><i>00</i><span>博士の曲線</span></a>
+      <a href="#ch-phd" data-rail="ch-phd"><i>00</i><span>博士のパイプライン</span></a>
       <a href="#ch-career" data-rail="ch-career"><i>01</i><span>キャリアの構造</span></a>
-      <a href="#ch-flows" data-rail="ch-flows"><i>02</i><span>研究者の移動</span></a>
-      <a href="#ch-global" data-rail="ch-global"><i>03</i><span>国際移動</span></a>
-      <a href="#ch-economy" data-rail="ch-economy"><i>04</i><span>博士の経済</span></a>
+      <a href="#ch-who" data-rail="ch-who"><i>02</i><span>研究者は誰か</span></a>
+      <a href="#ch-flows" data-rail="ch-flows"><i>03</i><span>セクター間の移動</span></a>
+      <a href="#ch-global" data-rail="ch-global"><i>04</i><span>国際移動</span></a>
+      <a href="#ch-economy" data-rail="ch-economy"><i>05</i><span>博士の経済</span></a>
     </nav>
 
     <main id="main">
 
-      <!-- 00 · PHD -->
+      <!-- 00 · PHD PIPELINE -->
       <section class="chapter" id="ch-phd" aria-labelledby="people-title" style="padding-top: 120px">
         <div class="ch-head">
           <p class="ch-no">SCIENCE SIGNAL / PEOPLE — 研究人材の観測</p>
@@ -48,7 +49,7 @@
         <div class="ch-head" style="margin-top: 40px">
           <p class="ch-no">00 / DOCTORAL PIPELINE</p>
           <h2 id="phd-title">博士号取得者・博士課程入学者数の推移</h2>
-          <p class="ch-lede" id="phd-lede">主要国の博士号取得者数を2000年=100として指数化。日本の曲線だけが下を向く。</p>
+          <p class="ch-lede" id="phd-lede">主要国の博士号取得者数を2000年=100として指数化。日本の曲線だけが下を向く。進学率→入学者→取得者という、博士になるまでの流れの順に図を並べている。</p>
         </div>
         <div class="duo">
           <figure class="fig">
@@ -57,15 +58,15 @@
             <p class="method-note" id="phd-intl-source">出典を確認中</p>
           </figure>
           <figure class="fig">
-            <figcaption><span class="fig-kicker">B</span>日本の博士課程入学者数 — 専攻別 1981–2024</figcaption>
-            <div class="fig-body" id="phd-stream"></div>
-            <p class="method-note" id="phd-stream-source">出典を確認中</p>
+            <figcaption><span class="fig-kicker">B</span>修士課程修了者の進学率 — 専攻別 1981–2024年度</figcaption>
+            <div class="fig-body" id="phd-advance"></div>
+            <p class="method-note" id="phd-advance-source">出典を確認中</p>
           </figure>
         </div>
         <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">C</span>修士課程修了者の進学率 — 専攻別 1981–2024年度</figcaption>
-          <div class="fig-body" id="phd-advance"></div>
-          <p class="method-note" id="phd-advance-source">出典を確認中</p>
+          <figcaption><span class="fig-kicker">C</span>日本の博士課程入学者数 — 専攻別 1981–2024</figcaption>
+          <div class="fig-body" id="phd-stream"></div>
+          <p class="method-note" id="phd-stream-source">出典を確認中</p>
         </figure>
         <figure class="fig fig-wide" style="margin-top: 56px">
           <figcaption><span class="fig-kicker">D</span>日本の博士号取得者数 — 専攻別 1981–2022年度</figcaption>
@@ -79,8 +80,10 @@
         <div class="ch-head">
           <p class="ch-no">01 / CAREER STRUCTURE</p>
           <h2 id="career-title">キャリアの構造</h2>
-          <p class="ch-lede" id="career-lede">大学教員の年齢構成と、女性研究者の比率。研究職に入る／とどまる条件がどう変わってきたか。</p>
+          <p class="ch-lede" id="career-lede">研究職に入る条件と、博士課程を終えたあとの行き先。年齢構成・任期付き雇用の比率、そして進路の分野差を見る。</p>
         </div>
+
+        <p class="duo-group-title">雇用の条件</p>
         <div class="duo">
           <figure class="fig">
             <figcaption><span class="fig-kicker">A</span>大学の採用教員 — 年齢階層構成 1986–2022年度</figcaption>
@@ -88,45 +91,58 @@
             <p class="method-note" id="faculty-age-source">出典を確認中</p>
           </figure>
           <figure class="fig">
-            <figcaption><span class="fig-kicker">B</span>女性研究者比率の推移 1981–2024年</figcaption>
-            <div class="fig-body" id="female-trend"></div>
-            <p class="method-note" id="female-trend-source">出典を確認中</p>
-          </figure>
-        </div>
-        <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">C</span>女性研究者比率の国際比較</figcaption>
-          <div class="fig-body" id="female-intl"></div>
-          <p class="method-note" id="female-intl-source">出典を確認中</p>
-        </figure>
-        <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">D</span>人口1万人当たりの研究者数、国際比較 1981–2023年</figcaption>
-          <div class="fig-body" id="researcher-density"></div>
-          <p class="method-note" id="researcher-density-source">出典を確認中</p>
-        </figure>
-        <div class="duo" style="margin-top: 56px">
-          <figure class="fig">
-            <figcaption><span class="fig-kicker">E</span>大学等の任期付き研究者の比率 — 分野別（2024年の単年断面）</figcaption>
+            <figcaption><span class="fig-kicker">B</span>大学等の任期付き研究者の比率 — 分野別（2024年の単年断面）</figcaption>
             <div class="fig-body" id="faculty-tenure"></div>
             <p class="method-note" id="faculty-tenure-source">出典を確認中</p>
           </figure>
+        </div>
+
+        <p class="duo-group-title" style="margin-top: 56px">博士の行き先</p>
+        <div class="duo">
           <figure class="fig">
-            <figcaption><span class="fig-kicker">F</span>企業の新規採用研究者に占める博士号保持者の割合</figcaption>
+            <figcaption><span class="fig-kicker">C</span>理工系博士課程修了者の進路 1981–2024年度</figcaption>
+            <div class="fig-body" id="stem-outcomes"></div>
+            <p class="method-note" id="stem-outcomes-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">D</span>企業の新規採用研究者に占める博士号保持者の割合</figcaption>
             <div class="fig-body" id="corporate-phd"></div>
             <p class="method-note" id="corporate-phd-source">出典を確認中</p>
           </figure>
         </div>
+      </section>
+
+      <!-- 02 · WHO BECOMES A RESEARCHER -->
+      <section class="chapter" id="ch-who" aria-labelledby="who-title">
+        <div class="ch-head">
+          <p class="ch-no">02 / RESEARCHER COMPOSITION</p>
+          <h2 id="who-title">研究者は誰か</h2>
+          <p class="ch-lede" id="who-lede">誰が研究者になっているか、という構成の話。女性研究者の比率と、人口あたりの研究者数の国際比較。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>女性研究者比率の推移 1981–2024年</figcaption>
+            <div class="fig-body" id="female-trend"></div>
+            <p class="method-note" id="female-trend-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>女性研究者比率の国際比較</figcaption>
+            <div class="fig-body" id="female-intl"></div>
+            <p class="method-note" id="female-intl-source">出典を確認中</p>
+          </figure>
+        </div>
         <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">G</span>理工系博士課程修了者の進路 1981–2024年度</figcaption>
-          <div class="fig-body" id="stem-outcomes"></div>
-          <p class="method-note" id="stem-outcomes-source">出典を確認中</p>
+          <figcaption><span class="fig-kicker">C</span>人口1万人当たりの研究者数、国際比較 1981–2023年</figcaption>
+          <div class="fig-body" id="researcher-density"></div>
+          <p class="method-note" id="researcher-density-source">出典を確認中</p>
         </figure>
       </section>
 
-      <!-- 02 · MOBILITY -->
+      <!-- 03 · SECTOR MOBILITY -->
       <section class="chapter" id="ch-flows" aria-labelledby="flows-title">
         <div class="ch-head">
-          <p class="ch-no">02 / RESEARCHER MOBILITY</p>
-          <h2 id="flows-title">セクター間の研究者の移動</h2>
+          <p class="ch-no">03 / SECTOR MOBILITY</p>
+          <h2 id="flows-title">セクター間の移動</h2>
           <p class="ch-lede" id="flows-lede">研究者の移動（実測値）を光の軌道として描く。粒子1つ＝研究者50人。</p>
         </div>
         <div class="flow-stage">
@@ -134,17 +150,12 @@
           <div class="flow-detail" id="flow-detail" aria-live="polite">セクターに触れると、流れの内訳を表示</div>
         </div>
         <p class="method-note" id="flows-source">出典を確認中</p>
-        <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">B</span>外国人大学院生数の推移 — 国・地域別 2001–2024年</figcaption>
-          <div class="fig-body" id="intl-students"></div>
-          <p class="method-note" id="intl-students-source">出典を確認中</p>
-        </figure>
       </section>
 
-      <!-- 03 · GLOBAL MOBILITY -->
+      <!-- 04 · GLOBAL MOBILITY -->
       <section class="chapter" id="ch-global" aria-labelledby="global-title">
         <div class="ch-head">
-          <p class="ch-no">03 / INTERNATIONAL MOBILITY</p>
+          <p class="ch-no">04 / INTERNATIONAL MOBILITY</p>
           <h2 id="global-title">国際移動</h2>
           <p class="ch-lede" id="global-lede">論文著者データから見た、日本の研究者の国際的な移動（移籍）を描く。</p>
         </div>
@@ -176,9 +187,16 @@
           <p class="method-note" id="mob-bilateral-source">出典を確認中</p>
         </figure>
 
-        <!-- D: 博士たちの選択（JSPS海外特別研究員／JD-Pro／NSF SED） -->
+        <!-- D: 学生段階の流入 — 外国人大学院生（旧02章から移設） -->
         <figure class="fig fig-wide" style="margin-top: 56px">
-          <figcaption><span class="fig-kicker">D</span>博士たちの選択 — 3つの断面</figcaption>
+          <figcaption><span class="fig-kicker">D</span>学生段階の流入 — 外国人大学院生数の推移、国・地域別 2001–2024年</figcaption>
+          <div class="fig-body" id="intl-students"></div>
+          <p class="method-note" id="intl-students-source">出典を確認中</p>
+        </figure>
+
+        <!-- E: 博士たちの選択（JSPS海外特別研究員／JD-Pro／NSF SED） -->
+        <figure class="fig fig-wide" style="margin-top: 56px">
+          <figcaption><span class="fig-kicker">E</span>博士たちの選択 — 3つの断面</figcaption>
           <div class="mob-trio">
             <div>
               <p class="mob-panel-title">JSPS海外特別研究員の進路（令和4年度採用コホート）</p>
@@ -202,7 +220,7 @@
           <p class="method-note" style="margin-top: 0">以下は移住ではなく、所属を保ったままの渡航イベント（延べ）の統計。上の移動（移籍）統計とは測っているものが別物。</p>
 
           <figure class="fig fig-wide" style="margin-top: 28px">
-            <figcaption><span class="fig-kicker">E</span>32年の往来 — 延べ派遣・受入研究者数の推移 1993〜2024年度</figcaption>
+            <figcaption><span class="fig-kicker">F</span>32年の往来 — 延べ派遣・受入研究者数の推移 1993〜2024年度</figcaption>
             <div class="duo">
               <div>
                 <p class="mob-panel-title">短期（30日以内）</p>
@@ -217,7 +235,7 @@
           </figure>
 
           <figure class="fig fig-wide" style="margin-top: 56px">
-            <figcaption><span class="fig-kicker">F</span>地域別の内訳 — 令和6年度</figcaption>
+            <figcaption><span class="fig-kicker">G</span>地域別の内訳 — 令和6年度</figcaption>
             <div class="mob-quad" id="mob-regional"></div>
             <p class="method-note" id="mob-regional-source">出典を確認中</p>
           </figure>
@@ -230,15 +248,15 @@
         </div>
       </section>
 
-      <!-- 04 · GRADUATE ECONOMICS -->
+      <!-- 05 · GRADUATE ECONOMICS -->
       <section class="chapter" id="ch-economy" aria-labelledby="economy-title">
         <div class="ch-head">
-          <p class="ch-no">04 / GRADUATE ECONOMICS</p>
+          <p class="ch-no">05 / GRADUATE ECONOMICS</p>
           <h2 id="economy-title">博士の経済</h2>
           <p class="ch-lede" id="economy-lede">「博士課程学生の平均給与」という公的統計は存在しない — 博士課程学生の大半は雇用契約のない学生であり、「給与」という概念自体が制度的に成り立たない。ここにあるのは、学振特別研究員（DC）の研究奨励金という実測の金額と、それを受け取れる人の割合という実測の断面だけである。</p>
         </div>
         <figure class="fig fig-wide">
-          <figcaption><span class="fig-kicker">A</span>学振DC研究奨励金 月額の推移 — 復元した名目額と実質価値（2020年価格）1987〜2027年度</figcaption>
+          <figcaption><span class="fig-kicker">A</span>学振DC研究奨励金 月額の推移 — 復元した名目額と実質価値（各年度の物価で直近年度価格に換算）1987〜2027年度</figcaption>
           <div class="fig-body" id="dc-real-value"></div>
           <p class="method-note" id="dc-real-value-source">出典を確認中</p>
         </figure>
@@ -273,6 +291,6 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
     <script src="obs-core.js?v=20260817b" defer></script>
-    <script src="people.js?v=20260821a" defer></script>
+    <script src="people.js?v=20260822d" defer></script>
   </body>
 </html>

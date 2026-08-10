@@ -63,7 +63,7 @@ function renderPhdIntl(indicators) {
   }
   const jpLast = lastPoint(indexed.jp || []);
   if (jpLast) {
-    setText("#phd-lede", `2000年を100とすると、${jpLast[0]}年の日本は${Math.round(jpLast[1])}。主要7か国で減少しているのは日本だけ。`);
+    setText("#phd-lede", `2000年を100とすると、${jpLast[0]}年の日本は${Math.round(jpLast[1])}。主要7か国で減少しているのは日本だけ。進学率→入学者→取得者という、博士になるまでの流れの順に図を並べている。`);
   }
   setText("#phd-intl-source", `出典: ${block.source?.title || ""}。${block.note || ""}${baseExceptions.length ? ` ${baseExceptions.join("、")}。` : ""}`);
 }
@@ -76,8 +76,8 @@ function renderPhdStream(indicators) {
   const rows = block.rows || [];
   if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
   const fields = Object.keys(rows[rows.length - 1].fields || {});
-  const palette = ["#4f7ca6", "#5fb3c9", "#4fd8ff", "#8d7fb0", "#7f96c9", "#5ad8a1", "#c9a76a", "#a06a8c", "#64748f", "#46536b"];
-  const color = d3.scaleOrdinal().domain(fields).range(palette);
+  /* 専攻→色は取得者数チャート(renderPhdDegreesField)と共有のFIELD_COLORSに統一する */
+  const color = (field) => FIELD_COLORS[field] || "#8b96ab";
   const width = mount.clientWidth || 560, height = Math.max(340, width * 0.62);
   const margin = { top: 20, right: 16, bottom: 34, left: 44 };
   const stack = d3.stack().keys(fields).value((row, key) => row.fields[key] ?? 0);
@@ -119,10 +119,12 @@ function renderPhdStream(indicators) {
 const FIELD_COLORS = {
   "人文科学": "#8d7fb0", "社会科学": "#5ad8a1", "理学": "#4fd8ff", "工学": "#ffb545",
   "農学": "#c9a76a", "保健": "#a06a8c", "その他": "#59687f", "人文社会科学": "#8d7fb0",
+  "家政": "#c97b5a", "教育": "#6a8fc4", "芸術": "#b06bab",
 };
 const FIELD_SHORT = {
   "人文科学": "人文", "社会科学": "社会", "理学": "理学", "工学": "工学",
   "農学": "農学", "保健": "保健", "その他": "他", "人文社会科学": "人文社会",
+  "家政": "家政", "教育": "教育", "芸術": "芸術",
 };
 
 function renderPhdAdvanceRate(indicators) {
@@ -397,8 +399,9 @@ function renderFacultyTenure(indicators) {
   const all = block.rows.find((r) => r.label === "全大学");
   const rows = block.rows.filter((r) => r.label !== "全大学").sort((a, b) => b.share - a.share);
   if (!rows.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
-  const width = mount.clientWidth || 560, height = Math.max(300, rows.length * 40 + 50);
-  const margin = { top: 10, right: 60, bottom: 30, left: 84 };
+  /* margin.topは右上に重ねるコーナードーナツ(全大学の断面)の分だけ多めに確保する */
+  const width = mount.clientWidth || 560, height = Math.max(360, rows.length * 42 + 110);
+  const margin = { top: 78, right: 60, bottom: 30, left: 84 };
   const x = d3.scaleLinear().domain([0, Math.max(d3.max(rows, (r) => r.share), all?.share ?? 0) * 1.15]).range([margin.left, width - margin.right]);
   const y = d3.scaleBand().domain(rows.map((r) => r.label)).range([margin.top, height - margin.bottom]).padding(0.35);
   const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
@@ -406,9 +409,9 @@ function renderFacultyTenure(indicators) {
   svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
     .call(d3.axisBottom(x).ticks(5).tickFormat((v) => `${v}%`)).select(".domain").attr("stroke", "#1c2839");
   if (all) {
+    /* 全大学の値そのものは右上のコーナードーナツで示すので、ここでは基準線のみ引く（数値ラベルの重複を避ける） */
     svg.append("line").attr("x1", x(all.share)).attr("x2", x(all.share)).attr("y1", margin.top).attr("y2", height - margin.bottom)
       .attr("stroke", "#8b96ab").attr("stroke-dasharray", "3 4");
-    svg.append("text").attr("x", x(all.share) + 4).attr("y", margin.top + 10).attr("font-size", 9).attr("fill", "#8b96ab").text(`全大学 ${all.share}%`);
   }
   const bars = svg.append("g").selectAll("rect").data(rows).join("rect")
     .attr("x", x(0)).attr("y", (r) => y(r.label)).attr("height", y.bandwidth())
@@ -425,6 +428,23 @@ function renderFacultyTenure(indicators) {
   }
   const max = rows[0], min = rows[rows.length - 1];
   setText("#faculty-tenure-source", `出典: ${block.source?.title || ""}（${block.year_label}の断面）。${block.note || ""} ${max.label}${max.share}% 対 ${min.label}${min.share}%。`);
+
+  /* パネル右上の空きに、全大学(全分野合計)の任期付き比率をドーナツで補足する。
+     block.rowsに全大学のshare/total/fixed_termが実測値として含まれる場合のみ描く。 */
+  if (all && Number.isFinite(all.share)) {
+    const R = 30, C = 2 * Math.PI * R;
+    const offset = C * (1 - Math.min(100, Math.max(0, all.share)) / 100);
+    const donut = d3.select(mount).append("div").attr("class", "corner-donut");
+    const dsvg = donut.append("svg").attr("viewBox", "0 0 72 72").attr("role", "img")
+      .attr("aria-label", `${all.label}の任期付き研究者比率 ${all.share}%`);
+    dsvg.append("circle").attr("cx", 36).attr("cy", 36).attr("r", R).attr("fill", "none").attr("stroke", "#1c2839").attr("stroke-width", 6);
+    dsvg.append("circle").attr("cx", 36).attr("cy", 36).attr("r", R).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 6)
+      .attr("stroke-linecap", "round").attr("stroke-dasharray", C).attr("stroke-dashoffset", offset)
+      .attr("transform", "rotate(-90 36 36)");
+    dsvg.append("text").attr("class", "corner-donut-num").attr("x", 36).attr("y", 34).attr("text-anchor", "middle").text(all.share.toFixed(1));
+    dsvg.append("text").attr("class", "corner-donut-unit").attr("x", 36).attr("y", 45).attr("text-anchor", "middle").text("%");
+    donut.append("p").attr("class", "corner-donut-caption").text(all.label);
+  }
 }
 
 function renderCorporatePhd(indicators) {
@@ -435,6 +455,16 @@ function renderCorporatePhd(indicators) {
   const pick = ["全産業", "医薬品製造業", "化学工業", "情報サービス業"];
   const industries = pick.map((label) => (block.industries || []).find((i) => i.label === label)).filter(Boolean);
   if (!industries.length) { mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; return; }
+
+  /* 産業別の内訳より先に、全産業の直近値をヘッドライン数値として提示する */
+  const overall = industries.find((i) => i.label === "全産業");
+  if (overall && overall.values.length) {
+    const latest = overall.values[overall.values.length - 1];
+    const stat = d3.select(mount).append("div").attr("class", "fig-headline-stat");
+    stat.append("b").html(`${escapeHtml(String(latest.share))}<small>%</small>`);
+    stat.append("span").text(`全産業の新規採用研究者に占める博士号保持者の割合（${latest.year}年度）`);
+  }
+
   const width = mount.clientWidth || 560, height = Math.max(340, width * 0.62);
   const margin = { top: 24, right: 80, bottom: 34, left: 36 };
   const years = industries.flatMap((i) => i.values.map((v) => v.year));
@@ -771,8 +801,12 @@ function renderDcRealValue(phdSupport, economy) {
     return;
   }
   mount.innerHTML = "";
-  const cpiMap = new Map((cpiBlock.calendar_year || []).filter(([, v]) => Number.isFinite(v) && v > 0));
+  /* 奨励金の点は「年度」なので、暦年ではなく年度CPIでデフレートする（economy.jsonは両系列を持つ）。 */
+  const cpiMap = new Map((cpiBlock.fiscal_year || cpiBlock.calendar_year || []).filter(([, v]) => Number.isFinite(v) && v > 0));
   const lastCpiYear = d3.max([...cpiMap.keys()]);
+  /* 実質値の基準はCPI原系列の2020年ではなく「CPIが取れる直近年度」に置く。
+     「その年度の名目額が、今のお金でいくらに相当するか」という読み方が最も直感的なため。 */
+  const cpiLatest = cpiMap.get(lastCpiYear);
 
   const allPoints = [...stipend.points].sort((a, b) => a.fiscal_year - b.fiscal_year);
   const confirmed = allPoints.filter((p) => !p.planned);
@@ -801,7 +835,8 @@ function renderDcRealValue(phdSupport, economy) {
     for (const p of segment) { if (p.fiscal_year <= year) value = p.amount_yen; else break; }
     return value;
   };
-  /* 実質値は名目が確定している年についてのみ、CPIが取得できる範囲で年次計算する */
+  /* 実質値は名目が確定している年についてのみ、CPIが取得できる範囲で年次計算する
+     （各年の名目額をその年のCPIでデフレートし、直近年価格に換算） */
   const realSegments = segments
     .map((segment) => {
       const startYear = segment[0].fiscal_year, endYear = Math.min(segment[segment.length - 1].fiscal_year, lastCpiYear);
@@ -809,7 +844,7 @@ function renderDcRealValue(phdSupport, economy) {
       for (let year = startYear; year <= endYear; year += 1) {
         const cpi = cpiMap.get(year);
         if (cpi == null) continue;
-        pts.push([year, (nominalAt(segment, year) * 100) / cpi]);
+        pts.push([year, (nominalAt(segment, year) * cpiLatest) / cpi]);
       }
       return pts;
     })
@@ -826,7 +861,7 @@ function renderDcRealValue(phdSupport, economy) {
   const y = d3.scaleLinear().domain([yMin * 0.93, yMax * 1.08]).range([height - margin.bottom, margin.top]);
 
   const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img")
-    .attr("aria-label", "学振DC研究奨励金の月額の推移（復元した名目額）と、それを各年の物価で2020年価格に換算した実質価値。2000〜01年度の20.5万円をピークに減額され、2004年度から2026年度まで月額20万円で据え置かれ、2027年度に227,000円へ増額される予定。1989〜1996年度、1999年度、2002年度は未確認区間。");
+    .attr("aria-label", "学振DC研究奨励金の月額の推移（復元した名目額）と、各年度の名目額をその年度の物価で直近年度価格に換算した実質価値。2000〜01年度の20.5万円をピークに減額され、2004年度から2026年度まで月額20万円で据え置かれ、2027年度に227,000円へ増額される予定。1989〜1996年度、1999年度、2002年度は未確認区間。");
 
   const gy = svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
     .call(d3.axisLeft(y).ticks(5).tickFormat((v) => fmtMan(v)).tickSize(-(width - margin.left - margin.right)));
@@ -852,7 +887,7 @@ function renderDcRealValue(phdSupport, economy) {
     }
   }
 
-  /* 実質価値（2020年価格）— 名目より細く、奥に */
+  /* 実質価値（直近年価格に換算）— 名目より細く、奥に */
   const realLine = d3.line().x((d) => x(d[0])).y((d) => y(d[1])).curve(d3.curveMonotoneX);
   for (const seg of realSegments) {
     svg.append("path").attr("d", realLine(seg)).attr("fill", "none").attr("stroke", "#5fb3c9").attr("stroke-width", 1.8).attr("opacity", 0.85);
@@ -945,12 +980,30 @@ function renderDcRealValue(phdSupport, economy) {
       .text(`ピーク ${peak.fiscal_year}年度 ${fmtMan(peak.amount_yen)}`);
   }
 
+  /* 制度イベント（兼業緩和・特別手当など）— 支給額は同じでも経済的自由度が変わった時点を
+     縦の目盛線で示す。ラベルは近接年（2021/2024/2025）が重なるため高さを段違いにする。
+     線の位置は年度＝4月開始なので当該年度のx位置にそのまま置く。 */
+  const events = (stipend.events || []).filter((e) => Number.isFinite(e.fiscal_year) && e.fiscal_year >= x.domain()[0] && e.fiscal_year <= x.domain()[1]);
+  events.forEach((e, i) => {
+    const ex = x(e.fiscal_year);
+    const labelY = height - margin.bottom - 130 - (i % 3) * 16;
+    svg.append("line").attr("x1", ex).attr("x2", ex)
+      .attr("y1", labelY + 5).attr("y2", height - margin.bottom)
+      .attr("stroke", "#4fd8ff").attr("stroke-width", 1).attr("stroke-dasharray", "2 4").attr("opacity", 0.55);
+    const text = width < 700 ? e.label_short : `${e.fiscal_year} ${e.label_short}`;
+    const anchorEnd = ex > width * 0.72;
+    svg.append("text").attr("x", ex + (anchorEnd ? -5 : 5)).attr("y", labelY)
+      .attr("text-anchor", anchorEnd ? "end" : "start").attr("font-size", 9.5).attr("fill", "#4fd8ff").attr("opacity", 0.9)
+      .text(text)
+      .append("title").text(`${e.fiscal_year}年度 ${e.label} — ${e.detail}`);
+  });
+
   /* 凡例。狭幅では横並びだと右端があふれるので縦積みにする */
   const stackLegend = width < 560;
   const legend = svg.append("g").attr("transform", `translate(${margin.left + 4},${margin.top - (stackLegend ? 26 : 20)})`);
   const legendItems = [
     { label: "名目額（確認済み）", color: "#ffb545" },
-    { label: "実質価値（2020年価格）", color: "#5fb3c9" },
+    { label: `実質価値（各年度の物価で${lastCpiYear}年度価格に換算）`, color: "#5fb3c9" },
   ];
   legendItems.forEach((item, i) => {
     const row = legend.append("g").attr("transform", stackLegend ? `translate(0,${i * 13})` : `translate(${i * 160},0)`);
@@ -965,10 +1018,13 @@ function renderDcRealValue(phdSupport, economy) {
   let summary = "";
   if (realLastPoint && plateauPeak) {
     const declinePct = ((plateauPeak[1] - realLastPoint[1]) / plateauPeak[1]) * 100;
-    summary = ` 実質価値は物価が安定していた${plateauPeak[0]}年に${fmtMan(plateauPeak[1])}まで上がったが、名目額が20万円のまま2020年代の物価上昇にさらされ、${realLastPoint[0]}年には${fmtMan(realLastPoint[1])}まで実質${declinePct.toFixed(1)}%目減りした（名目額は変わっていない）。`;
+    summary = ` 実質価値は物価が安定していた${plateauPeak[0]}年度に${fmtMan(plateauPeak[1])}まで上がったが、名目額が20万円のまま2020年代の物価上昇にさらされ、${realLastPoint[0]}年度には${fmtMan(realLastPoint[1])}まで実質${declinePct.toFixed(1)}%目減りした（名目額は変わっていない）。`;
   }
+  const eventsText = events.length
+    ? ` 図中のシアンの縦線は、支給額以外で経済的自由度を変えた制度イベント: ${events.map((e) => `${e.fiscal_year}年度=${e.label}`).join("、")}。${stipend.events_note || ""}`
+    : "";
   setText("#dc-real-value-source",
-    `出典: 国会会議録検索システム（kokkai.ndl.go.jp）＋Wayback Machineに保存されたJSPS公式ページ・PDF、直近はJSPS特別研究員-DC募集要項（令和9年度採用分）。JSPSはDC月額改定の沿革表を公開しておらず、断片的な一次資料から復元した確認済み年度のみを点として描いている（灰色の帯は未確認区間、補間はしていない）。${first.fiscal_year}${first.approx ? "年頃" : "年度"}${fmtMan(first.amount_yen)}${first.approx ? "（概数）" : ""}→2000〜01年度の20.5万円をピークに2003〜04年度にかけて減額→2004〜${plateauEndYear}年度は月額20万円で据え置き→2027年度に${planned ? fmtMan(planned.amount_yen) : "?"}へ増額予定（新規採用分、+13.5%）。${summary}`);
+    `出典: 国会会議録検索システム（kokkai.ndl.go.jp）＋Wayback Machineに保存されたJSPS公式ページ・PDF、直近はJSPS特別研究員-DC募集要項（令和9年度採用分）。JSPSはDC月額改定の沿革表を公開しておらず、断片的な一次資料から復元した確認済み年度のみを点として描いている（灰色の帯は未確認区間、補間はしていない）。${first.fiscal_year}${first.approx ? "年頃" : "年度"}${fmtMan(first.amount_yen)}${first.approx ? "（概数）" : ""}→2000〜01年度の20.5万円をピークに2003〜04年度にかけて減額→2004〜${plateauEndYear}年度は月額20万円で据え置き→2027年度に${planned ? fmtMan(planned.amount_yen) : "?"}へ増額予定（新規採用分、+13.5%）。${summary}${eventsText}`);
 }
 
 const DC_ACCEPTANCE_COLORS = { applicants: "#4f7ca6", accepted: "#ffb545" };
@@ -1491,7 +1547,7 @@ function renderMobMap(mobility, landTopology) {
     for (const p of landPoints) {
       const pos = projection([p.lon, p.lat]);
       if (!pos) continue;
-      dotCtx.fillStyle = p.jp ? "rgba(255,181,69,0.24)" : "rgba(34,48,74,0.85)";
+      dotCtx.fillStyle = p.jp ? "rgba(255,181,69,0.32)" : "rgba(96,118,156,0.6)";
       dotCtx.fillRect(pos[0] - 0.7, pos[1] - 0.7, 1.4, 1.4);
     }
   }
@@ -2144,11 +2200,14 @@ async function init() {
   safeCall("renderMobFacultyChip", () => renderMobFacultyChip(mobility));
 
   const hireRows = indicators?.faculty_age?.hire_rows || [];
-  const femaleSeries = indicators?.female_researchers?.series || [];
-  if (hireRows.length && femaleSeries.length) {
+  if (hireRows.length) {
     const first = hireRows[0], last = hireRows[hireRows.length - 1];
+    setText("#career-lede", `大学の新規採用教員に占める25-39歳の割合は${first.year}年度${first.fields["25-39歳"]}%→${last.year}年度${last.fields["25-39歳"]}%へ低下。任期付き雇用の比率や、博士課程修了後の進路にも分野による差がある。`);
+  }
+  const femaleSeries = indicators?.female_researchers?.series || [];
+  if (femaleSeries.length) {
     const fFirst = femaleSeries[0], fLast = femaleSeries[femaleSeries.length - 1];
-    setText("#career-lede", `大学の新規採用教員に占める25-39歳の割合は${first.year}年度${first.fields["25-39歳"]}%→${last.year}年度${last.fields["25-39歳"]}%へ低下。女性研究者比率は${fFirst[0]}年${fFirst[1]}%→${fLast[0]}年${fLast[1]}%へ上昇。任期付き雇用や博士採用の分野差もあわせて見る。`);
+    setText("#who-lede", `女性研究者比率は${fFirst[0]}年${fFirst[1]}%→${fLast[0]}年${fLast[1]}%へ上昇したが、国際的にはなお低い水準にある。人口あたりの研究者数もあわせて見る。`);
   }
 
   const entries = [

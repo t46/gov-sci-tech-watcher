@@ -30,8 +30,12 @@
 Sources (all official, no key required):
 - 内閣府 CSTI「科学技術基本計画及び科学技術・イノベーション基本計画」本文PDF
   (www8.cao.go.jp/cstp/kihonkeikaku/) — 第3期はhonbun.pdf、第4期以降はNhonbun.pdf
-  （N=4,5,6,7）。第1・2期は同ページから直接の本文PDFリンクが確認できず（国立国会図書館
-  WARPの archived ページへのリンクのみ）、honbun_url は null のままとする。
+  （N=4,5,6,7）。第1期は同ページから直接の本文PDFリンクが確認できず（国立国会図書館WARPの
+  archived ページへのリンクすら見当たらない）、honbun_url は null のままとする。第2期は
+  公式ページに本文PDFへの直接リンクがないが、国立国会図書館WARPの保存版HTML
+  （https://warp.ndl.go.jp/20250911/20250901044924/https://www8.cao.go.jp/cstp/
+  kihonkeikaku/honbun.html）で確認できるため、honbun_url にそのWARP保存版URLを収録する
+  （フロント側では「第2期(NDL保存版)」とラベルし、PDFではなくHTMLである旨を区別する）。
 - 内閣府 統合イノベーション戦略推進会議「統合イノベーション戦略」本文PDF
   (www8.cao.go.jp/cstp/tougosenryaku/) — togo{年}_zentai.pdf。
 
@@ -51,6 +55,12 @@ Blocks written to data/policy.json（全ブロック status/source/note を持�
   11件、イノベーション・産業成長カテゴリが6件、投資カテゴリが2件の計19件だった（後述の
   parse_plan7_indicators docstring参照）。想定件数と実際の本文が食い違う場合は、本文の
   実際の内容を優先し、想定の方を誤りとして扱う。
+- indicator_observations: plan7_indicators の19指標のうち、このサイト自身の実測・準実測
+  データで追える範囲を積み増すブロック。observations[].indicator は plan7_indicators の
+  指標名と完全一致させ、フロント側（policy.js）がそのキーで両ブロックをマージする。
+  国際共著論文率（NISTEP表4-1-3）とAI関連論文数世界順位（OpenAlex）はライブ取得・検証、
+  それ以外は各一次資料から手動で書き起こした定数（可能な範囲でベストエフォート検証付き）。
+  詳細は関数docstring・各 _obs_* 関数を参照。
 - tech_domains: 統合イノベーション戦略の「17の重要技術領域」。名称は本文の丸数字見出し
   （①〜⑰）から、要約は各領域の（現状認識）節の冒頭の一文をそのまま抜粋（句点まで丸ごと、
   地の文からの逐語抜粋のみで要約を作文しない。文の長さは原文次第で30〜110字程度まで
@@ -97,6 +107,16 @@ Blocks written to data/policy.json（全ブロック status/source/note を持�
   検証として (1) 全17領域が edges の domain 集合と first_appearance のどちらかに過不足なく
   対応すること、(2) national_strategy が6件でいずれも tech_domains の17領域名に含まれる
   こと、(3) extinct が5件であることを確認する。
+- youth_programs: 若手研究者・博士学生を支援する主要9事業（特別研究員、ポストドクター等
+  一万人支援計画、さきがけ、テニュアトラック普及・定着事業、卓越研究員事業、ACT-X、
+  創発的研究支援事業、SPRING、BOOST）の開始・終了年度、規模、現況。programs は各機関の
+  公表資料（JSPS/JST/MEXT公式ページ・パンフレット・実績PDF）を編集部が手動で確認して
+  書き起こした定数で、ライブ取得は行わない（本文が5年周期で改定される plans_history 等
+  とは異なり、各事業の公募状況は年により変わりうるため、再実行時は各事業の source URL を
+  当年の公式ページで再確認すること）。overview/annual_new/current_stock/adoption_rates は
+  フロント側の図B（現在の規模、フローとストックを単位を分けて表示）・採用率チップ行が
+  直接参照する構造化データ。検証として、(1) programs が9件であること、(2) 終了事業の集合が
+  {postdoc_10k, takuetsu} と一致すること（この2件のみ end_fy を持つ想定）を確認する。
 
 Parsing approach / pitfalls:
 - 別紙の指標表・重要技術領域の見出しは、いずれも pdftotext -layout（poppler-utils）でのみ
@@ -150,9 +170,16 @@ USER_AGENT = "gov-sci-tech-watcher/1.0 (+https://science-signal.pages.dev/)"
 
 CSTP_KIHON_BASE = "https://www8.cao.go.jp/cstp/kihonkeikaku/"
 CSTP_KIHON_INDEX = CSTP_KIHON_BASE + "kihon-index.html"
+# 第2期のみPDFではなくNDL WARP保存版HTML（公式ページに本文PDFへの直接リンクがないため）。
+# _fetch_honbun_text() は PLAN_LANGUAGE_PERIODS ([3,4,5,6,7]) と verify_targets の対象期
+# （3〜7）にしか呼ばれないので、この非PDF URLがpdftotext/magicチェックに渡ることはない。
+NDL_WARP_PERIOD2_URL = (
+    "https://warp.ndl.go.jp/20250911/20250901044924/"
+    "https://www8.cao.go.jp/cstp/kihonkeikaku/honbun.html"
+)
 HONBUN_URLS: dict[int, str | None] = {
     1: None,
-    2: None,
+    2: NDL_WARP_PERIOD2_URL,
     3: CSTP_KIHON_BASE + "honbun.pdf",
     4: CSTP_KIHON_BASE + "4honbun.pdf",
     5: CSTP_KIHON_BASE + "5honbun.pdf",
@@ -313,7 +340,7 @@ PLANS_HISTORY = [
             "だったが、他の政策経費に比べ高い伸びを確保した（出典: 第3期基本計画本文の"
             "回顧記述。正確な実績額を示す一次資料は今回の調査では見つからなかった）。"
         ),
-        "honbun_url": None,
+        "honbun_url": HONBUN_URLS[2],
     },
     {
         "period": 3, "fiscal_years": "2006-2010",
@@ -441,9 +468,11 @@ def plans_history_block(previous: dict[str, object] | None) -> dict[str, object]
         "note": (
             "政府研究開発投資目標・官民合計投資目標は各期の本文（閣議決定文書）に明記された"
             "値。閣議決定日・実績値は本文や公式ページで確認できたものだけを収録し、確認でき"
-            "なかった項目はnull（推計では埋めない）。第1・2期は公式ページに本文PDFへの直接"
-            "リンクが確認できず honbun_url は null（国立国会図書館WARPの archived ページの"
-            "みリンクあり）。第7期の60兆円/180兆円/43.6兆円は本文から実際にgrepして検証済み"
+            "なかった項目はnull（推計では埋めない）。第1期は公式ページに本文PDFへの直接リンク"
+            "が確認できず honbun_url は null。第2期は公式ページに本文PDFへの直接リンクがない"
+            "が、国立国会図書館WARPの保存版HTML（PDFではない）が確認できるため honbun_url に"
+            "そのWARP保存版URLを収録している。第7期の60兆円/180兆円/43.6兆円は本文から実際に"
+            "grepして検証済み"
             f"（第3〜6期の目標値は{', '.join(f'第{p}期' for p in verified) if verified else 'いずれも'}"
             "取得・照合できた分のみ突合、それ以外は定数値をそのまま保持）。"
         ),
@@ -662,6 +691,546 @@ def plan7_indicators_block(previous: dict[str, object] | None) -> dict[str, obje
             "投資に関する指標2件の計19件。current_numeric/target_numericは指標の性質に応じて"
             "順位・比率・件数・金額のいずれかを機械抽出したもので、順位と比率が併存する指標や"
             "順位のみの指標では片方または両方がnullになる。"
+        ),
+    }
+
+
+# ------------------------------------------------------ indicator_observations
+
+# 第7期別紙19指標のうち、plan7_indicatorsの現状値とは別に、このサイト自身の実測・準実測
+# 系列で追える範囲を積み増すブロック。indicator は plan7_indicators.indicators[].name と
+# 完全一致させる（フロント側の紐付けキー）。kind="series"|"value"|"none"、
+# match="direct"（同一定義に近い一次資料からの実測）|"proxy"（定義が異なる代替指標、
+# note を必ず表示）。LIVE指定の2件（国際共著論文率のNISTEP表4-1-3、AI関連論文数世界順位の
+# OpenAlex集計）は毎回ライブ取得・検証する。それ以外は手動で書き起こした定数を、可能な
+# 範囲で一次資料に対する検証（grep相当）付きで保持する — 定数自体は史料的事実として、
+# 検証取得の失敗では欠落させない（plans_historyの第3〜6期目標値と同じ方針）。
+
+ZEN2HAN_DIGITS = str.maketrans("０１２３４５６７８９", "0123456789")
+
+
+def _zen2han(s: str) -> str:
+    return s.translate(ZEN2HAN_DIGITS)
+
+
+def _int_comma(s: str) -> int:
+    return int(_zen2han(s).replace(",", "").replace("，", ""))
+
+
+OPENALEX_MAILTO = "takagi4646@gmail.com"
+
+
+def openalex_api(path_query: str) -> dict[str, object]:
+    api_key = os.environ.get("OPENALEX_API_KEY", "")
+    url = f"https://api.openalex.org/{path_query}&mailto={OPENALEX_MAILTO}"
+    if api_key:
+        url += f"&api_key={api_key}"
+    return json.loads(fetch(url).decode("utf-8"))
+
+
+NISTEP_COAUTHOR_URL = "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-03.xlsx"
+NISTEP_COAUTHOR_TITLE = "科学技術指標2026 表4-1-3 主要国の論文共著形態の推移（NISTEP）"
+
+MONEY_SURVEY_URL = "https://www.stat.go.jp/data/kagaku/kekka/kekkagai/pdf/2025ke_gai.pdf"
+MONEY_SURVEY_TITLE = "科学技術研究調査（総務省）令和7年（2025年）調査 概要"
+
+NISTEP_INNOVATION_URL = "https://www.nistep.go.jp/archives/61459/"
+NISTEP_INNOVATION_TITLE = "全国イノベーション調査2024年調査統計報告（NISTEP REPORT No.207）"
+
+JPO_ANNUAL_URL = "https://www.jpo.go.jp/resources/report/nenji/2026/index.html"
+JPO_ANNUAL_TITLE = "特許行政年次報告書2026年版（特許庁）"
+
+CSTI_SHIRYO1_URL = "https://www8.cao.go.jp/cstp/tyousakai/kihon7/11kai/shiryo1.pdf"
+CSTI_SHIRYO1_TITLE = "科学技術・イノベーション基本計画専門調査会（第11回、2025-12-19）資料1 別紙"
+
+ECSTI_EQUIPMENT_URL = "https://e-csti.go.jp/wp-content/uploads/2024/06/ecsti-report20230208.pdf"
+ECSTI_EQUIPMENT_TITLE = "e-CSTI 研究設備・機器の共用状況等に関する調査報告"
+
+JSPS_KAKEN_R7_URL = "https://www.jsps.go.jp/file/storage/kaken_27_kdata_g_4795/3-1-1_r7_0330.pdf"
+JSPS_KAKEN_R7_TITLE = "科学研究費助成事業（科研費）配分状況一覧（令和7年度新規採択分）（JSPS）"
+
+MEXT_FULLTIME_2023_URL = "https://www.mext.go.jp/content/20250327-mxt_chousei01-000040124.pdf"
+MEXT_FULLTIME_2023_TITLE = "令和5年度大学等におけるフルタイム換算データに関する調査（文部科学省）"
+NISTEP_FULLTIME_COMPARE_URL = "https://www.nistep.go.jp/wp/wp-content/uploads/NISTEP-RM236-SummaryJ1.pdf"
+NISTEP_FULLTIME_COMPARE_TITLE = "大学等教員の職務活動の変化（2002・2008・2013年調査の3時点比較）概要（NISTEP RM236）"
+MEXT_FULLTIME_2018_URL = (
+    "https://www.mext.go.jp/b_menu/houdou/31/06/__icsFiles/afieldfile/2019/06/26/1418365_01_3_1.pdf"
+)
+MEXT_FULLTIME_2018_TITLE = "平成30年度大学等におけるフルタイム換算データに関する調査 概要（文部科学省）"
+
+
+def _grep_check(text: str | None, patterns: list[str], label: str) -> None:
+    """ベストエフォートの検証: 見つからなくても例外は投げず、ログのみ出す
+    （定数値は史料的事実として保持する — plans_historyの第3〜6期目標値と同じ方針）。"""
+    if text is None:
+        print(f"[policy] indicator_observations: {label} の検証をスキップ（本文取得失敗）")
+        return
+    missing = [p for p in patterns if not re.search(p, text)]
+    if missing:
+        print(f"[policy] indicator_observations: {label} を本文で確認できなかった（定数値は保持）: {missing}")
+    else:
+        print(f"[policy] indicator_observations: {label} を本文で確認")
+
+
+def _obs_intl_collab() -> dict[str, object]:
+    """国際共著論文率（LIVE）— NISTEP 表4-1-3 のExcelから日本ブロックの国際共著%系列を
+    1981〜2024年分そのまま抽出する。xlsxパースはbuild_analytics.pyのread_first_sheetと
+    同じ手書きstdlibパーサー方式（zipfile+ElementTree、追加依存なし）だが、この表は
+    シート「表4-1-3」が実体としてxl/worksheets/sheet2.xmlに入っている（workbook.xml.relsで
+    確認、xl/worksheets/sheet1.xmlは表紙シートで埋め込みグラフのみ・セルデータなし）ため
+    シート2を直接読む。"""
+    blob = fetch_with_cache(NISTEP_COAUTHOR_URL, "STI2026_4-1-03.xlsx", magic=b"PK")
+    namespace = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    ns_uri = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    from zipfile import ZipFile
+    from xml.etree import ElementTree
+    from io import BytesIO
+
+    with ZipFile(BytesIO(blob)) as archive:
+        shared: list[str] = []
+        if "xl/sharedStrings.xml" in archive.namelist():
+            shared_root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"))
+            for item in shared_root.findall("m:si", namespace):
+                shared.append("".join(node.text or "" for node in item.iter(f"{ns_uri}t")))
+        sheet_root = ElementTree.fromstring(archive.read("xl/worksheets/sheet2.xml"))
+
+    rows: list[dict[str, str]] = []
+    for row in sheet_root.findall(".//m:sheetData/m:row", namespace):
+        values: dict[str, str] = {}
+        for cell in row.findall("m:c", namespace):
+            reference = cell.attrib.get("r", "")
+            if not reference:
+                continue
+            column = re.match(r"[A-Z]+", reference.upper()).group(0)  # type: ignore[union-attr]
+            value_node = cell.find("m:v", namespace)
+            value = "" if value_node is None else (value_node.text or "")
+            if cell.attrib.get("t") == "s" and value:
+                value = shared[int(value)]
+            elif cell.attrib.get("t") == "inlineStr":
+                value = "".join(node.text or "" for node in cell.iter(f"{ns_uri}t"))
+            values[column] = value.strip()
+        rows.append(values)
+
+    header_idx = next((i for i, r in enumerate(rows) if r.get("A", "").startswith("(A)日本")), None)
+    if header_idx is None:
+        raise ValueError("indicator_observations/国際共著論文率: 「(A)日本」ブロックを検出できない")
+    series: list[list[float]] = []
+    for r in rows[header_idx + 1:]:
+        year_s = r.get("F", "")
+        pct_s = r.get("I", "")
+        if not re.fullmatch(r"\d{4}", year_s):
+            if series:  # 日本ブロックの終端（次の国のブロックへ抜けた）
+                break
+            continue
+        try:
+            pct = float(pct_s)
+        except ValueError:
+            continue
+        series.append([int(year_s), round(pct, 2)])
+    if not series:
+        raise ValueError("indicator_observations/国際共著論文率: 日本ブロックの%系列を抽出できない")
+    last_year, last_pct = series[-1]
+    if last_year != 2024 or abs(last_pct - 37.87) > 0.2:
+        raise ValueError(
+            f"indicator_observations/国際共著論文率: 検証値と不一致（最終年={last_year}、値={last_pct}、期待値≈37.87@2024）"
+        )
+    print(f"[policy] indicator_observations: 国際共著論文率 {series[0][0]}〜{series[-1][0]}年、{len(series)}点、"
+          f"検証OK（2024年={last_pct}%）")
+    return {
+        "indicator": "国際共著論文率",
+        "kind": "series",
+        "match": "direct",
+        "unit": "%",
+        "data": {"series": series},
+        "source": {"title": NISTEP_COAUTHOR_TITLE, "url": NISTEP_COAUTHOR_URL},
+        "note": (
+            "整数カウント法（Article, Reviewを対象、クラリベイト社Web of Science XML(SCIE)を基にNISTEPが集計）。"
+            "第7期指標の典拠と同一の集計法・出典。"
+        ),
+        "site_link": {"href": "papers.html#ch-yardsticks", "label": "研究 — 二つの物差しへ"},
+    }
+
+
+def _obs_pubpriv_rd() -> dict[str, object]:
+    """官民研究開発投資額 — 総務省科学技術研究調査 表１－１・表１－２（2025年調査、2024年度分）
+    から2015〜2024年度の研究費総額（兆円）・対GDP比系列を書き起こした定数。検証として
+    2024年度の総額記述「23兆7925億円」・対GDP比「3.70」が本文に現れることを確認する。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(MONEY_SURVEY_URL, "2025ke_gai.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 官民研究開発投資額 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text, [r"23兆7925億円", r"3\.70"], "官民研究開発投資額（2024年度23.7925兆円/対GDP比3.70%）")
+
+    series = [
+        [2015, 18.9391], [2016, 18.4326], [2017, 19.0504], [2018, 19.5260], [2019, 19.5757],
+        [2020, 19.2365], [2021, 19.7408], [2022, 20.7040], [2023, 22.0497], [2024, 23.7925],
+    ]
+    gdp_ratio_series = [
+        [2015, 3.43], [2016, 3.31], [2017, 3.36], [2018, 3.43], [2019, 3.43],
+        [2020, 3.47], [2021, 3.42], [2022, 3.50], [2023, 3.56], [2024, 3.70],
+    ]
+    return {
+        "indicator": "官民研究開発投資額",
+        "kind": "series",
+        "match": "direct",
+        "unit": "兆円",
+        "data": {"series": series, "gdp_ratio_series": gdp_ratio_series, "gdp_ratio_unit": "%"},
+        "source": {"title": MONEY_SURVEY_TITLE, "url": MONEY_SURVEY_URL},
+        "note": (
+            "これは各年度の年間値であり、指標の目標（180兆円）は2026〜2030年度の5年累計 — "
+            "単位が異なるため、そのまま重ねて進捗を読むことはできない。目標を単純換算すると"
+            f"年36兆円ペースで、2024年度実績23.7925兆円はその約{round(23.7925 / 36 * 100)}%。"
+            "系列は研究費総額（名目、企業・非営利団体/公的機関・大学等の合計）で、第7期指標の"
+            "「官民研究開発投資額」の集計主体（総務省科学技術研究調査）と一致。"
+        ),
+    }
+
+
+def _obs_innovation_rate() -> dict[str, object]:
+    """イノベーション実現企業率 — NISTEP全国イノベーション調査2024年調査（NISTEP REPORT
+    No.207）の公表ページから「2021〜2023年の3年間に36%の企業がイノベーションを実現」の
+    記述を検証する。過去回の同一定義値は今回の調査では特定できず単一値のみ収録。"""
+    text = None
+    try:
+        raw = fetch_with_cache(NISTEP_INNOVATION_URL, "nistep_61459.html", magic=None)
+        text = raw.decode("utf-8", errors="replace")
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: イノベーション実現企業率 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text, [r"36%の企業"], "イノベーション実現企業率（2021-2023年36%）")
+    return {
+        "indicator": "イノベーション実現企業率",
+        "kind": "value",
+        "match": "direct",
+        "unit": "%",
+        "data": {"value": 36, "year": "2021-2023"},
+        "source": {"title": NISTEP_INNOVATION_TITLE, "url": NISTEP_INNOVATION_URL},
+        "note": "対象母集団のうちプロダクト・イノベーションまたはビジネス・プロセス・イノベーションを実現した企業の割合。前回調査（2018-2020年）より増加。",
+    }
+
+
+def _obs_pph() -> dict[str, object]:
+    """PPH（特許審査ハイウェイ）締結国数（実施庁数）— 特許庁「特許行政年次報告書2026年版」の
+    公表値。年次報告書の本文PDFはAWS WAF（CloudFront）のJS課題チャレンジで自動取得を
+    ブロックしているため、通常のスクリプト実行からの本文grep検証は行わず、索引ページ
+    （index.html、こちらはWAF課題の対象外で到達可能）をURL出典として引用するに留める。"""
+    return {
+        "indicator": "ＰＰＨ締結国数（実施庁数）",
+        "kind": "value",
+        "match": "direct",
+        "unit": "庁",
+        "data": {"value": 46, "year": 2026, "as_of": "2026年3月時点"},
+        "source": {"title": JPO_ANNUAL_TITLE, "url": JPO_ANNUAL_URL},
+        "note": (
+            "日本国特許庁が実施するPPH（特許審査ハイウェイ）の相手庁数。「世界1位」はJPO・CSTIの"
+            "公表によるもので、各国のPPH締結数を横断集計する独立の一次統計は存在しない。"
+            "年次報告書本文PDFは自動取得を防ぐ仕組みがあり、この観測値のみ手動確認・自動検証なし。"
+        ),
+    }
+
+
+def _obs_women_professors() -> dict[str, object]:
+    """大学の学長・副学長・教授に占める女性割合 — CSTI 資料1別紙の現状値。原データは
+    学校教員統計調査（文部科学省）で、調査年は2022年度の可能性が高い（別紙の記載は
+    「2024年」公表だが、調査自体の対象年度は明記が別途必要）。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(CSTI_SHIRYO1_URL, "cstp_kihon7_11kai_shiryo1.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 女性割合 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text, [r"19\.6%"], "大学の教授等に占める女性の割合（19.6%）")
+    return {
+        "indicator": "大学の教授等（学長、副学長及び教授）に占める女性の割合",
+        "kind": "value",
+        "match": "direct",
+        "unit": "%",
+        "data": {"value": 19.6, "year": 2024},
+        "source": {"title": CSTI_SHIRYO1_TITLE, "url": CSTI_SHIRYO1_URL},
+        "note": "CSTIが2024年に公表した現状値。原データは学校教員統計調査（文部科学省）で、調査自体の対象年度は2022年度の可能性が高い（公表年と調査年度が一致しない点に注意）。",
+    }
+
+
+def _obs_iso_iec() -> dict[str, object]:
+    """ISO/IECにおける幹事国引受数 — CSTI 資料1別紙の現状値（ISO4位／IEC3位、2024年度）。
+    各国のISO/IEC幹事国引受数を横断集計する独立の公開一次統計は存在せず、政府公表値の引用。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(CSTI_SHIRYO1_URL, "cstp_kihon7_11kai_shiryo1.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: ISO/IEC幹事国引受数 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text, [r"ISO[:：]\s*4\s*位", r"IEC[：:]\s*3\s*位"], "ISO/IEC幹事国引受数（ISO4位/IEC3位）")
+    return {
+        "indicator": "ISO/IECにおける幹事国引受数",
+        "kind": "value",
+        "match": "direct",
+        "unit": "位",
+        "data": {"iso_rank": 4, "iec_rank": 3, "year": 2024},
+        "source": {"title": CSTI_SHIRYO1_TITLE, "url": CSTI_SHIRYO1_URL},
+        "note": "ISO（国際標準化機構）4位・IEC（国際電気標準会議）3位（2024年度、CSTI公表）。各国のISO/IEC幹事国引受数を横断集計する独立の一次統計は存在せず、政府公表値の引用にとどまる。",
+    }
+
+
+def _obs_ai_papers() -> dict[str, object]:
+    """総論文数に対する全分野でのAI関連論文数の割合（世界順位）（LIVE）— OpenAlexで
+    primary_topic.subfield=Artificial Intelligence（id 1702）・2023年発行論文を国別に
+    group_byし、日本の順位・件数と上位10か国を取得する。指標本体はScopus・JST-CRDS集計
+    （2025年10月）に基づくため、OpenAlexの機械分類による代替指標であり算出法が異なる。"""
+    payload = openalex_api(
+        "works?filter=primary_topic.subfield.id:subfields/1702,publication_year:2023"
+        "&group_by=institutions.country_code&per-page=25"
+    )
+    groups = [g for g in payload.get("group_by", []) if g.get("key_display_name")]
+    ranked = sorted(groups, key=lambda g: -int(g.get("count", 0)))
+    jp_rank = next((i + 1 for i, g in enumerate(ranked) if g.get("key_display_name") == "Japan"), None)
+    jp_count = next((int(g.get("count", 0)) for g in ranked if g.get("key_display_name") == "Japan"), None)
+    if jp_rank is None or jp_count is None:
+        raise ValueError("indicator_observations/AI関連論文数: OpenAlex集計に日本が含まれない")
+    if jp_rank != 9 or abs(jp_count - 4613) > 50:
+        raise ValueError(f"indicator_observations/AI関連論文数: 検証値と不一致（日本={jp_rank}位・{jp_count}件、期待値≈9位・4613件）")
+    top10 = [{"country": g["key_display_name"], "count": int(g["count"])} for g in ranked[:10]]
+    print(f"[policy] indicator_observations: AI関連論文数世界順位 検証OK（日本={jp_rank}位・{jp_count}件）")
+    return {
+        "indicator": "総論文数に対する全分野でのＡＩ関連論文数の割合",
+        "kind": "value",
+        "match": "proxy",
+        "unit": "位",
+        "data": {"rank": jp_rank, "year": 2023, "count": jp_count, "top10": top10},
+        "source": {"title": "OpenAlex（CC0） 学術論文データベース", "url": "https://openalex.org/"},
+        "note": "OpenAlexのprimary_topic（機械分類）でsubfield=Artificial Intelligenceの論文数を国別集計した代替指標。指標本体の典拠（Scopus・ScopusAPIに基づくJST研究開発戦略センター集計、2025年10月）とは分類・集計方法が異なる。",
+    }
+
+
+def _obs_technician() -> dict[str, object]:
+    """研究者1人当たりテクニシャン数 — 総務省科学技術研究調査（2025年調査）の「研究関係
+    従業者数」の文中記述（2024年度: 研究者91万2800人・研究補助者7万4900人・技能者6万人）
+    から算出。指標の「テクニシャン」に対応する公式区分が「技能者」単独か「研究補助者」を
+    含むか確定できないため、両方の値を併記する。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(MONEY_SURVEY_URL, "2025ke_gai.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: テクニシャン数 本文取得失敗（定数値は保持） — {error}")
+    researchers = assistants = technicians = None
+    if text:
+        normalized = _zen2han(text)
+        m = re.search(
+            r"研究者が(\d+)万(\d*)人.*?研究補助者が(\d+)万(\d*)人.*?技能者が(\d+)万(\d*)人",
+            normalized, re.S,
+        )
+        if m:
+            researchers = int(m.group(1)) * 10000 + int(m.group(2) or 0)
+            assistants = int(m.group(3)) * 10000 + int(m.group(4) or 0)
+            technicians = int(m.group(5)) * 10000 + int(m.group(6) or 0)
+    if researchers is None:
+        # 抽出できなくても検証済みの定数値（2024年度）を保持する
+        researchers, assistants, technicians = 912800, 74900, 60000
+        print("[policy] indicator_observations: テクニシャン数 本文からの抽出に失敗（2024年度の定数値を保持）")
+    else:
+        if (researchers, assistants, technicians) != (912800, 74900, 60000):
+            print(f"[policy] indicator_observations: テクニシャン数 抽出値が想定と不一致（研究者{researchers}/研究補助者{assistants}/技能者{technicians}）— 抽出値をそのまま採用")
+        else:
+            print("[policy] indicator_observations: テクニシャン数 本文で確認（研究者91.28万/研究補助者7.49万/技能者6.0万）")
+    technician_only = round(technicians / researchers, 3)
+    with_assistants = round((technicians + assistants) / researchers, 3)
+    return {
+        "indicator": "第１・２グループ等の大学の研究者１人当たりの高度専門人材数",
+        "kind": "value",
+        "match": "proxy",
+        "unit": "人",
+        "data": {
+            "value": with_assistants, "year": 2024,
+            "alt": {"value": technician_only, "year": 2024, "label": "技能者のみ"},
+            "label": "技能者＋研究補助者",
+            "components": {"researchers": researchers, "research_assistants": assistants, "technicians": technicians},
+        },
+        "source": {"title": MONEY_SURVEY_TITLE, "url": MONEY_SURVEY_URL},
+        "note": (
+            "サイトの系列は全部門（企業・非営利/公的機関・大学等を含む）の研究者1人当たり職種別"
+            "従事者数。指標は「第１・２グループ等の大学」に限定した「テクニシャン」区分（NISTEP"
+            "科学技術指標の大学部門集計）で、対象範囲・区分定義が異なる。「テクニシャン」に対応"
+            "する公式区分（技能者のみか、研究補助者を含むか）を特定できないため両方を併記。"
+        ),
+    }
+
+
+def _obs_research_time() -> dict[str, object]:
+    """大学の研究時間割合（教員の職務活動のうち研究活動が占める割合）— 文科省フルタイム
+    換算データ調査の同一定義値を2002・2008・2013年度（NISTEP RM236比較概要）・2018年度
+    （文科省H30年度調査概要）・2023年度（文科省R5年度調査、2025-03-27公表）の5時点で
+    書き起こす。2023年度のみ「広義」（社会サービス活動:研究関連を含む）36.7%も併記。"""
+    text_2023 = None
+    try:
+        pdf_bytes = fetch_with_cache(MEXT_FULLTIME_2023_URL, "mext_fulltime_2023.pdf", magic=b"%PDF")
+        text_2023 = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 研究時間割合(2023) 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text_2023, [r"32\.2%", r"36\.7%"], "大学の研究時間割合2023年度（32.2%/広義36.7%）")
+
+    text_2018 = None
+    try:
+        pdf_bytes = fetch_with_cache(MEXT_FULLTIME_2018_URL, "mext_fulltime_2018.pdf", magic=b"%PDF")
+        text_2018 = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 研究時間割合(2018) 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text_2018, [r"32\.9%"], "大学の研究時間割合2018年度（32.9%）")
+
+    text_early = None
+    try:
+        pdf_bytes = fetch_with_cache(NISTEP_FULLTIME_COMPARE_URL, "nistep_rm236_summary.pdf", magic=b"%PDF")
+        text_early = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 研究時間割合(2002/2008/2013) 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text_early, [r"46\.5"], "大学の研究時間割合2002年度（46.5%、3時点比較概要の書出し文中）")
+
+    series = [[2002, 46.5], [2008, 36.5], [2013, 35.0], [2018, 32.9], [2023, 32.2]]
+    return {
+        "indicator": "第１・２グループ等の大学の研究時間（教員の職務活動のうち、研究活動が占める割合）",
+        "kind": "series",
+        # 指標は第1・2グループ等の大学に限定した割合だが、この系列は大学等「全体」の教員平均。
+        # 同一調査由来でも母集団が異なるため実測(direct)ではなく近い指標(proxy)として扱う。
+        "match": "proxy",
+        "unit": "%",
+        "data": {
+            "series": series,
+            "alt": {"year": 2023, "value": 36.7, "label": "広義（社会サービス活動:研究関連を含む）"},
+        },
+        "source": {"title": "大学等におけるフルタイム換算データに関する調査（文部科学省）各回報告書", "url": MEXT_FULLTIME_2023_URL},
+        "note": (
+            "文科省フルタイム換算データ調査（2002・2008・2013・2018・2023年度の5回）における"
+            "大学等教員の研究時間割合（職務時間全体に占める研究活動時間の割合）で、指標の現状値"
+            "（32.2%、2022年度）と同一の調査・定義。ただしサイトの系列は全大学等教員が対象で、"
+            "指標が対象とする「第１・２グループ等の大学」限定ではない。2002/2008/2013年度は"
+            "NISTEP RM236比較概要、2018年度は文科省H30年度調査概要、2023年度は文科省R5年度調査"
+            "（2025-03-27公表）による。"
+        ),
+    }
+
+
+def _obs_equipment_sharing() -> dict[str, object]:
+    """研究設備・機器の共用化率 — e-CSTI調査報告の国立大学（産学連携に取り組む70機関中、
+    経年比較可能な57機関）の共用化率。2021年は資産件数が前年比2倍以上に急増した機関を
+    除くと18%（前年並み）になる旨が本文に明記されている。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(ECSTI_EQUIPMENT_URL, "ecsti_report_20230208.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 共用化率 本文取得失敗（定数値は保持） — {error}")
+    _grep_check(text, [r"18％で前年並みの水準", r"57機関"], "研究設備・機器の共用化率（2020年17%/2021年15%/外れ値調整後18%、57機関）")
+    return {
+        "indicator": "研究設備・機器の共用化率",
+        "kind": "series",
+        "match": "proxy",
+        "unit": "%",
+        "data": {
+            "series": [[2020, 17], [2021, 15]],
+            "alt": {"year": 2021, "value": 18, "label": "外れ値調整後（資産件数が前年比2倍以上の機関を除く）"},
+        },
+        "source": {"title": ECSTI_EQUIPMENT_TITLE, "url": ECSTI_EQUIPMENT_URL},
+        "note": "国立大学のうち産学連携に取り組む70機関中、データに過不足なく経年比較可能な57機関のみの調査で、指標の対象範囲（全大学等）より狭い。指標本体の一次資料（内閣府「大学・研究開発法人等の外部資金・寄付金獲得に関する調査」）とも母集団が異なる可能性がある。",
+    }
+
+
+def _obs_challenging_research() -> dict[str, object]:
+    """若手を中心とした挑戦的な研究課題の件数 — 科研費（令和7年度新規採択分）の「若手研究」
+    ＋「挑戦的研究」の採択件数合計。指標の現状値は科研費・創発・戦略創造の合算だが、
+    このサイトの観測は科研費のみの集計。参考値として研究活動スタート支援も併記。"""
+    text = None
+    try:
+        pdf_bytes = fetch_with_cache(JSPS_KAKEN_R7_URL, "jsps_kaken_r7_3-1-1.pdf", magic=b"%PDF")
+        text = pdftotext_layout(pdf_bytes)
+    except Exception as error:  # noqa: BLE001
+        print(f"[policy] indicator_observations: 若手挑戦的研究課題 本文取得失敗（定数値は保持） — {error}")
+    young, challenge, start = 5290, 1243, 1521
+    if text:
+        normalized = _zen2han(text)
+        m_young = re.search(r"若手研究\s*[＊*]?\s*〔[^〕]*〕\s*〔\s*([\d,]+)\s*〕", normalized)
+        m_challenge = re.search(r"挑戦的研究(?!（)\s+〔[^〕]*〕\s*〔\s*([\d,]+)\s*〕", normalized)
+        m_start = re.search(r"研究活動スタート支援\s*[＊*]?\s*〔[^〕]*〕\s*〔\s*([\d,]+)\s*〕", normalized)
+        if m_young and m_challenge and m_start:
+            young, challenge, start = _int_comma(m_young.group(1)), _int_comma(m_challenge.group(1)), _int_comma(m_start.group(1))
+            print(f"[policy] indicator_observations: 若手挑戦的研究課題 本文で確認（若手{young}/挑戦的{challenge}/スタート支援{start}）")
+        else:
+            print("[policy] indicator_observations: 若手挑戦的研究課題 本文からの抽出に失敗（定数値を保持）")
+    total = young + challenge
+    return {
+        "indicator": "若手を中心とした挑戦的な研究課題の件数",
+        "kind": "value",
+        "match": "proxy",
+        "unit": "件",
+        "data": {
+            "value": total, "year": 2025,
+            "breakdown": [{"label": "若手研究", "value": young}, {"label": "挑戦的研究", "value": challenge}],
+            "reference": {"label": "研究活動スタート支援（参考）", "value": start},
+        },
+        "source": {"title": JSPS_KAKEN_R7_TITLE, "url": JSPS_KAKEN_R7_URL},
+        "note": f"科研費「若手研究」＋「挑戦的研究」の令和7年度新規採択件数の合計（{young:,}+{challenge:,}={total:,}件）。指標の現状値6,500件程度は科研費・創発・戦略創造のうちの関係研究課題数の合算で、このサイトの観測は科研費のみの集計のため定義が一致しない。",
+    }
+
+
+def indicator_observations_block(previous: dict[str, object] | None) -> dict[str, object]:
+    prev_by_name: dict[str, dict[str, object]] = {}
+    if previous and previous.get("status") == "ok":
+        for obs in previous.get("observations", []) or []:
+            if isinstance(obs, dict) and obs.get("indicator"):
+                prev_by_name[obs["indicator"]] = obs
+
+    builders: list[tuple[str, object]] = [
+        ("国際共著論文率", _obs_intl_collab),
+        ("官民研究開発投資額", _obs_pubpriv_rd),
+        ("イノベーション実現企業率", _obs_innovation_rate),
+        ("ＰＰＨ締結国数（実施庁数）", _obs_pph),
+        ("大学の教授等（学長、副学長及び教授）に占める女性の割合", _obs_women_professors),
+        ("ISO/IECにおける幹事国引受数", _obs_iso_iec),
+        ("総論文数に対する全分野でのＡＩ関連論文数の割合", _obs_ai_papers),
+        ("第１・２グループ等の大学の研究者１人当たりの高度専門人材数", _obs_technician),
+        ("第１・２グループ等の大学の研究時間（教員の職務活動のうち、研究活動が占める割合）", _obs_research_time),
+        ("研究設備・機器の共用化率", _obs_equipment_sharing),
+        ("若手を中心とした挑戦的な研究課題の件数", _obs_challenging_research),
+    ]
+
+    observations: list[dict[str, object]] = []
+    for name, builder in builders:
+        try:
+            observations.append(builder())
+        except Exception as error:  # noqa: BLE001
+            print(f"[policy] indicator_observations: {name} FAILED — {error}")
+            kept = prev_by_name.get(name)
+            if kept:
+                observations.append(kept)
+                print(f"[policy] indicator_observations: {name} は前回値を保持")
+
+    # スマートシティは一次資料の機械可読な一覧を特定できていないため kind=none で明示する。
+    observations.append({
+        "indicator": "相互運用性が確保され、データ連携が可能なスマートシティサービスを行っている地方公共団体・地域の数",
+        "kind": "none",
+        "match": "proxy",
+        "unit": None,
+        "data": None,
+        "source": None,
+        "note": "目標180自治体に対応する公開統計を特定できていない。国土交通省等の年度別選定リストは累積・機械可読な一覧が公表されておらず、この観測は行わない。",
+    })
+
+    if len(observations) < 6:
+        raise ValueError(f"indicator_observations: 構築できた観測が{len(observations)}件のみ（最低限の充実度を満たさない）")
+
+    return {
+        "status": "ok",
+        "observations": observations,
+        "source": {
+            "title": "各一次資料（NISTEP・総務省・文部科学省・内閣府CSTI・特許庁・JSPS・OpenAlex、observations内の各sourceを参照）",
+            "url": CSTI_SHIRYO1_URL,
+        },
+        "note": (
+            "第7期別紙19指標のうちplan7_indicators単体では追えない指標を、このサイト自身の"
+            "実測・準実測系列で補うブロック。match=direct は指標と同一またはごく近い定義の一次"
+            "資料からの実測、match=proxy は定義が異なる代替指標（noteの定義差注記を必ず参照）。"
+            "公式の現状値一覧はCSTI基本計画専門調査会（第11回、2025-12-19）資料1別紙（pp.56-59）"
+            "に基づく確認を併用した。"
         ),
     }
 
@@ -1274,6 +1843,211 @@ def domain_lineage_block(tech_domains: dict[str, object] | None, plan_language: 
     }
 
 
+# --------------------------------------------------------------- youth_programs
+
+# 若手研究者・博士学生向けの主要9事業。開始・終了年度、規模、現況は各機関の公表資料
+# （JSPS/JST/MEXT公式ページ・パンフレット・実績PDF）を編集部が手動で確認して書き起こした
+# 定数（2026-08時点）。target は "博士学生"|"若手研究者"|"機関支援" の1件以上のリストで、
+# 複数対象にまたがる事業（特別研究員・BOOST）は両方を保持する。end_fy=null は継続中を表す。
+# status_note は「公式に終了・継続未確認」等、一次資料だけでは判定しきれない事項の注記
+# （テニュアトラック普及・定着事業のように継続状況を示す一次資料が確認できないケース）。
+YOUTH_PROGRAMS: list[dict[str, object]] = [
+    {
+        "key": "tokubetsu_kenkyuin", "name": "特別研究員（DC/PD/RPD）", "agency": "JSPS",
+        "target": ["博士学生", "若手研究者"], "start_fy": 1985, "end_fy": None,
+        "status_note": None,
+        "scale": (
+            "DC月額20万円（2024年度から最終年次に評価条件付き特別手当+3万円、2027年度新規採用"
+            "分から22.7万円へ増額予定）。PD/RPD月額36.2万円。R8（2026年度）採用: DC1 634人"
+            "（採用率11.3%）/DC2 1,026人（11.9%）/PD 354人（22.9%）/RPD 70人（43.5%）。"
+        ),
+        "events": [
+            {"fy": 2021, "label": "兼業緩和", "projected": False},
+            {"fy": 2024, "label": "最終年次手当", "projected": False},
+            {"fy": 2027, "label": "増額予定", "projected": True},
+        ],
+        "source": {"title": "特別研究員 採用状況（JSPS）", "url": "https://www.jsps.go.jp/j-pd/pd_saiyo.html"},
+        "sources": [
+            {"title": "特別研究員 採用状況（JSPS）", "url": "https://www.jsps.go.jp/j-pd/pd_saiyo.html"},
+            {"title": "特別研究員 応募・採用（JSPS）", "url": "https://www.jsps.go.jp/j-pd/pd_oubo.html"},
+        ],
+    },
+    {
+        "key": "postdoc_10k", "name": "ポストドクター等一万人支援計画", "agency": "文部省",
+        "target": ["若手研究者"], "start_fy": 1996, "end_fy": 2000,
+        "status_note": "5年計画として実施され2000年度に終了。",
+        "scale": "博士号取得者1万人分の期限付き雇用資金を5年計画で配布。",
+        "events": [],
+        "source": {"title": "ポストドクター等一万人支援計画（文部省）", "url": None},
+    },
+    {
+        "key": "presto", "name": "さきがけ", "agency": "JST",
+        "target": ["若手研究者"], "start_fy": 1991, "end_fy": None,
+        "status_note": None,
+        "scale": "研究費3,000〜4,000万円/課題（3.5年以内）、30〜40件/領域。",
+        "events": [],
+        "source": {"title": "戦略的創造研究推進事業 さきがけ について（JST）", "url": "https://www.jst.go.jp/kisoken/presto/about/index.html"},
+    },
+    {
+        "key": "tenure_track", "name": "テニュアトラック普及・定着事業", "agency": "MEXT",
+        "target": ["機関支援"], "start_fy": 2011, "end_fy": None,
+        "status_note": "正式な終了・統合を示す一次資料は確認できておらず、継続状況は未確認。",
+        "scale": "大学等における若手研究者向けテニュアトラック制の導入・定着を機関単位で支援。",
+        "events": [],
+        "source": {
+            "title": "テニュアトラック普及・定着事業（文部科学省）",
+            "url": "https://www.mext.go.jp/component/a_menu/science/detail/__icsFiles/afieldfile/2012/03/06/1309499_2.pdf",
+        },
+    },
+    {
+        "key": "takuetsu", "name": "卓越研究員事業", "agency": "MEXT",
+        "target": ["若手研究者"], "start_fy": 2016, "end_fy": 2023,
+        "status_note": "令和6年度以降の公募はなく、事実上終了。",
+        "scale": "若手研究者に安定的なポストを用意する機関とのマッチング事業。",
+        "events": [],
+        "source": {"title": "卓越研究員事業（JSPS）", "url": "https://www.jsps.go.jp/j-le/index.html"},
+    },
+    {
+        "key": "act_x", "name": "ACT-X", "agency": "JST",
+        "target": ["若手研究者"], "start_fy": 2019, "end_fy": None,
+        "status_note": None,
+        "scale": "450〜600万円/課題（2.5年、加速で+最大1,000万円）、60〜90件/領域。前身のACT-I（2016〜）は別事業。",
+        "events": [],
+        "source": {"title": "戦略的創造研究推進事業 ACT-X について（JST）", "url": "https://www.jst.go.jp/kisoken/act-x/about/index.html"},
+    },
+    {
+        "key": "souhatsu", "name": "創発的研究支援事業", "agency": "JST",
+        "target": ["若手研究者"], "start_fy": 2020, "end_fy": None,
+        "status_note": None,
+        "scale": (
+            "令和元年度補正500億円基金。平均700万円/年×原則7年（F1: 3年2,000万円+F2: 4年3,000万円、"
+            "最長10年）。採択: 2020〜2025年度で毎期243〜263人、累計1,520人。"
+        ),
+        "events": [],
+        "source": {"title": "創発的研究支援事業 パンフレット（JST）", "url": "https://www.jst.go.jp/souhatsu/document/pamph25.pdf"},
+        "sources": [
+            {"title": "創発的研究支援事業 パンフレット（JST）", "url": "https://www.jst.go.jp/souhatsu/document/pamph25.pdf"},
+            {"title": "創発的研究支援事業 基金創設について（CSTI、2019-12-19）", "url": "https://www8.cao.go.jp/cstp/gaiyo/yusikisha/20191219/siryo2-2-1.pdf"},
+        ],
+    },
+    {
+        "key": "spring", "name": "SPRING 次世代研究者挑戦的研究プログラム", "agency": "JST",
+        "target": ["博士学生"], "start_fy": 2021, "end_fy": None,
+        "status_note": None,
+        "scale": (
+            "初回公募2021年6月・59プロジェクト60大学。令和6年度実績: 80大学・10,434人。"
+            "1人あたり上限290万円/年（生活費相当+研究費）。SPRING単独の年度予算額は大学"
+            "フェローシップ創設事業と合算でしか公表されていない。"
+        ),
+        "events": [],
+        "source": {"title": "SPRING 令和6年度支援実績（JST）", "url": "https://www.jst.go.jp/jisedai/spring/dl/disclosure/SPRING_R6_shien_jisseki.pdf"},
+        "sources": [
+            {"title": "SPRING 令和6年度支援実績（JST）", "url": "https://www.jst.go.jp/jisedai/spring/dl/disclosure/SPRING_R6_shien_jisseki.pdf"},
+            {"title": "SPRING パンフレット2025（JST）", "url": "https://www.jst.go.jp/jisedai/spring/dl/brochure2025.pdf"},
+        ],
+    },
+    {
+        "key": "boost", "name": "BOOST 次世代AI人材育成プログラム", "agency": "JST",
+        "target": ["博士学生", "若手研究者"], "start_fy": 2024, "end_fy": None,
+        "status_note": None,
+        "scale": "2024年4月に初回29件決定。",
+        "events": [],
+        "source": {"title": "BOOST 次世代AI人材育成プログラム 初回採択決定（JST）", "url": "https://www.jst.go.jp/pr/info/info1681/index.html"},
+    },
+]
+
+YOUTH_OVERVIEW_SOURCE = {
+    "title": "SPRING 博士後期課程学生への経済的支援（JST）",
+    "url": "https://www.jst.go.jp/jisedai/spring/support-doctoral/index.html",
+}
+
+YOUTH_LIVING_SUPPORT_RECIPIENTS = [
+    {"fy": 2021, "value": 16300, "note": "令和3年度・4施策合計（サイトの人材ページ図Cと同一出典系）"},
+    {"fy": 2022, "value": 16000, "note": "既存支援約7,500+新規支援約8,800"},
+]
+YOUTH_LIVING_SUPPORT_TARGET = {"fy": 2025, "value": 22500, "note": "第6期基本計画の目標（修士からの進学者の約7割相当）"}
+
+# 図B(1) 年間の新規採用・採択（人/年度、ストック量ではなくフロー量）。特別研究員の内訳は
+# tokubetsu_kenkyuin.scale の R8採用数、創発は souhatsu.scale の直近期の採択数と同一値を
+# 参照する（別々に定数を持たず、ここでも同じ値を書き起こす — 一次資料はどちらも各program
+# のsourceと同一）。
+YOUTH_ANNUAL_NEW = {
+    "unit": "人/年度",
+    "items": [
+        {"key": "dc1", "label": "DC1", "value": 634, "fy_label": "R8(2026年度)"},
+        {"key": "dc2", "label": "DC2", "value": 1026, "fy_label": "R8(2026年度)"},
+        {"key": "pd", "label": "PD", "value": 354, "fy_label": "R8(2026年度)"},
+        {"key": "rpd", "label": "RPD", "value": 70, "fy_label": "R8(2026年度)"},
+        {"key": "souhatsu", "label": "創発", "value": 257, "fy_label": "2025年度"},
+    ],
+    "note": "各事業のその年度の新規採用・採択人数（ストック＝ある年度に支援を受けている人数とは単位が異なる）。",
+}
+
+# 図B(2) ある年度に支援を受けている人数（ストック量）。
+YOUTH_CURRENT_STOCK = {
+    "unit": "人",
+    "items": [
+        {"key": "spring", "label": "SPRING", "value": 10434, "fy_label": "令和6年度", "note": "80大学"},
+    ],
+    "living_support": {
+        "value": YOUTH_LIVING_SUPPORT_RECIPIENTS[-1]["value"],
+        "fy": YOUTH_LIVING_SUPPORT_RECIPIENTS[-1]["fy"],
+        "note": "生活費相当額（年180万円以上）受給の博士学生",
+        "target": YOUTH_LIVING_SUPPORT_TARGET,
+    },
+}
+
+# 採用率チップ行（R8=2026年度採用分、JSPS特別研究員）。
+YOUTH_ADOPTION_RATES = {
+    "fy_label": "R8(2026年度)採用",
+    "items": [
+        {"key": "dc1", "label": "DC1", "rate": 11.3},
+        {"key": "dc2", "label": "DC2", "rate": 11.9},
+        {"key": "pd", "label": "PD", "rate": 22.9},
+        {"key": "rpd", "label": "RPD", "rate": 43.5, "note": "出産・育児による中断からの復帰枠、申請者の約8割が女性"},
+    ],
+    "source": {"title": "特別研究員 採用状況（JSPS）", "url": "https://www.jsps.go.jp/j-pd/pd_saiyo.html"},
+}
+
+
+def youth_programs_block(previous: dict[str, object] | None) -> dict[str, object]:
+    programs = [dict(p) for p in YOUTH_PROGRAMS]
+    if len(programs) != 9:
+        raise ValueError(f"youth_programs: 事業数{len(programs)}件（期待値9件）— 定数の過不足の疑い")
+    for p in programs:
+        if not p.get("key") or not p.get("name") or not p.get("agency"):
+            raise ValueError(f"youth_programs: 必須フィールド欠落 {p}")
+        if not isinstance(p.get("target"), list) or not p["target"]:
+            raise ValueError(f"youth_programs: target が不正 {p.get('key')}")
+        if not isinstance(p.get("start_fy"), int):
+            raise ValueError(f"youth_programs: start_fy が不正 {p.get('key')}")
+    # postdoc_10k・takuetsu は end_fy を持ちつつ status_note で終了を明記している想定
+    expected_terminated = {"postdoc_10k", "takuetsu"}
+    actual_terminated = {p["key"] for p in programs if p["end_fy"] is not None}
+    if actual_terminated != expected_terminated:
+        raise ValueError(f"youth_programs: 終了事業の集合が想定と不一致（実際={actual_terminated}）")
+    print(f"[policy] youth_programs: {len(programs)}事業を検証（うち終了{len(actual_terminated)}件）")
+
+    return {
+        "status": "ok",
+        "programs": programs,
+        "overview": {
+            "living_support_recipients": YOUTH_LIVING_SUPPORT_RECIPIENTS,
+            "target": YOUTH_LIVING_SUPPORT_TARGET,
+            "source": YOUTH_OVERVIEW_SOURCE,
+        },
+        "annual_new": YOUTH_ANNUAL_NEW,
+        "current_stock": YOUTH_CURRENT_STOCK,
+        "adoption_rates": YOUTH_ADOPTION_RATES,
+        "source": {"title": "特別研究員 採用状況（JSPS）ほか各機関公表資料", "url": "https://www.jsps.go.jp/j-pd/pd_saiyo.html"},
+        "note": (
+            "開始・終了年度と規模はすべて各機関の公表資料で確認した値。SPRINGの単独予算額の"
+            "ように合算でしか公表されない値、テニュアトラック事業の継続状況のように一次資料"
+            "で確認できない事項は、その旨を明記している。"
+        ),
+    }
+
+
 # ---------------------------------------------------------------- run helpers
 
 def run_block(name: str, builder) -> dict[str, object]:
@@ -1286,7 +2060,7 @@ def run_block(name: str, builder) -> dict[str, object]:
         return {"status": "error", "note": str(error)}
 
 
-BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains", "plan_language", "strategy_language", "domain_lineage"]
+BLOCK_NAMES = ["plans_history", "plan7_indicators", "tech_domains", "plan_language", "strategy_language", "indicator_observations", "domain_lineage", "youth_programs"]
 # domain_lineage は tech_domains（第7期17領域名）と plan_language（防衛の出現回数）に
 # 依存するため、この2ブロックの「前回値保持」フォールバックが確定したあとに構築する
 # （フォールバックが起きた回でも domain_lineage が有効な入力を参照できるようにするため）。
@@ -1315,6 +2089,14 @@ def main() -> int:
     payload["tech_domains"] = run_block("tech_domains", lambda: tech_domains_block(previous.get("tech_domains")))
     payload["plan_language"] = run_block("plan_language", lambda: plan_language_block(previous.get("plan_language")))
     payload["strategy_language"] = run_block("strategy_language", lambda: strategy_language_block(previous.get("strategy_language")))
+    payload["indicator_observations"] = run_block(
+        "indicator_observations", lambda: indicator_observations_block(previous.get("indicator_observations"))
+    )
+    if payload["indicator_observations"].get("status") != "ok" and previous.get("indicator_observations", {}).get("status") == "ok":
+        kept = previous["indicator_observations"]
+        kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()
+        payload["indicator_observations"] = kept
+        print("[policy] indicator_observations: kept previous ok block")
 
     # 一時的な取得失敗で公開済みの正常データを潰さない: 前回ファイルの正常ブロックを保持
     # （domain_lineage が tech_domains/plan_language に依存するため、このフォールバックを
@@ -1335,6 +2117,13 @@ def main() -> int:
         kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()
         payload["domain_lineage"] = kept
         print("[policy] domain_lineage: kept previous ok block")
+
+    payload["youth_programs"] = run_block("youth_programs", lambda: youth_programs_block(previous.get("youth_programs")))
+    if payload["youth_programs"].get("status") != "ok" and previous.get("youth_programs", {}).get("status") == "ok":
+        kept = previous["youth_programs"]
+        kept["note"] = f"{kept.get('note', '')} 直近の取得に失敗したため前回取得値を表示。".strip()
+        payload["youth_programs"] = kept
+        print("[policy] youth_programs: kept previous ok block")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n"
