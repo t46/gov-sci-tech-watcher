@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-10T07:17:38.689199Z",
+  "generated_at": "2026-08-10T07:22:26.918917Z",
   "policy": {
-    "item_count": 31,
+    "item_count": 30,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-10"
+      "to": "2026-08-07"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 17
+        "count": 16
       },
       {
         "label": "予算・投資",
@@ -39,12 +39,12 @@
         "count": 9
       },
       {
-        "label": "発表・報告",
+        "label": "予算資料",
         "count": 7
       },
       {
-        "label": "予算資料",
-        "count": 7
+        "label": "発表・報告",
+        "count": 6
       },
       {
         "label": "基本計画",
@@ -82,7 +82,7 @@
       },
       {
         "label": "内閣府",
-        "count": 2
+        "count": 1
       }
     ],
     "theme_counts": [
@@ -142,7 +142,7 @@
       },
       {
         "month": "2026-08",
-        "count": 8
+        "count": 7
       }
     ],
     "activity_grid": [
@@ -304,7 +304,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 8
+        "count": 7
       },
       {
         "year": "2026",
@@ -330,13 +330,13 @@
     "category_document_matrix": [
       {
         "category": "科学技術政策",
-        "document_type": "発表・報告",
-        "count": 5
+        "document_type": "会議・審議",
+        "count": 6
       },
       {
         "category": "科学技術政策",
-        "document_type": "会議・審議",
-        "count": 6
+        "document_type": "発表・報告",
+        "count": 4
       },
       {
         "category": "生命・健康",
@@ -395,7 +395,7 @@
       }
     ],
     "insights": [
-      "掲載中の公式更新は31件。文書の役割では「会議・審議」が最多です。",
+      "掲載中の公式更新は30件。文書の役割では「会議・審議」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },

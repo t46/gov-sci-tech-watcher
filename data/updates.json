@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-10T07:15:46.118230Z",
-  "item_count": 31,
+  "generated_at": "2026-08-10T07:20:11.920099Z",
+  "item_count": 30,
   "sources": [
     {
       "id": "cao",
@@ -8,8 +8,8 @@
       "url": "https://www.cao.go.jp/rss/news.rdf",
       "page": "https://www8.cao.go.jp/cstp/stmain.html",
       "status": "ok",
-      "items": 2,
-      "checked_at": "2026-08-10T07:15:23.621744Z"
+      "items": 1,
+      "checked_at": "2026-08-10T07:19:34.545484Z"
     },
     {
       "id": "mext-science",
@@ -19,7 +19,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 8,
-      "checked_at": "2026-08-10T07:15:24.838326Z"
+      "checked_at": "2026-08-10T07:19:36.032756Z"
     },
     {
       "id": "cstp",
@@ -29,7 +29,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 15,
-      "checked_at": "2026-08-10T07:15:26.190131Z"
+      "checked_at": "2026-08-10T07:19:37.167382Z"
     },
     {
       "id": "cstp-budget",
@@ -39,7 +39,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 6,
-      "checked_at": "2026-08-10T07:15:26.755065Z"
+      "checked_at": "2026-08-10T07:19:38.038148Z"
     }
   ],
   "items": [
@@ -1172,7 +1172,7 @@
   "ai_summary": {
     "status": "cached",
     "generated": 0,
-    "cached": 3,
+    "cached": 2,
     "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
   }
 }
