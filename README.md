@@ -17,7 +17,7 @@
    資金ページの政府予算章群のデータは `scripts/fetch_gov.py` が `data/gov.json` に生成します。内閣府CSTI「科学技術関係予算」PDF（当初予算・概算要求・行政事業レビュー対象事業一覧。過去年度版が404で消えるため年度キーで蓄積）、行政事業レビュー見える化サイト（RSシステム）のCSV一括ダウンロード（事業概要・支出先・契約情報。政府標準利用規約）、文部科学省の省庁別財務書類Excel・事業別フルコスト情報を取得し、事業から支出先への資金集約・一者応札率・落札率分布まで事前計算します。CSTI資料の更新が年1〜2回のため、CIには入れず手動で年次実行します（`uv run python scripts/fetch_gov.py`）。
 
    政策ページのデータは `scripts/fetch_policy.py` が `data/policy.json` に生成します。科学技術・イノベーション基本計画の各期本文PDF（第1〜7期の政府研究開発投資目標、第7期別紙「指標と目標」の19指標、第3〜7期本文の用語出現頻度＝計画の言葉）、統合イノベーション戦略の各年版本文2018〜2026（年次の用語出現頻度＝戦略の言葉。17領域の要約文は2026年版から抽出。なお17領域の初出・一次資料は第7期基本計画本文第3章）をpdftotextで抽出し、目標額・主要指標値の一致検証つきでパースします（実績値は公式一次資料で確認できた第6期の43.6兆円のみ収録）。重点領域の系譜（第2〜7期の重点分野・技術領域の対応関係）と若手支援制度（youth_programs）は各機関の公表資料で検証した手動転記の定数で、系譜は名称の直接継承と内容上の対応（編集部の解釈）を区間ごとにフラグで区別しています。19指標の観測値（indicator_observations）は、NISTEP科学技術指標の表4-1-3（国際共著率、xlsxを直接パース）、総務省科学技術研究調査（研究費総額・テクニシャン）、NISTEP全国イノベーション調査、特許庁年次報告、CSTI基本計画専門調査会資料、文科省フルタイム換算調査、OpenAlex（AI論文順位の代替指標）などから、実測（direct）と近い指標（proxy、定義差注記つき）を区別して収録します。基本計画は5年ごと・統合戦略は年1回の更新のため、CIには入れず手動で年次実行します（`uv run python scripts/fetch_policy.py`）。人材ページの国際移動のデータは `scripts/fetch_mobility.py` が `data/mobility.json` に生成します。移動（移籍）系はOECD ReICOの年次流入・流出・帰国（SDMX API、Scopus著者ベース推計）とOECDの二国間研究者移動（同）、JSPS海外特別研究員の帰国後進路・NISTEP博士人材追跡調査（JD-Pro）第3次報告書の国籍別集計・NCSES Survey of Earned Doctorates（いずれも検証済み手動転記スナップショット）。参考の交流統計は文部科学省「国際研究交流の概況」の32年時系列（グラフ画像のみのPDFのため、複数回の独立転記と年度別報告書本文の対前年度比からの逆算で検証した手動転記。全年度で総数＝短期＋中・長期の整合を検証）とe-Stat学校教員統計調査（外国人本務教員）。これも手動で年次実行します（`uv run python scripts/fetch_mobility.py`、概況の新版は毎年7月頃）。世界地図の陸形状は `data/land-110m.json`（world-atlas、Natural Earth由来）を同梱しています。
-7. GitHub Actions が3時間おきに取得・要約・統計更新・コミットします。
+7. GitHub Actions が1日1回（日本時間の朝）取得・要約・統計更新・コミットします。省庁の更新頻度に対して3時間毎は過剰で、実績では7日間87回の実行のうち記事の増減があったのは2回だけだったため1日1回に変更しました（急ぎの取り込みは workflow_dispatch で手動実行）。
 8. Cloudflare Pages が静的サイトを配信します。`CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` をGitHub ActionsのSecretsに設定すると、更新後にCloudflare Pagesへ自動デプロイします。
 
 本文と要約は、公式ページ/PDFの確認を助けるための表示です。要約はローカルモデルによる補助情報であり、政策判断の根拠にはせず、必ず原典をご確認ください。掲載内容の正確性・掲載期間・利用条件は各公式サイトの案内を優先してください。特にRSSや本文の再利用を提供元が制限している場合があるため、公開運用前に必ず確認してください。
@@ -48,7 +48,7 @@ uv run python -m http.server 4173
 | `OPENALEX_API_KEY` | OpenAlexのレート制限緩和（無くてもmailto付きポライトプールで動作） |
 | `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Pagesへの自動デプロイ |
 
-データ更新スクリプトは2種類あります。CIが定期実行するもの（`fetch_feeds` 3時間おき、`fetch_indicators` 週次）と、元データの更新が年1回程度のため手動で実行するもの（`fetch_gov` / `fetch_policy` / `fetch_mobility` / `fetch_scisci` / `fetch_finance` / `fetch_publishing` / `fetch_funders` / `fetch_economy` / `fetch_topics`）。各スクリプトのdocstringに、対象URL・検証方法・既知の落とし穴を記録しています。
+データ更新スクリプトは2種類あります。CIが定期実行するもの（`fetch_feeds` 1日1回、`fetch_indicators` 週次）と、元データの更新が年1回程度のため手動で実行するもの（`fetch_gov` / `fetch_policy` / `fetch_mobility` / `fetch_scisci` / `fetch_finance` / `fetch_publishing` / `fetch_funders` / `fetch_economy` / `fetch_topics`）。各スクリプトのdocstringに、対象URL・検証方法・既知の落とし穴を記録しています。
 
 ## データの出典とライセンス
 

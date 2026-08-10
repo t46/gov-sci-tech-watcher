@@ -7,7 +7,10 @@ on:
     paths-ignore:
       - "data/**"
   schedule:
-    - cron: "17 */3 * * *"
+    # 政府省庁の更新頻度に合わせて1日1回（22:17 UTC ＝ 日本時間 翌07:17）。
+    # 3時間毎に回していた時期の実績: 7日間で87回実行し、記事の増減があったのは2回だけで、
+    # 残りはタイムスタンプだけが変わる差分だった。急ぎで取り込みたい場合は workflow_dispatch。
+    - cron: "17 22 * * *"
   workflow_dispatch:
 
 concurrency:

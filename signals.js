@@ -73,7 +73,7 @@ function initConsole(updates) {
         </div>`;
       }).join("");
     }
-    setText("#live-lede", `内閣府・文部科学省などの政府公式ページから3時間ごとに取得した更新の一覧。全${fmtInt(items.length)}件中${fmtInt(list.length)}件を表示。行をクリックすると要点が開く。`);
+    setText("#live-lede", `内閣府・文部科学省などの政府公式ページから1日1回取得した更新の一覧。全${fmtInt(items.length)}件中${fmtInt(list.length)}件を表示。行をクリックすると要点が開く。`);
   }
 
   feed.addEventListener("click", (event) => {
@@ -130,7 +130,7 @@ async function init() {
   }
   $("#header-status-dot")?.classList.add("is-live");
   const itemCount = (updates.items || []).length;
-  setText("#header-status", `観測中 — 掲載${fmtInt(itemCount)}件 / 3時間ごと巡回`);
+  setText("#header-status", `観測中 — 掲載${fmtInt(itemCount)}件 / 1日1回巡回`);
 
   initConsole(updates);
   renderLedgerEntries((updates.sources || []).map((s) => ({

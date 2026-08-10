@@ -95,7 +95,7 @@ function renderWindows(indicators, analytics, updates, gov, policy) {
     const generated = updates?.generated_at ? new Date(updates.generated_at) : null;
     setText("#win-signals-note", generated && !Number.isNaN(generated.getTime())
       ? `最終巡回 ${new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(generated)}`
-      : "政府公式 / 3時間ごと巡回");
+      : "政府公式 / 1日1回巡回");
     const list = $("#win-signals-list");
     if (list) {
       list.innerHTML = items.slice(0, 3).map((item) => `<p><span>${shortDate(item.published_at)}</span>${escapeHtml(item.title)}</p>`).join("");
@@ -190,7 +190,7 @@ async function init() {
   if (gerd) { ticker("#ro-gerd", gerd[1], (v) => `${v.toFixed(2)}%`); setText("#ro-gerd-note", `${gerd[0]}年 / OECD`); }
   if (papers) { ticker("#ro-papers", papers[1], (v) => fmtMan(v)); setText("#ro-papers-note", `${papers[0]}年 / OpenAlex`); }
   if (phd) { ticker("#ro-phd", phd.total, (v) => fmtInt(Math.round(v))); setText("#ro-phd-note", `${phd.year}年度 / 学校基本調査`); }
-  if (signals != null) { ticker("#ro-signals", signals, (v) => `${Math.round(v)}件`); setText("#ro-signals-note", "政府公式 / 3時間ごと更新"); }
+  if (signals != null) { ticker("#ro-signals", signals, (v) => `${Math.round(v)}件`); setText("#ro-signals-note", "政府公式 / 1日1回更新"); }
 
   renderWindows(indicators, analytics, updates, gov, policy);
   renderLedgerAll(indicators, analytics, updates, gov, policy);
