@@ -27,5 +27,6 @@ Note on data files (data/):
 The MIT License above applies to the source code of this repository
 (HTML/CSS/JavaScript/Python). The JSON files under data/ are derived from
 third-party public data sources, each governed by its own terms of use.
-See the "データの出典とライセンス" section of README.md for the full list of
-sources and their attribution requirements.
+For every such source, the original provider's terms take precedence over
+this repository's license. See the "データの出典とライセンス" section of
+README.md for the full list of sources and their attribution requirements.
