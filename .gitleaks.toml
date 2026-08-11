@@ -1,0 +1,13 @@
+# gitleaks 設定。既定のルールセットを継承し、このリポジトリ固有の誤検知だけを除外する。
+[extend]
+useDefault = true
+
+# Cloudflare Web Analytics のサイトトークンは「秘密鍵」ではなく、計測対象サイトを
+# 識別するためにHTMLへ埋め込んで公開する前提の識別子（Cloudflare の設置手順自体が
+# HTMLへの直書きを指示している）。既定の generic-api-key ルールが 32桁hex を
+# APIキーとみなして誤検知するため、data-cf-beacon 属性の行に限って除外する。
+[[allowlists]]
+description = "Cloudflare Web Analytics の公開ビーコントークン（秘密情報ではない）"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''data-cf-beacon=''']
