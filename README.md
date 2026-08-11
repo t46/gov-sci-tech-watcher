@@ -50,6 +50,17 @@ uv run python -m http.server 4173
 
 データ更新スクリプトは2種類あります。CIが定期実行するもの（`fetch_feeds` 1日1回、`fetch_indicators` 週次）と、元データの更新が年1回程度のため手動で実行するもの（`fetch_gov` / `fetch_policy` / `fetch_mobility` / `fetch_scisci` / `fetch_finance` / `fetch_publishing` / `fetch_funders` / `fetch_economy` / `fetch_topics`）。各スクリプトのdocstringに、対象URL・検証方法・既知の落とし穴を記録しています。
 
+## アクセス状況の確認
+
+サイトのアクセス解析には Cloudflare Web Analytics（Cookie 不使用・訪問者の追跡なし）を使う。ダッシュボードの Web Analytics で Pages プロジェクトを追加すると、ビーコンが自動挿入されサイト側のコード変更は要らない。
+
+```bash
+uv run python scripts/site_traffic.py            # 直近7日
+uv run python scripts/site_traffic.py --days 30  # 直近30日
+```
+
+日別のページビュー・訪問数、よく見られたページ、参照元、国・地域を表示する。認証は `CLOUDFLARE_API_TOKEN`（Account Analytics:Read）か `wrangler login` 済みの認証情報を使う。
+
 ## データの出典とライセンス
 
 このリポジトリのコード（HTML/CSS/JavaScript/Python）はMITライセンスです（[LICENSE](LICENSE)）。`data/` 以下のJSONは以下の公開データから生成・転記したものです。**いずれの出典についても、元の提供者の利用条件がこのリポジトリのライセンスより優先します** — 再配布・二次利用の際は必ず各出典の最新の利用条件（出典表記の要否・改変可否・商用利用の可否など）を確認してください。以下の各項目の記載は執筆時点の整理であり、原典の定めが常に優先です。
