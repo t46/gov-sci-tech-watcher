@@ -74,5 +74,25 @@
       ]
     },
     "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
+  },
+  "https://www8.cao.go.jp/cstp/kaisaiannai/2026/seimei162.html": {
+    "content_hash": "a3fece85097adb56fd907480ba0f6e9ace5fe1d28bca2bdce72e9131752faa57",
+    "result": {
+      "summary": "令和８年7月22日に開催される第162回生命倫理専門調査会のオンライン開催に関するプレスリリース。",
+      "points": [
+        "令和８年7月29日にオンラインで開催。",
+        "一般に公開し、Web傍聴も予定。",
+        "会長・事務局・関係省庁は5階共用会議室Cから参加。"
+      ],
+      "why_it_matters": "一般の人々が科学技術政策の決定過程を理解し、生命倫理に関する議論に参加する機会が増える。",
+      "signals": [
+        "令和８年7月29日",
+        "オンライン開催",
+        "会長・事務局・関係省庁は5階共用会議室Cから参加",
+        "専門委員・参考人はWeb参加",
+        "第161回の議事概要、テーマに関するアンケートの報告、有識者ヒアリング"
+      ]
+    },
+    "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-12T23:04:03.237381Z",
+  "generated_at": "2026-08-13T23:05:10.229963Z",
   "policy": {
     "item_count": 31,
     "period": {
@@ -39,12 +39,12 @@
         "count": 9
       },
       {
-        "label": "発表・報告",
+        "label": "予算資料",
         "count": 7
       },
       {
-        "label": "予算資料",
-        "count": 7
+        "label": "発表・報告",
+        "count": 6
       },
       {
         "label": "基本計画",
@@ -60,7 +60,7 @@
       },
       {
         "label": "評価・検証",
-        "count": 1
+        "count": 2
       },
       {
         "label": "政策・戦略",
@@ -339,11 +339,6 @@
         "count": 6
       },
       {
-        "category": "科学技術政策",
-        "document_type": "発表・報告",
-        "count": 4
-      },
-      {
         "category": "AI・デジタル",
         "document_type": "基本計画",
         "count": 1
@@ -371,12 +366,17 @@
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 1
+        "count": 2
       },
       {
         "category": "科学技術政策",
         "document_type": "基本計画",
         "count": 1
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "発表・報告",
+        "count": 3
       },
       {
         "category": "量子・半導体",
