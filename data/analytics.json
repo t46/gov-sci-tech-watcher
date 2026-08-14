@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-13T23:05:10.229963Z",
+  "generated_at": "2026-08-14T22:43:23.714038Z",
   "policy": {
     "item_count": 31,
     "period": {
@@ -18,18 +18,18 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
       },
       {
-        "label": "量子・半導体",
-        "count": 1
+        "label": "研究基盤・人材",
+        "count": 2
       },
       {
-        "label": "研究基盤・人材",
+        "label": "量子・半導体",
         "count": 1
       }
     ],
@@ -92,18 +92,18 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
       },
       {
-        "label": "量子・半導体",
-        "count": 1
+        "label": "研究基盤・人材",
+        "count": 2
       },
       {
-        "label": "研究基盤・人材",
+        "label": "量子・半導体",
         "count": 1
       }
     ],
@@ -133,8 +133,12 @@
         "count": 2
       },
       {
+        "month": "2026-05",
+        "count": 1
+      },
+      {
         "month": "2026-06",
-        "count": 4
+        "count": 3
       },
       {
         "month": "2026-07",
@@ -289,12 +293,12 @@
       {
         "year": "2026",
         "month": "05",
-        "count": 0
+        "count": 1
       },
       {
         "year": "2026",
         "month": "06",
-        "count": 4
+        "count": 3
       },
       {
         "year": "2026",
@@ -384,13 +388,18 @@
         "count": 1
       },
       {
-        "category": "生命・健康",
-        "document_type": "会議・審議",
-        "count": 2
+        "category": "研究基盤・人材",
+        "document_type": "政策・戦略",
+        "count": 1
       },
       {
         "category": "研究基盤・人材",
-        "document_type": "政策・戦略",
+        "document_type": "会議・審議",
+        "count": 1
+      },
+      {
+        "category": "生命・健康",
+        "document_type": "会議・審議",
         "count": 1
       }
     ],
