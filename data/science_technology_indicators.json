@@ -1,0 +1,958 @@
+{
+  "status": "ok",
+  "edition": "科学技術指標2026",
+  "report_number": "NISTEP REPORT No.212",
+  "collected_at": "2026-08-12",
+  "source": {
+    "title": "NISTEP 科学技術指標2026 統計集（HTML版）",
+    "url": "https://www.nistep.go.jp/sti_indicator/2026/NR212_table.html",
+    "report_url": "https://doi.org/10.15108/nr212"
+  },
+  "series": {
+    "rd_intensity": {
+      "unit": "% of GDP",
+      "years": [
+        {
+          "year": 1991,
+          "Japan": 2.907792020229405,
+          "United States": 2.6207921274419057,
+          "Germany": 2.3779694774473645,
+          "France": 2.2961066018490386,
+          "United Kingdom": null,
+          "China": 0.7224897942539724,
+          "Korea": 1.663609970839906
+        },
+        {
+          "year": 1992,
+          "Japan": 2.8782890462107424,
+          "United States": 2.543410579267825,
+          "Germany": 2.262601687827872,
+          "France": 2.3024489278734532,
+          "United Kingdom": null,
+          "China": 0.7255015460367238,
+          "Korea": 1.7417526482226133
+        },
+        {
+          "year": 1993,
+          "Japan": 2.840638854423345,
+          "United States": 2.422549791502639,
+          "Germany": 2.197867231156179,
+          "France": 2.3337239321961727,
+          "United Kingdom": null,
+          "China": 0.6923843583279592,
+          "Korea": 1.8894594098286552
+        },
+        {
+          "year": 1994,
+          "Japan": 2.60440238042925,
+          "United States": 2.3276567131408497,
+          "Germany": 2.116516686434315,
+          "France": 2.281747960118688,
+          "United Kingdom": null,
+          "China": 0.6267830756699453,
+          "Korea": 2.0506014858313035
+        },
+        {
+          "year": 1995,
+          "Japan": 2.6946079922020734,
+          "United States": 2.4095972354935404,
+          "Germany": 2.129236340286221,
+          "France": 2.2492952724430273,
+          "United Kingdom": null,
+          "China": 0.5656052815130821,
+          "Korea": 2.0877654404559527
+        },
+        {
+          "year": 1996,
+          "Japan": 2.7448926840190113,
+          "United States": 2.4501368743109833,
+          "Germany": 2.1366200688596675,
+          "France": 2.232204255791441,
+          "United Kingdom": null,
+          "China": 0.5601393701201763,
+          "Korea": 2.14232512302853
+        },
+        {
+          "year": 1997,
+          "Japan": 2.850374650957419,
+          "United States": 2.4771264689423615,
+          "Germany": 2.181600056934292,
+          "France": 2.1521797992849643,
+          "United Kingdom": null,
+          "China": 0.6346650046743534,
+          "Korea": 2.1740880496412145
+        },
+        {
+          "year": 1998,
+          "Japan": 2.983589074689342,
+          "United States": 2.49621529770049,
+          "Germany": 2.2074756095751886,
+          "France": 2.1034412682416095,
+          "United Kingdom": null,
+          "China": 0.6418529789585612,
+          "Korea": 2.0360782554330927
+        },
+        {
+          "year": 1999,
+          "Japan": 2.9822516905635412,
+          "United States": 2.5436082731123846,
+          "Germany": 2.327704068860604,
+          "France": 2.116477965061771,
+          "United Kingdom": null,
+          "China": 0.7429505060796311,
+          "Korea": 1.9446010426553737
+        },
+        {
+          "year": 2000,
+          "Japan": 2.9842447803357914,
+          "United States": 2.6198224563457226,
+          "Germany": 2.386531183381385,
+          "France": 2.100687925414924,
+          "United Kingdom": null,
+          "China": 0.8840907879489006,
+          "Korea": 2.049405489686305
+        },
+        {
+          "year": 2001,
+          "Japan": 3.087044850874685,
+          "United States": 2.6371540082593863,
+          "Germany": 2.3791977335768584,
+          "France": 2.149377522309587,
+          "United Kingdom": null,
+          "China": 0.9294802924107481,
+          "Korea": 2.198718861190537
+        },
+        {
+          "year": 2002,
+          "Japan": 3.1429908322971385,
+          "United States": 2.5474558746831852,
+          "Germany": 2.408561816350029,
+          "France": 2.1875647836473275,
+          "United Kingdom": null,
+          "China": 1.0441814618053893,
+          "Korea": 2.1304156264671517
+        },
+        {
+          "year": 2003,
+          "Japan": 3.156236787700332,
+          "United States": 2.5501418408763583,
+          "Germany": 2.4423311213355885,
+          "France": 2.130846776281368,
+          "United Kingdom": null,
+          "China": 1.1046490353881155,
+          "Korea": 2.196572763885155
+        },
+        {
+          "year": 2004,
+          "Japan": 3.1682533886815496,
+          "United States": 2.4868545984349932,
+          "Germany": 2.402792799078952,
+          "France": 2.1044064595662175,
+          "United Kingdom": null,
+          "China": 1.197317144457705,
+          "Korea": 2.352920657475517
+        },
+        {
+          "year": 2005,
+          "Japan": 3.3115861936888957,
+          "United States": 2.501924964721762,
+          "Germany": 2.402664132673463,
+          "France": 2.056016985238254,
+          "United Kingdom": null,
+          "China": 1.2900859629029922,
+          "Korea": 2.4272516757094604
+        },
+        {
+          "year": 2006,
+          "Japan": 3.4013574036270504,
+          "United States": 2.545448623295405,
+          "Germany": 2.430446215861972,
+          "France": 2.0532813064728197,
+          "United Kingdom": null,
+          "China": 1.3492324502287734,
+          "Korea": 2.6151540955060866
+        },
+        {
+          "year": 2007,
+          "Japan": 3.4834883490003974,
+          "United States": 2.61516353235412,
+          "Germany": 2.419184806979726,
+          "France": 2.0281480298819896,
+          "United Kingdom": null,
+          "China": 1.3532146982435242,
+          "Korea": 2.758945575626026
+        },
+        {
+          "year": 2008,
+          "Japan": 3.598293075012484,
+          "United States": 2.7448053135092314,
+          "Germany": 2.5719118828400176,
+          "France": 2.063618401550513,
+          "United Kingdom": null,
+          "China": 1.4233014654144793,
+          "Korea": 2.867733263151647
+        },
+        {
+          "year": 2009,
+          "Japan": 3.4434612113201366,
+          "United States": 2.7918096987864427,
+          "Germany": 2.6896073328869234,
+          "France": 2.2127342949071935,
+          "United Kingdom": null,
+          "China": 1.6366026780878795,
+          "Korea": 3.0214558926094086
+        },
+        {
+          "year": 2010,
+          "Japan": 3.36029914014589,
+          "United States": 2.7144594325204334,
+          "Germany": 2.67713343988743,
+          "France": 2.1777236738236954,
+          "United Kingdom": null,
+          "China": 1.6845615764980264,
+          "Korea": 3.179130068413717
+        },
+        {
+          "year": 2011,
+          "Japan": 3.4468310192269134,
+          "United States": 2.7380206029603134,
+          "Germany": 2.751054821599543,
+          "France": 2.187628840582901,
+          "United Kingdom": null,
+          "China": 1.7524464018707802,
+          "Korea": 3.4441018473595717
+        },
+        {
+          "year": 2012,
+          "Japan": 3.4337450695021565,
+          "United States": 2.672739018087855,
+          "Germany": 2.8260838501328913,
+          "France": 2.2276155855419657,
+          "United Kingdom": null,
+          "China": 1.8809517112545402,
+          "Korea": 3.6851910988565564
+        },
+        {
+          "year": 2013,
+          "Japan": 3.4929175185330292,
+          "United States": 2.6959308559479167,
+          "Germany": 2.781460188105272,
+          "France": 2.2336858329978155,
+          "United Kingdom": null,
+          "China": 1.962461012847621,
+          "Korea": 3.774874721360777
+        },
+        {
+          "year": 2014,
+          "Japan": 3.5543678914000494,
+          "United States": 2.7088101498742057,
+          "Germany": 2.8228462675114847,
+          "France": 2.271729955768428,
+          "United Kingdom": 2.2497341426915103,
+          "China": 1.9847467812899668,
+          "Korea": 3.8898210712726784
+        },
+        {
+          "year": 2015,
+          "Japan": 3.431344324406295,
+          "United States": 2.7732823175731074,
+          "Germany": 2.875968163574698,
+          "France": 2.2239922056929546,
+          "United Kingdom": 2.2620144231168204,
+          "China": 2.017031749658191,
+          "Korea": 3.7890786637683425
+        },
+        {
+          "year": 2016,
+          "Japan": 3.313595133902706,
+          "United States": 2.8367819025892187,
+          "Germany": 2.8847556185665417,
+          "France": 2.224687376110036,
+          "United Kingdom": 2.3053191038306426,
+          "China": 2.0594973942219648,
+          "Korea": 3.7863896792332414
+        },
+        {
+          "year": 2017,
+          "Japan": 3.3559046210276744,
+          "United States": 2.8831537673171157,
+          "Germany": 2.9868201169478357,
+          "France": 2.204233967169507,
+          "United Kingdom": 2.3096744169191434,
+          "China": 2.07770654800799,
+          "Korea": 4.073405341515316
+        },
+        {
+          "year": 2018,
+          "Japan": 3.4259494434895754,
+          "United States": 2.9895577663205284,
+          "Germany": 3.047993174200575,
+          "France": 2.2040765864180245,
+          "United Kingdom": 2.684845311594113,
+          "China": 2.1023202634245077,
+          "Korea": 4.2715398227531045
+        },
+        {
+          "year": 2019,
+          "Japan": 3.430610342559631,
+          "United States": 3.142975858867224,
+          "Germany": 3.110440790664013,
+          "France": 2.1966882092427342,
+          "United Kingdom": 2.6481150805539913,
+          "China": 2.2014303205853945,
+          "Korea": 4.36378152188311
+        },
+        {
+          "year": 2020,
+          "Japan": 3.4701427258933695,
+          "United States": 3.4145111413640983,
+          "Germany": 3.088717716882274,
+          "France": 2.2741897622034855,
+          "United Kingdom": 2.9105482134116496,
+          "China": 2.357123751869321,
+          "Korea": 4.5214088254533165
+        },
+        {
+          "year": 2021,
+          "Japan": 3.423927507223955,
+          "United States": 3.4624540580638636,
+          "Germany": 3.0736977030909696,
+          "France": 2.2127885293992993,
+          "United Kingdom": 2.853160955666195,
+          "China": 2.3816461255231838,
+          "Korea": 4.596725821250689
+        },
+        {
+          "year": 2022,
+          "Japan": 3.4993508845497336,
+          "United States": 3.484329062814244,
+          "Germany": 3.0435981440771647,
+          "France": 2.2205750631537966,
+          "United Kingdom": 2.782038699718592,
+          "China": 2.4945013465643524,
+          "Korea": 4.847530114169512
+        },
+        {
+          "year": 2023,
+          "Japan": 3.5598964724025426,
+          "United States": 3.4234579220825916,
+          "Germany": 3.1286632174455065,
+          "France": 2.175167072551385,
+          "United Kingdom": 2.7533606282183767,
+          "China": 2.5772849703814122,
+          "Korea": 4.943523389544032
+        },
+        {
+          "year": 2024,
+          "Japan": 3.7036079653843537,
+          "United States": 3.4448597173868523,
+          "Germany": 3.1316918343162463,
+          "France": 2.1781568607882758,
+          "United Kingdom": null,
+          "China": 2.6926991546483223,
+          "Korea": 5.125284069420532
+        }
+      ],
+      "source_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-03.xlsx",
+      "table": "1-1-3"
+    },
+    "researchers": {
+      "unit": "researchers",
+      "years": [
+        {
+          "year": 1991,
+          "Japan": null,
+          "United States": 822350.2504,
+          "Germany": 241869.0,
+          "France": 129780.0,
+          "United Kingdom": 128000.0,
+          "China": 471400.0,
+          "Korea": null
+        },
+        {
+          "year": 1992,
+          "Japan": null,
+          "United States": 848105.3184,
+          "Germany": null,
+          "France": 141710.0,
+          "United Kingdom": 129000.0,
+          "China": 471900.0,
+          "Korea": null
+        },
+        {
+          "year": 1993,
+          "Japan": null,
+          "United States": 859661.6782,
+          "Germany": 230107.0,
+          "France": 145898.0,
+          "United Kingdom": 131000.0,
+          "China": 489200.0,
+          "Korea": null
+        },
+        {
+          "year": 1994,
+          "Japan": null,
+          "United States": 847680.6679,
+          "Germany": null,
+          "France": 149193.0,
+          "United Kingdom": 134000.0,
+          "China": 552000.0,
+          "Korea": null
+        },
+        {
+          "year": 1995,
+          "Japan": null,
+          "United States": 866983.5823,
+          "Germany": 231128.0,
+          "France": 151248.85,
+          "United Kingdom": 145673.0,
+          "China": 522000.0,
+          "Korea": 100456.0
+        },
+        {
+          "year": 1996,
+          "Japan": null,
+          "United States": 911624.2,
+          "Germany": 230189.0,
+          "France": 154827.0,
+          "United Kingdom": 144735.0,
+          "China": 548000.0,
+          "Korea": 99433.0
+        },
+        {
+          "year": 1997,
+          "Japan": null,
+          "United States": 946325.4474,
+          "Germany": 235793.0,
+          "France": 154742.4,
+          "United Kingdom": 145641.2,
+          "China": 588700.0,
+          "Korea": 102660.0
+        },
+        {
+          "year": 1998,
+          "Japan": null,
+          "United States": 997842.8944,
+          "Germany": 237712.0,
+          "France": 155727.04,
+          "United Kingdom": 157662.0,
+          "China": 485500.0,
+          "Korea": 92541.0
+        },
+        {
+          "year": 1999,
+          "Japan": null,
+          "United States": 1027231.632,
+          "Germany": 254691.0,
+          "France": 160424.0,
+          "United Kingdom": 167573.03,
+          "China": 531100.0,
+          "Korea": 100210.0
+        },
+        {
+          "year": 2000,
+          "Japan": null,
+          "United States": 1039061.874,
+          "Germany": 257874.0,
+          "France": 172070.0,
+          "United Kingdom": 170554.39,
+          "China": 695062.0,
+          "Korea": 108370.0
+        },
+        {
+          "year": 2001,
+          "Japan": null,
+          "United States": 1061303.332,
+          "Germany": 264385.0,
+          "France": 177372.0,
+          "United Kingdom": 182143.84,
+          "China": 742726.0,
+          "Korea": 136337.0
+        },
+        {
+          "year": 2002,
+          "Japan": 792699.0,
+          "United States": 1084335.935,
+          "Germany": 265812.0,
+          "France": 186420.0,
+          "United Kingdom": 198162.98,
+          "China": 810525.0,
+          "Korea": 141917.0
+        },
+        {
+          "year": 2003,
+          "Japan": 791224.0,
+          "United States": 1155171.308,
+          "Germany": 268942.0,
+          "France": 192789.9118,
+          "United Kingdom": 216689.87,
+          "China": 862108.0,
+          "Korea": 151254.0
+        },
+        {
+          "year": 2004,
+          "Japan": 830545.0,
+          "United States": 1124381.346,
+          "Germany": 270215.0,
+          "France": 202377.2,
+          "United Kingdom": 228969.09,
+          "China": 926252.0,
+          "Korea": 156219.6913
+        },
+        {
+          "year": 2005,
+          "Japan": 830474.0,
+          "United States": 1113573.546,
+          "Germany": 272148.0,
+          "France": 202506.79,
+          "United Kingdom": 248599.3,
+          "China": 1118698.0,
+          "Korea": 179812.4276
+        },
+        {
+          "year": 2006,
+          "Japan": 861901.0,
+          "United States": 1136722.504,
+          "Germany": 279822.0,
+          "France": 210591.0899,
+          "United Kingdom": 254009.0,
+          "China": 1223756.4,
+          "Korea": 199990.0211
+        },
+        {
+          "year": 2007,
+          "Japan": 874690.0,
+          "United States": 1134243.395,
+          "Germany": 290853.0,
+          "France": 221851.0428,
+          "United Kingdom": 252650.8,
+          "China": 1423381.0,
+          "Korea": 221928.2309
+        },
+        {
+          "year": 2008,
+          "Japan": 883386.0,
+          "United States": 1184920.124,
+          "Germany": 302641.0,
+          "France": 227678.5299,
+          "United Kingdom": 251931.7,
+          "China": 1592420.0,
+          "Korea": 236136.871
+        },
+        {
+          "year": 2009,
+          "Japan": 890669.0,
+          "United States": 1237417.197,
+          "Germany": 317307.0,
+          "France": 234366.0471,
+          "United Kingdom": 256124.1127,
+          "China": 1152311.0,
+          "Korea": 244076.773
+        },
+        {
+          "year": 2010,
+          "Japan": 889341.0,
+          "United States": 1179797.447,
+          "Germany": 327996.0,
+          "France": 243533.2276,
+          "United Kingdom": 256584.957,
+          "China": 1210840.8,
+          "Korea": 264117.936
+        },
+        {
+          "year": 2011,
+          "Japan": 894138.0,
+          "United States": 1226207.789,
+          "Germany": 338689.0,
+          "France": 249246.6,
+          "United Kingdom": 251357.6,
+          "China": 1318086.0,
+          "Korea": 288900.9624
+        },
+        {
+          "year": 2012,
+          "Japan": 892684.0,
+          "United States": 1228441.665,
+          "Germany": 352419.0,
+          "France": 258913.0,
+          "United Kingdom": 256156.4,
+          "China": 1404017.0,
+          "Korea": 315589.1929
+        },
+        {
+          "year": 2013,
+          "Japan": 887067.0,
+          "United States": 1263439.86,
+          "Germany": 354463.0,
+          "France": 265465.8112,
+          "United Kingdom": 267698.5,
+          "China": 1484039.7,
+          "Korea": 321841.8477
+        },
+        {
+          "year": 2014,
+          "Japan": 892406.0,
+          "United States": 1307592.79,
+          "Germany": 351923.0,
+          "France": 271772.2718,
+          "United Kingdom": 276583.8,
+          "China": 1524280.3,
+          "Korea": 345463.4268
+        },
+        {
+          "year": 2015,
+          "Japan": 926671.0,
+          "United States": 1330563.423,
+          "Germany": 387982.0,
+          "France": 279470.0,
+          "United Kingdom": 285855.0,
+          "China": 1619027.7,
+          "Korea": 356447.29
+        },
+        {
+          "year": 2016,
+          "Japan": 907455.0,
+          "United States": 1322490.987,
+          "Germany": 399605.0,
+          "France": 285487.9646,
+          "United Kingdom": 291103.0,
+          "China": 1692175.8,
+          "Korea": 361291.5335
+        },
+        {
+          "year": 2017,
+          "Japan": 917725.0,
+          "United States": 1375872.441,
+          "Germany": 419617.0,
+          "France": 296324.277,
+          "United Kingdom": 295842.0,
+          "China": 1740442.2,
+          "Korea": 383100.2805
+        },
+        {
+          "year": 2018,
+          "Japan": 930720.0,
+          "United States": 1492662.631,
+          "Germany": 433685.036,
+          "France": 305438.6168,
+          "United Kingdom": null,
+          "China": 1866108.8,
+          "Korea": 408370.4603
+        },
+        {
+          "year": 2019,
+          "Japan": 935658.0,
+          "United States": 1522511.957,
+          "Germany": 450697.27,
+          "France": 313373.7036,
+          "United Kingdom": null,
+          "China": 2109459.8,
+          "Korea": 430690.0064
+        },
+        {
+          "year": 2020,
+          "Japan": 942180.0,
+          "United States": 1603719.494,
+          "Germany": 450796.0,
+          "France": 321398.0,
+          "United Kingdom": null,
+          "China": 2281134.0,
+          "Korea": 446738.854
+        },
+        {
+          "year": 2021,
+          "Japan": 951726.0,
+          "United States": 1720605.198,
+          "Germany": 461645.0,
+          "France": 333800.0,
+          "United Kingdom": null,
+          "China": 2405509.4,
+          "Korea": 470728.1152
+        },
+        {
+          "year": 2022,
+          "Japan": 983604.0,
+          "United States": 1737215.748,
+          "Germany": 486011.0,
+          "France": 342900.0,
+          "United Kingdom": null,
+          "China": 2637193.1,
+          "Korea": 488773.7625
+        },
+        {
+          "year": 2023,
+          "Japan": 1003883.0,
+          "United States": 1733124.311,
+          "Germany": 500166.0,
+          "France": 356378.0,
+          "United Kingdom": null,
+          "China": 3001302.4,
+          "Korea": 490255.9256
+        },
+        {
+          "year": 2024,
+          "Japan": 989223.0,
+          "United States": null,
+          "Germany": 513100.0,
+          "France": 362023.077,
+          "United Kingdom": null,
+          "China": 3179806.4,
+          "Korea": 503345.868
+        },
+        {
+          "year": 2025,
+          "Japan": 1003109.0,
+          "United States": null,
+          "Germany": null,
+          "France": null,
+          "United Kingdom": null,
+          "China": null,
+          "Korea": null
+        }
+      ],
+      "source_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-03.xlsx",
+      "table": "2-1-3",
+      "note": "Japan is HC (headcount); other countries follow the table's international series."
+    },
+    "paper_shares": {
+      "unit": "% of world share",
+      "years": [
+        {
+          "year": 1991,
+          "Japan": 8.218765517524613,
+          "JapanTop10": 6.3028520357961515,
+          "JapanTop1": 4.911939337302284,
+          "China": 1.5677133437955415
+        },
+        {
+          "year": 1992,
+          "Japan": 8.526025752779901,
+          "JapanTop10": 6.416559807089424,
+          "JapanTop1": 5.269769409018374,
+          "China": 1.664372067829033
+        },
+        {
+          "year": 1993,
+          "Japan": 8.719681638594054,
+          "JapanTop10": 6.543416442514295,
+          "JapanTop1": 5.535037099656552,
+          "China": 1.779884199731046
+        },
+        {
+          "year": 1994,
+          "Japan": 8.812031284094955,
+          "JapanTop10": 6.606077545801159,
+          "JapanTop1": 5.511611736802077,
+          "China": 1.9720234745558323
+        },
+        {
+          "year": 1995,
+          "Japan": 8.980727720011632,
+          "JapanTop10": 6.726212425928126,
+          "JapanTop1": 5.536010616610115,
+          "China": 2.2135773119131668
+        },
+        {
+          "year": 1996,
+          "Japan": 9.147083958562362,
+          "JapanTop10": 6.91279182135212,
+          "JapanTop1": 5.632758163294649,
+          "China": 2.506750467417209
+        },
+        {
+          "year": 1997,
+          "Japan": 9.419235531067757,
+          "JapanTop10": 7.134879701393282,
+          "JapanTop1": 5.94434976488598,
+          "China": 2.781512832867132
+        },
+        {
+          "year": 1998,
+          "Japan": 9.597046145128996,
+          "JapanTop10": 7.255422670638165,
+          "JapanTop1": 5.851935639389281,
+          "China": 3.135395421506311
+        },
+        {
+          "year": 1999,
+          "Japan": 9.768737593830568,
+          "JapanTop10": 7.251628204436698,
+          "JapanTop1": 5.836720491855578,
+          "China": 3.541262634328869
+        },
+        {
+          "year": 2000,
+          "Japan": 9.800622226021465,
+          "JapanTop10": 7.277316806302428,
+          "JapanTop1": 5.789967806597673,
+          "China": 4.063725302733431
+        },
+        {
+          "year": 2001,
+          "Japan": 9.775423891882854,
+          "JapanTop10": 7.272596422812562,
+          "JapanTop1": 5.95130417779316,
+          "China": 4.573445176826757
+        },
+        {
+          "year": 2002,
+          "Japan": 9.649677756938507,
+          "JapanTop10": 7.213516526241584,
+          "JapanTop1": 5.956944425525258,
+          "China": 5.209721770624955
+        },
+        {
+          "year": 2003,
+          "Japan": 9.419506344567594,
+          "JapanTop10": 7.042436809014633,
+          "JapanTop1": 5.87086352083964,
+          "China": 5.979059044705206
+        },
+        {
+          "year": 2004,
+          "Japan": 9.055959092635149,
+          "JapanTop10": 6.788782152829946,
+          "JapanTop1": 5.827401224165715,
+          "China": 6.954652984754868
+        },
+        {
+          "year": 2005,
+          "Japan": 8.630616001796417,
+          "JapanTop10": 6.50598966511273,
+          "JapanTop1": 5.784371215931296,
+          "China": 8.013900570048913
+        },
+        {
+          "year": 2006,
+          "Japan": 8.172961135362945,
+          "JapanTop10": 6.222040852764903,
+          "JapanTop1": 5.652732204477932,
+          "China": 8.889322105589693
+        },
+        {
+          "year": 2007,
+          "Japan": 7.7332510692530345,
+          "JapanTop10": 5.9881734951899075,
+          "JapanTop1": 5.4202887470833705,
+          "China": 9.657839028815829
+        },
+        {
+          "year": 2008,
+          "Japan": 7.315800831759834,
+          "JapanTop10": 5.765822130085309,
+          "JapanTop1": 5.248794344221412,
+          "China": 10.463314863003411
+        },
+        {
+          "year": 2009,
+          "Japan": 6.959729399096314,
+          "JapanTop10": 5.520874441136782,
+          "JapanTop1": 5.1248280987266766,
+          "China": 11.32722626069964
+        },
+        {
+          "year": 2010,
+          "Japan": 6.657995708258044,
+          "JapanTop10": 5.370004405013913,
+          "JapanTop1": 5.201035008320794,
+          "China": 12.360587522645794
+        },
+        {
+          "year": 2011,
+          "Japan": 6.381293056056925,
+          "JapanTop10": 5.214132017249649,
+          "JapanTop1": 5.111766733412856,
+          "China": 13.461620861094534
+        },
+        {
+          "year": 2012,
+          "Japan": 6.140174942171923,
+          "JapanTop10": 5.082240816727773,
+          "JapanTop1": 5.07012047307575,
+          "China": 14.867782603472701
+        },
+        {
+          "year": 2013,
+          "Japan": 5.887602206011726,
+          "JapanTop10": 4.836296395803958,
+          "JapanTop1": 4.957216898158668,
+          "China": 16.52827691231164
+        },
+        {
+          "year": 2014,
+          "Japan": 5.644715359927218,
+          "JapanTop10": 4.631428590582716,
+          "JapanTop1": 4.995329569662025,
+          "China": 18.234776660596637
+        },
+        {
+          "year": 2015,
+          "Japan": 5.467924822920845,
+          "JapanTop10": 4.501251356581635,
+          "JapanTop1": 5.026350412172591,
+          "China": 19.78362944802134
+        },
+        {
+          "year": 2016,
+          "Japan": 5.366445222525367,
+          "JapanTop10": 4.4157610043507045,
+          "JapanTop1": 5.240591694634221,
+          "China": 21.209699841093673
+        },
+        {
+          "year": 2017,
+          "Japan": 5.285943634258833,
+          "JapanTop10": 4.318389492767795,
+          "JapanTop1": 5.155907584047608,
+          "China": 22.843195542655778
+        },
+        {
+          "year": 2018,
+          "Japan": 5.12763192622602,
+          "JapanTop10": 4.17371550108678,
+          "JapanTop1": 5.251906579373298,
+          "China": 24.945076024095467
+        },
+        {
+          "year": 2019,
+          "Japan": 4.969721124572019,
+          "JapanTop10": 4.010624054519668,
+          "JapanTop1": 5.10689803600279,
+          "China": 26.72652428718821
+        },
+        {
+          "year": 2020,
+          "Japan": 4.820230578731188,
+          "JapanTop10": 3.8066679965018517,
+          "JapanTop1": 4.961303262082001,
+          "China": 28.005195591715744
+        },
+        {
+          "year": 2021,
+          "Japan": 4.610472234893045,
+          "JapanTop10": 3.586732159834912,
+          "JapanTop1": 4.7057994059792465,
+          "China": 30.13208470309296
+        },
+        {
+          "year": 2022,
+          "Japan": 4.382005087134496,
+          "JapanTop10": 3.3967354197658826,
+          "JapanTop1": 4.477401481923677,
+          "China": 32.41076960226739
+        },
+        {
+          "year": 2023,
+          "Japan": 4.117924405837757,
+          "JapanTop10": 3.2135243648556826,
+          "JapanTop1": 4.319345207050578,
+          "China": 35.5552763440588
+        }
+      ],
+      "source_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-07.xlsx",
+      "table": "4-1-7",
+      "note": "3-year moving average, integer count; the latest moving-average year is 2023."
+    }
+  },
+  "method_note": "科学技術指標2026の統計集から、1991年以降の比較可能な系列を再取得。各年版で定義・推計方法・データベースの更新により過去値が改訂され得るため、過去版の公表値との単純比較には注意が必要。"
+}

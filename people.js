@@ -1,6 +1,12 @@
 /* SCIENCE SIGNAL / PEOPLE — 研究人材の観測ページ。obs-core.js の後に読み込む。 */
 "use strict";
 
+function baseAxis(g) {
+  g.select(".domain").remove();
+  g.selectAll("line").attr("stroke", "#16202f").attr("stroke-dasharray", "2 4");
+  return g;
+}
+
 /* ================================================================ 01 PHD */
 
 function renderPhdIntl(indicators) {
@@ -389,6 +395,22 @@ function renderResearcherDensity(indicators) {
       .text(`${isJp ? "日本" : SHORT[key]} ${tip[1].toFixed(1)}`);
   }
   setText("#researcher-density-source", `出典: ${block.source?.title || ""}。${block.note || ""} 破線は日本の旧定義（2001年まで）。`);
+}
+
+function renderStiPeople(sti) {
+  const mount = $("#sti-people-chart");
+  const rows = sti?.series?.researchers?.years || [];
+  const base = rows.find(row => row.year === 2005);
+  if (!mount) return;
+  if (!base) { mount.innerHTML = '<p class="data-empty">NISTEPの研究者数系列を取得できませんでした。</p>'; return; }
+  const labels = { Japan: "日本", "United States": "米国", Germany: "ドイツ", France: "フランス", "United Kingdom": "英国", China: "中国", Korea: "韓国" };
+  const colors = { Japan: "#ffb545", "United States": "#4fd8ff", Germany: "#8d7fb0", France: "#5ad8a1", "United Kingdom": "#c9a76a", China: "#ef6d78", Korea: "#a7b4cc" };
+  const keys = Object.keys(labels); const normalized = rows.map(row => ({ year: row.year, ...Object.fromEntries(keys.map(key => [key, Number.isFinite(row[key]) && Number.isFinite(base[key]) ? row[key] / base[key] * 100 : null])) })); mount.innerHTML = "";
+  const width = mount.clientWidth || 960, height = MOBILE ? 290 : 350, margin = { top: 42, right: 20, bottom: 42, left: 50 }; const x = d3.scaleLinear().domain(d3.extent(normalized, d => d.year)).range([margin.left, width - margin.right]); const y = d3.scaleLinear().domain([0, 420]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "主要国の研究者数の推移、2005年を100とした指数"); baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(v => `${v}`).tickSize(-(width - margin.left - margin.right)))); svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(MOBILE ? 4 : 8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const line = d3.line().defined(d => Number.isFinite(d.value)).x(d => x(d.year)).y(d => y(d.value)); keys.forEach(key => { const points = normalized.map(row => ({ year: row.year, value: row[key] })); svg.append("path").datum(points).attr("fill", "none").attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.8 : 1.25).attr("opacity", key === "Japan" ? 1 : .78).attr("d", line); const last = points.filter(d => Number.isFinite(d.value)).at(-1); if (last && !MOBILE) svg.append("text").attr("class", "chart-value sti-end-label").attr("x", x(last.year) - 4).attr("y", y(last.value) - 7).attr("text-anchor", "end").attr("fill", colors[key]).text(`${labels[key]} ${Math.round(last.value)}`); });
+  const legend = svg.append("g").attr("class", "sti-legend").attr("transform", `translate(${margin.left},14)`); keys.forEach((key, i) => { const lx = (i % 4) * 142, ly = Math.floor(i / 4) * 15; legend.append("line").attr("x1", lx).attr("x2", lx + 15).attr("y1", ly).attr("y2", ly).attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.5 : 1.4); legend.append("text").attr("x", lx + 21).attr("y", ly + 3).text(labels[key]).attr("fill", colors[key]); });
+  const japan = normalized.filter(d => Number.isFinite(d.Japan)); setText("#sti-people-years", `${japan[0].year}–${japan.at(-1).year}`); setText("#sti-people-source", `出典: ${sti.source.title} 表${sti.series.researchers.table}。${sti.series.researchers.note}。${sti.method_note}`);
 }
 
 function renderFacultyTenure(indicators) {
@@ -2263,12 +2285,13 @@ function initMobMapLazy(mobility) {
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult] = await Promise.allSettled([
+  const [indicatorsResult, analyticsResult, economyResult, phdSupportResult, mobilityResult, stiResult] = await Promise.allSettled([
     fetchJson("data/indicators.json"),
     fetchJson("data/analytics.json"),
     fetchJson("data/economy.json"),
     fetchJson("data/phd_support.json"),
     fetchJson("data/mobility.json"),
+    fetchJson("data/science_technology_indicators.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const analytics = analyticsResult.status === "fulfilled" ? analyticsResult.value : null;
@@ -2276,6 +2299,7 @@ async function init() {
   const phdSupport = phdSupportResult.status === "fulfilled" ? phdSupportResult.value : null;
   /* mobility.json取得失敗は03章のみに影響させる（他の章は独立して動く） */
   const mobility = mobilityResult.status === "fulfilled" ? mobilityResult.value : null;
+  const sti = stiResult.status === "fulfilled" ? stiResult.value : null;
   if (!indicators && !analytics) {
     setText("#header-status", "人材データを取得できません");
     return;
@@ -2300,6 +2324,7 @@ async function init() {
   renderFemaleTrend(indicators);
   renderFemaleIntl(indicators);
   renderResearcherDensity(indicators);
+  renderStiPeople(sti);
   renderFacultyTenure(indicators);
   renderCorporatePhd(indicators);
   renderStemOutcomes(indicators);

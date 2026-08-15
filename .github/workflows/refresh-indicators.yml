@@ -28,6 +28,10 @@ jobs:
           ESTAT_APP_ID: ${{ secrets.ESTAT_APP_ID }}
           OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
         run: uv run python scripts/fetch_indicators.py
+      - name: Fetch NISTEP science and technology indicator baseline
+        run: uv run python scripts/fetch_sti_indicator.py
+      - name: Fetch NISTEP science and technology indicator catalog
+        run: uv run python scripts/fetch_sti_catalog.py
       - name: Fetch finance statements
         run: uv run python scripts/fetch_finance.py
       - name: Fetch academic publishing data
@@ -41,7 +45,7 @@ jobs:
           git config user.name "gov-sci-tech-watcher[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main
-          git add data/indicators.json data/finance.json data/publishing.json data/funders.json data/economy.json
+          git add data/indicators.json data/science_technology_indicators.json data/science_technology_indicator_catalog.json data/finance.json data/publishing.json data/funders.json data/economy.json
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_ENV"
           else

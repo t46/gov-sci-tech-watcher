@@ -33,6 +33,7 @@
       <a href="#ch-flow" data-rail="ch-flow"><i>00</i><span>資金の流れ</span></a>
       <span class="rail-group">政府の資金</span>
       <a href="#ch-gov" data-rail="ch-gov"><i>01</i><span>政府資金の42年</span></a>
+      <a href="#ch-sti-money" data-rail="ch-sti-money"><i>STI</i><span>研究開発費/GDP</span></a>
       <a href="#ch-ministry" data-rail="ch-ministry"><i>02</i><span>府省庁別予算</span></a>
       <a href="#ch-total" data-rail="ch-total"><i>03</i><span>予算の全体像</span></a>
       <a href="#ch-cycle" data-rail="ch-cycle"><i>04</i><span>予算のサイクル</span></a>
@@ -47,11 +48,12 @@
       <a href="#ch-finance" data-rail="ch-finance"><i>12</i><span>大学・研究所の財務</span></a>
       <a href="#ch-anatomy" data-rail="ch-anatomy"><i>13</i><span>財務の解剖</span></a>
       <a href="#ch-publishing" data-rail="ch-publishing"><i>14</i><span>学術出版</span></a>
+      <a href="#ch-philanthropy" data-rail="ch-philanthropy"><i>15</i><span>フィランソロピー</span></a>
       <span class="rail-group">企業の資金</span>
-      <a href="#ch-corporate" data-rail="ch-corporate"><i>15</i><span>企業の研究開発費</span></a>
-      <a href="#ch-sangaku" data-rail="ch-sangaku"><i>16</i><span>企業から大学への資金</span></a>
-      <a href="#ch-startups" data-rail="ch-startups"><i>17</i><span>大学発ベンチャー</span></a>
-      <a href="#ch-support" data-rail="ch-support"><i>18</i><span>企業支援の国際比較</span></a>
+      <a href="#ch-corporate" data-rail="ch-corporate"><i>16</i><span>企業の研究開発費</span></a>
+      <a href="#ch-sangaku" data-rail="ch-sangaku"><i>17</i><span>企業から大学への資金</span></a>
+      <a href="#ch-startups" data-rail="ch-startups"><i>18</i><span>大学発ベンチャー</span></a>
+      <a href="#ch-support" data-rail="ch-support"><i>19</i><span>企業支援の国際比較</span></a>
     </nav>
 
     <main id="main">
@@ -81,6 +83,20 @@
           <div class="fig-body" id="gov-stream"></div>
           <div class="terrain-hover" id="gov-hover" aria-hidden="true"></div>
           <p class="method-note" id="gov-source">出典を確認中</p>
+        </figure>
+      </section>
+
+      <!-- NISTEP STI / FUNDING BASELINE -->
+      <section class="chapter" id="ch-sti-money" aria-labelledby="sti-money-title">
+        <div class="ch-head">
+          <p class="ch-no">STI / R&amp;D INTENSITY 1991–2024</p>
+          <h2 id="sti-money-title">研究開発費は、経済の何％か。</h2>
+          <p class="ch-lede" id="sti-money-lede">研究開発費の対GDP比率を、主要国の長期系列で見る。金額の増減だけでは見えない、経済規模に対する研究開発の重さ。</p>
+        </div>
+        <figure class="fig fig-wide">
+          <figcaption><span class="fig-kicker">STI</span>NISTEP「科学技術指標2026」研究開発費の対GDP比率 <span id="sti-money-years"></span></figcaption>
+          <div class="fig-body" id="sti-money-chart"></div>
+          <p class="method-note" id="sti-money-source">出典を確認中</p>
         </figure>
       </section>
 
@@ -380,6 +396,29 @@
           <h3 class="sub-title">世界の物差し <span>学術出版市場の確認済みファクト</span></h3>
           <div class="pub-facts" id="pub-facts"></div>
         </div>
+      </section>
+
+      <!-- 15 · PHILANTHROPY -->
+      <section class="chapter" id="ch-philanthropy" aria-labelledby="philanthropy-title">
+        <div class="ch-head">
+          <p class="ch-no">15 / PHILANTHROPY 2019–2024</p>
+          <h2 id="philanthropy-title">研究を支える寄付の流れ</h2>
+          <p class="ch-lede" id="philanthropy-lede">公費でも企業との契約でもない、寄付という資金。規模の推移と、研究に向けられた寄附講座・寄附研究部門を分けて見る。</p>
+        </div>
+        <div class="duo">
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">A</span>国立大学法人の寄付金収益 <span id="philanthropy-trend-years"></span></figcaption>
+            <div class="fig-body" id="philanthropy-trend"></div>
+            <p class="method-note" id="philanthropy-trend-source">出典を確認中</p>
+          </figure>
+          <figure class="fig">
+            <figcaption><span class="fig-kicker">B</span>寄付金収益の上位法人 <span id="philanthropy-rank-year"></span></figcaption>
+            <div class="fig-body" id="philanthropy-rank"></div>
+            <p class="method-note" id="philanthropy-rank-source">出典を確認中</p>
+          </figure>
+        </div>
+        <div class="philanthropy-facts" id="philanthropy-facts" aria-live="polite"></div>
+        <p class="method-note" id="philanthropy-source">出典を確認中</p>
       </section>
 
       <!-- 16 · CORPORATE R&D EXPENDITURE -->

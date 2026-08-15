@@ -1618,14 +1618,144 @@ function renderYouthPrograms(policy) {
   safeCall("renderYouthRates", () => renderYouthRates(policy));
 }
 
+/* ================================================================ STI baseline */
+
+function renderStiBaseline(sti) {
+  const block = sti?.status === "ok" ? sti : null;
+  const series = block?.series;
+  const colors = { Japan: "#ffb545", "United States": "#4fd8ff", Germany: "#8d7fb0", France: "#5ad8a1", "United Kingdom": "#c9a76a", China: "#ef6d78", Korea: "#a7b4cc", JapanTop10: "#f48fb1", JapanTop1: "#e05a8b" };
+  const labels = { Japan: "日本", "United States": "米国", Germany: "ドイツ", France: "フランス", "United Kingdom": "英国", China: "中国", Korea: "韓国", JapanTop10: "日本Top10%", JapanTop1: "日本Top1%" };
+  const mount = (id) => $(id);
+
+  if (!block || !series) {
+    setText("#sti-lede", "NISTEPの科学技術指標データを取得できませんでした。");
+    ["#sti-intensity", "#sti-researchers", "#sti-papers"].forEach((id) => { if (mount(id)) mount(id).innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; });
+    setText("#sti-source", "出典を取得できませんでした。");
+    return;
+  }
+
+  const draw = (id, rows, keys, options = {}) => {
+    const target = mount(id);
+    if (!target || !rows?.length) return;
+    target.innerHTML = "";
+    const width = target.clientWidth || 960;
+    const height = options.height || (MOBILE ? 280 : 330);
+    const margin = { top: 30, right: 18, bottom: 42, left: options.left || 52 };
+    const x = d3.scaleLinear().domain(d3.extent(rows, (d) => d.year)).range([margin.left, width - margin.right]);
+    const values = rows.flatMap((row) => keys.map((key) => row[key])).filter((value) => Number.isFinite(value));
+    const y = d3.scaleLinear().domain(options.domain || [0, (d3.max(values) || 1) * 1.12]).nice().range([height - margin.bottom, margin.top]);
+    const svg = d3.select(target).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", options.aria || "科学技術指標の時系列");
+    baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(options.tickFormat || ((v) => v)).tickSize(-(width - margin.left - margin.right))));
+    svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(MOBILE ? 4 : 7).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+    const line = d3.line().defined((d) => Number.isFinite(d.value)).x((d) => x(d.year)).y((d) => y(d.value));
+    keys.forEach((key) => {
+      const points = rows.map((row) => ({ year: row.year, value: row[key] }));
+      svg.append("path").datum(points).attr("fill", "none").attr("stroke", colors[key] || "#a7b4cc").attr("stroke-width", key === "Japan" ? 2.6 : 1.25).attr("opacity", key === "Japan" ? 1 : .78).attr("d", line);
+      const last = points.filter((d) => Number.isFinite(d.value)).at(-1);
+      if (last && !MOBILE) svg.append("text").attr("class", "chart-value sti-end-label").attr("x", x(last.year) - 4).attr("y", y(last.value) - 7).attr("text-anchor", "end").attr("fill", colors[key] || "#a7b4cc").text(`${labels[key]} ${options.valueFormat ? options.valueFormat(last.value) : d3.format(".1f")(last.value)}`);
+    });
+    const legend = svg.append("g").attr("class", "sti-legend").attr("transform", `translate(${margin.left},8)`);
+    keys.forEach((key, i) => {
+      const lx = (i % (MOBILE ? 2 : 4)) * (MOBILE ? 105 : 142);
+      const ly = Math.floor(i / (MOBILE ? 2 : 4)) * 15;
+      legend.append("line").attr("x1", lx).attr("x2", lx + 15).attr("y1", ly).attr("y2", ly).attr("stroke", colors[key] || "#a7b4cc").attr("stroke-width", key === "Japan" ? 2.5 : 1.4);
+      legend.append("text").attr("x", lx + 21).attr("y", ly + 3).text(labels[key]).attr("fill", colors[key] || "#a7b4cc");
+    });
+  };
+
+  const intensity = series.rd_intensity?.years || [];
+  const researchers = series.researchers?.years || [];
+  const papers = series.paper_shares?.years || [];
+  draw("#sti-intensity", intensity, ["Japan", "United States", "Germany", "France", "United Kingdom", "China", "Korea"], { domain: [0, 6], tickFormat: (v) => `${v}%`, aria: "主要国の研究開発費の対GDP比率の推移" });
+  draw("#sti-researchers", (() => {
+    const base = researchers.find((row) => row.year === 2005);
+    if (!base) return [];
+    return researchers.map((row) => ({ year: row.year, ...Object.fromEntries(Object.keys(labels).map((key) => [key, Number.isFinite(row[key]) && Number.isFinite(base[key]) ? row[key] / base[key] * 100 : null])) }));
+  })(), ["Japan", "United States", "Germany", "France", "United Kingdom", "China", "Korea"], { domain: [0, 420], tickFormat: (v) => `${v}`, aria: "主要国の研究者数の推移、2005年を100とした指数", valueFormat: (v) => `${d3.format(".0f")(v)}` });
+  draw("#sti-papers", papers, ["Japan", "China", "JapanTop10", "JapanTop1"], { domain: [0, 50], tickFormat: (v) => `${v}%`, aria: "日本と中国の論文シェアおよび日本の注目論文シェアの推移" });
+
+  const intensityYears = intensity.filter((d) => Number.isFinite(d.Japan)).map((d) => d.year);
+  const paperYears = papers.filter((d) => Number.isFinite(d.Japan)).map((d) => d.year);
+  setText("#sti-intensity-years", intensityYears.length ? `${Math.min(...intensityYears)}–${Math.max(...intensityYears)}` : "");
+  setText("#sti-papers-years", paperYears.length ? `${Math.min(...paperYears)}–${Math.max(...paperYears)}` : "");
+  setText("#sti-intensity-source", `出典: ${block.source.title} 表${series.rd_intensity.table}。${series.rd_intensity.unit}。`);
+  setText("#sti-researchers-source", `出典: ${block.source.title} 表${series.researchers.table}。${series.researchers.note}`);
+  setText("#sti-papers-source", `出典: ${block.source.title} 表${series.paper_shares.table}。${series.paper_shares.note}`);
+  setText("#sti-source", `出典: ${block.source.title}（${block.report_number}）。${block.method_note}`);
+
+  const firstIntensity = intensity.find((d) => d.year === 2005)?.Japan;
+  const lastIntensity = intensity.filter((d) => Number.isFinite(d.Japan)).at(-1)?.Japan;
+  const firstResearcher = researchers.find((d) => d.year === 2005)?.Japan;
+  const lastResearcher = researchers.filter((d) => Number.isFinite(d.Japan)).at(-1)?.Japan;
+  const firstPaper = papers.find((d) => d.year === 1991)?.Japan;
+  const lastPaper = papers.filter((d) => Number.isFinite(d.Japan)).at(-1)?.Japan;
+  const facts = [
+    { label: "研究開発費/GDP", value: `${firstIntensity?.toFixed(1) || "—"}% → ${lastIntensity?.toFixed(1) || "—"}%`, note: "日本は投資比率を維持・上昇" },
+    { label: "研究者数", value: firstResearcher && lastResearcher ? `${d3.format(",")(Math.round(firstResearcher))} → ${d3.format(",")(Math.round(lastResearcher))}` : "—", note: "国際比較では伸びの差が見える" },
+    { label: "日本の論文シェア", value: firstPaper && lastPaper ? `${firstPaper.toFixed(1)}% → ${lastPaper.toFixed(1)}%` : "—", note: "量と注目度は別の指標" },
+  ];
+  const reading = $("#sti-reading");
+  if (reading) reading.innerHTML = facts.map((fact) => `<div class="sti-reading-card"><span>${escapeHtml(fact.label)}</span><strong>${escapeHtml(fact.value)}</strong><small>${escapeHtml(fact.note)}</small></div>`).join("");
+}
+
+function renderStiIntro(sti) {
+  const mount = $("#sti-intro-grid");
+  if (!mount || !sti?.source) return;
+  const cards = [
+    ["約160", "指標本体", "研究開発費・人材・高等教育・アウトプット・イノベーションの5カテゴリー"],
+    ["1991", "初公表", "日本の科学技術活動を客観的・定量的に把握するための基礎資料"],
+    ["2005–", "毎年公表", "2005年以降は速報性を重視し、基本指標を毎年更新"],
+    ["5章", "観測範囲", "資金から研究成果、技術・産業、イノベーションまで"],
+  ];
+  mount.innerHTML = cards.map(([value, label, note]) => `<div class="sti-intro-card"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span><small>${escapeHtml(note)}</small></div>`).join("");
+  setText("#sti-source", `出典: ${sti.source.title}（${sti.report_number}）。${sti.method_note}`);
+}
+
+function renderStiCatalog(catalog) {
+  const grid = $("#sti-catalog-grid");
+  const search = $("#sti-catalog-search");
+  const chapter = $("#sti-catalog-chapter");
+  const kind = $("#sti-catalog-kind");
+  const summary = $("#sti-catalog-summary");
+  if (!grid || !catalog?.items?.length) {
+    if (grid) grid.innerHTML = '<p class="data-empty">指標カタログを取得できませんでした。</p>';
+    return;
+  }
+  const pageMap = { "第1章": "money.html", "第2章": "people.html", "第3章": "people.html", "第4章": "papers.html", "第5章": "money.html", "コラム": "policy.html" };
+  const chapterNames = [...new Set(catalog.items.map((item) => item.chapter))];
+  chapterNames.forEach((name) => chapter?.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`));
+  const render = () => {
+    const query = (search?.value || "").trim().toLowerCase();
+    const selectedChapter = chapter?.value || "all";
+    const selectedKind = kind?.value || "all";
+    const rows = catalog.items.filter((item) => {
+      const text = `${item.number} ${item.title} ${item.chapter}`.toLowerCase();
+      return (!query || text.includes(query)) && (selectedChapter === "all" || item.chapter === selectedChapter) && (selectedKind === "all" || item.kind === selectedKind);
+    });
+    if (summary) summary.textContent = `${rows.length} / ${catalog.items.length}件を表示 — 指標本体 ${catalog.indicator_count}件、コラム ${catalog.items.filter((item) => item.kind === "column").length}件`;
+    grid.innerHTML = rows.map((item) => {
+      const chapterKey = Object.keys(pageMap).find((key) => item.chapter.startsWith(key)) || "政策";
+      const page = pageMap[chapterKey] || "policy.html";
+      return `<article class="sti-catalog-card"><div class="sti-catalog-card-head"><span class="sti-catalog-number">${escapeHtml(item.number)}</span><span class="sti-catalog-kind">${item.kind === "column" ? "COLUMN" : "INDICATOR"}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.chapter)}</p><div class="sti-catalog-links"><a href="${page}">${escapeHtml(chapterKey)}で見る</a>${item.excel_url ? `<a href="${safeUrl(item.excel_url)}" target="_blank" rel="noopener noreferrer">Excel ↗</a>` : ""}</div></article>`;
+    }).join("") || '<p class="data-empty">条件に一致する指標はありません。</p>';
+  };
+  [search, chapter, kind].forEach((node) => node?.addEventListener(node === search ? "input" : "change", render));
+  setText("#sti-catalog-source", `出典: ${catalog.source.title}。${catalog.note}`);
+  render();
+}
+
 /* ==================================================================== boot */
 
 async function init() {
   bootFooter();
   initRail();
   let policy = null;
+  let sti = null;
+  let stiCatalog = null;
   try {
     policy = await fetchJson("data/policy.json");
+    sti = await fetchJson("data/science_technology_indicators.json");
+    stiCatalog = await fetchJson("data/science_technology_indicator_catalog.json");
   } catch (error) {
     console.error(error);
   }
@@ -1644,6 +1774,8 @@ async function init() {
     : `観測中 — ${okCount}/${blockKeys.length}系統の公開データ`);
 
   safeCall("initHistoryTimeline", () => initHistoryTimeline(policy));
+  safeCall("renderStiIntro", () => renderStiIntro(sti));
+  safeCall("renderStiCatalog", () => renderStiCatalog(stiCatalog));
   safeCall("renderLanguageSpectrum", () => renderLanguageSpectrum(policy));
   safeCall("renderIndicators", () => renderIndicators(policy));
   safeCall("renderStrategyLanguageSpectrum", () => renderStrategyLanguageSpectrum(policy));
@@ -1654,6 +1786,8 @@ async function init() {
   initTargetsLazy();
 
   const entries = blockKeys.map((k) => blockEntry(policy[k], k)).filter(Boolean);
+  if (sti?.source?.title) entries.push({ title: sti.source.title, url: sti.source.url || "", status: sti.status || "ok" });
+  if (stiCatalog?.source?.title) entries.push({ title: stiCatalog.source.title, url: stiCatalog.source.url || "", status: stiCatalog.status || "ok" });
   /* 戦略の書架はstrategy_languageブロックを再利用する専用章のため、台帳にも別行として
      明示する（同一ブロックの別視点利用であることをtitleの違いで示す）。 */
   if (policy.strategy_language?.status === "ok") {

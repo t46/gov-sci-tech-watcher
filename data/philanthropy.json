@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "collected_at": "2026-08-11",
+  "source": {
+    "title": "文部科学省 令和6年度 大学等における産学連携等実施状況",
+    "url": "https://gkz781swok1ivzu2.www.mext.go.jp/a_menu/shinkou/sangaku/1413730_00014.html"
+  },
+  "donation_chairs": {
+    "fiscal_year": 2024,
+    "count": 1541,
+    "amount_yen": 25877244000,
+    "note": "寄附講座・寄附研究部門は、民間等からの寄附を活用して大学等の教育研究を豊富化・活発化するために設置されたもの。金額は令和6年度中の受入実績で、寄附金（現金）受入の内数。"
+  }
+}

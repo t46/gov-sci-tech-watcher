@@ -297,6 +297,17 @@ canvas { display: block; }
 .startup-rank-value { fill: var(--ink); }
 .startup-bar { transition: opacity .2s ease; }
 .startup-bar:hover { opacity: .78; }
+.philanthropy-bar { transition: opacity .2s ease; }
+.philanthropy-bar:hover { opacity: .78; }
+.philanthropy-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 34px; }
+.philanthropy-fact { display: grid; grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr); align-items: baseline; gap: 18px; padding: 22px 24px; border: 1px solid var(--line); background: rgba(15, 25, 40, .55); }
+.philanthropy-fact .fact-label { color: var(--muted); font: 500 11px var(--mono); letter-spacing: .08em; }
+.philanthropy-fact strong { color: var(--accent); font: 600 28px var(--mono); }
+.philanthropy-fact > span:last-child { color: var(--faint); font: 400 11px var(--mono); text-align: right; }
+@media (max-width: 720px) {
+  .philanthropy-fact { grid-template-columns: 1fr; gap: 8px; }
+  .philanthropy-fact > span:last-child { text-align: left; }
+}
 .fig-wide { margin-top: 6px; }
 .annot-line { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 2 3; }
 .annot-text { font-family: var(--mincho); font-size: 13px; fill: var(--text); }
@@ -1285,6 +1296,43 @@ a.signal-title:hover { color: var(--jp); }
 .youth-rate-chip-label { font: 500 11px var(--mono); color: var(--dim); letter-spacing: 0.04em; }
 .youth-rate-chip-value { margin-top: 8px; font: 600 26px var(--mono); color: var(--jp); font-variant-numeric: tabular-nums; }
 .youth-rate-chip-note { margin-top: 8px; font: 400 9.5px var(--mono); color: var(--faint); line-height: 1.65; }
+
+/* ==== policy: NISTEP science & technology indicators baseline ==== */
+.sti-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+.sti-duo .fig { min-width: 0; }
+.sti-legend text { font: 400 9px var(--mono); }
+.sti-end-label { font: 500 9px var(--mono); }
+.sti-reading { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 34px; }
+.sti-reading-card { border: 1px solid var(--hair); background: var(--panel); padding: 18px 20px 16px; }
+.sti-reading-card span { display: block; font: 500 10px var(--mono); color: var(--dim); letter-spacing: .06em; }
+.sti-reading-card strong { display: block; margin-top: 9px; font: 600 22px var(--mono); color: var(--jp); font-variant-numeric: tabular-nums; }
+.sti-reading-card small { display: block; margin-top: 8px; font: 400 9.5px var(--mono); color: var(--faint); line-height: 1.6; }
+.sti-intro-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 26px; }
+.sti-intro-card { min-height: 150px; padding: 20px; border: 1px solid var(--hair); background: var(--panel); }
+.sti-intro-card strong { display: block; color: var(--jp); font: 600 28px var(--mono); font-variant-numeric: tabular-nums; }
+.sti-intro-card span { display: block; margin-top: 5px; color: var(--text); font: 500 11px var(--mono); }
+.sti-intro-card small { display: block; margin-top: 16px; color: var(--faint); font: 400 10px var(--mono); line-height: 1.7; }
+.sti-catalog-controls { display: grid; grid-template-columns: minmax(0, 1fr) 220px 180px; gap: 12px; margin-top: 28px; }
+.sti-catalog-controls label { display: grid; gap: 7px; color: var(--dim); font: 500 10px var(--mono); letter-spacing: .06em; }
+.sti-catalog-controls input, .sti-catalog-controls select { width: 100%; min-height: 38px; border: 1px solid var(--hair); background: var(--panel); color: var(--text); padding: 8px 10px; font: 400 11px var(--mono); }
+.sti-catalog-summary { margin: 18px 0 12px; color: var(--dim); font: 400 10px var(--mono); }
+.sti-catalog-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-height: 720px; overflow: auto; padding-right: 8px; }
+.sti-catalog-card { min-height: 142px; padding: 14px 15px; border: 1px solid var(--hair); background: rgba(15, 25, 40, .45); }
+.sti-catalog-card-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.sti-catalog-number { color: var(--jp); font: 600 12px var(--mono); }
+.sti-catalog-kind { color: var(--faint); font: 500 8px var(--mono); letter-spacing: .08em; }
+.sti-catalog-card h3 { margin: 12px 0 6px; color: var(--text); font: 600 12px var(--mincho); line-height: 1.55; }
+.sti-catalog-card p { margin: 0; color: var(--faint); font: 400 9px var(--mono); }
+.sti-catalog-links { display: flex; gap: 12px; margin-top: 12px; font: 500 9px var(--mono); }
+.sti-catalog-links a { color: var(--cn); border-bottom: 1px solid transparent; }
+.sti-catalog-links a:hover, .sti-catalog-links a:focus-visible { border-bottom-color: var(--cn); }
+.sti-paper-baseline { margin-top: 42px; }
+.sti-impact-profile { margin-top: 28px; }
+.sti-impact-profile .fig-body { min-height: 280px; }
+@media (max-width: 720px) {
+  .sti-duo, .sti-reading, .sti-intro-grid, .sti-catalog-controls, .sti-catalog-grid { grid-template-columns: 1fr; }
+  .sti-catalog-grid { max-height: 900px; }
+}
 
 /* ==== footer: repo link (2026-08) ==== */
 .footer-repo { color: var(--faint); text-decoration: none; border-bottom: 1px solid var(--hair); }

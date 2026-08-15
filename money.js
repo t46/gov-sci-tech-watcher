@@ -726,6 +726,26 @@ function renderCorporateRd(indicators) {
   renderCorporateIndustries(indicators);
 }
 
+function renderStiMoney(sti) {
+  const mount = $("#sti-money-chart");
+  const rows = sti?.series?.rd_intensity?.years || [];
+  if (!mount) return;
+  if (!rows.length) { mount.innerHTML = '<p class="data-empty">NISTEPの研究開発費/GDP系列を取得できませんでした。</p>'; return; }
+  const labels = { Japan: "日本", "United States": "米国", Germany: "ドイツ", France: "フランス", "United Kingdom": "英国", China: "中国", Korea: "韓国" };
+  const colors = { Japan: "#ffb545", "United States": "#4fd8ff", Germany: "#8d7fb0", France: "#5ad8a1", "United Kingdom": "#c9a76a", China: "#ef6d78", Korea: "#a7b4cc" };
+  const keys = Object.keys(labels); mount.innerHTML = "";
+  const width = mount.clientWidth || 960, height = MOBILE ? 290 : 350, margin = { top: 42, right: 20, bottom: 42, left: 50 };
+  const x = d3.scaleLinear().domain(d3.extent(rows, d => d.year)).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0, 6]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "主要国の研究開発費の対GDP比率の推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(6).tickFormat(v => `${v}%`).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(MOBILE ? 4 : 8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  const line = d3.line().defined(d => Number.isFinite(d.value)).x(d => x(d.year)).y(d => y(d.value));
+  keys.forEach(key => { const points = rows.map(row => ({ year: row.year, value: row[key] })); svg.append("path").datum(points).attr("fill", "none").attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.8 : 1.25).attr("opacity", key === "Japan" ? 1 : .78).attr("d", line); const last = points.filter(d => Number.isFinite(d.value)).at(-1); if (last && !MOBILE) svg.append("text").attr("class", "chart-value sti-end-label").attr("x", x(last.year) - 4).attr("y", y(last.value) - 7).attr("text-anchor", "end").attr("fill", colors[key]).text(`${labels[key]} ${last.value.toFixed(1)}%`); });
+  const legend = svg.append("g").attr("class", "sti-legend").attr("transform", `translate(${margin.left},14)`); keys.forEach((key, i) => { const lx = (i % 4) * 142, ly = Math.floor(i / 4) * 15; legend.append("line").attr("x1", lx).attr("x2", lx + 15).attr("y1", ly).attr("y2", ly).attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.5 : 1.4); legend.append("text").attr("x", lx + 21).attr("y", ly + 3).text(labels[key]).attr("fill", colors[key]); });
+  const japan = rows.filter(d => Number.isFinite(d.Japan)); setText("#sti-money-years", `${japan[0].year}–${japan.at(-1).year}`); setText("#sti-money-lede", `日本の研究開発費/GDPは${japan[0].Japan.toFixed(1)}%（${japan[0].year}年）から${japan.at(-1).Japan.toFixed(1)}%（${japan.at(-1).year}年）へ。金額だけでなく、経済規模に対する研究開発の重さを見る。`); setText("#sti-money-source", `出典: ${sti.source.title} 表${sti.series.rd_intensity.table}。${sti.series.rd_intensity.unit}。${sti.method_note}`);
+}
+
 /* ====================================================== 05 support scatter */
 
 function renderSupportScatter(indicators) {
@@ -1896,6 +1916,59 @@ function renderPublishing(publishing) {
   renderPubFacts();
 }
 
+/* ============================================================ 15 philanthropy */
+
+function renderPhilanthropy(finance, philanthropy) {
+  const trendMount = $("#philanthropy-trend");
+  const rankMount = $("#philanthropy-rank");
+  const block = finance?.national;
+  if (!block?.years?.length || !block.corporations?.length) {
+    [trendMount, rankMount].forEach((mount) => { if (mount) mount.innerHTML = '<p class="data-empty">データを取得できませんでした。</p>'; });
+    return;
+  }
+  const years = block.years;
+  const totals = years.map((year, i) => ({ year, value: d3.sum(block.corporations, (c) => c.metrics?.donations?.[i] || 0) }));
+  const latestIndex = years.length - 1;
+  const latestRows = block.corporations.map((c) => ({ label: c.label, value: c.metrics?.donations?.[latestIndex] || 0 })).filter((d) => d.value > 0).sort((a, b) => b.value - a.value).slice(0, 10);
+  const toOku = (v) => v / 1e5;
+  const widthOf = (mount, fallback = 560) => mount.clientWidth || fallback;
+
+  if (trendMount && totals.length) {
+    const width = widthOf(trendMount), height = Math.max(300, width * 0.58);
+    const margin = { top: 24, right: 28, bottom: 34, left: 58 };
+    const svg = d3.select(trendMount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "国立大学法人の寄付金収益の推移");
+    const x = d3.scaleLinear().domain(d3.extent(totals, (d) => d.year)).range([margin.left, width - margin.right]);
+    const y = d3.scaleLinear().domain([0, d3.max(totals, (d) => toOku(d.value)) * 1.14]).nice().range([height - margin.bottom, margin.top]);
+    baseAxis(svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickFormat(d3.format("d")).ticks(totals.length)));
+    baseAxis(svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(4).tickFormat((d) => `${d3.format(",.0f")(d)}億円`)));
+    const line = d3.line().x((d) => x(d.year)).y((d) => y(toOku(d.value))).curve(d3.curveMonotoneX);
+    svg.append("path").datum(totals).attr("fill", "none").attr("stroke", "#ffb545").attr("stroke-width", 3).attr("d", line);
+    svg.selectAll(".philanthropy-dot").data(totals).join("circle").attr("class", "philanthropy-dot").attr("cx", (d) => x(d.year)).attr("cy", (d) => y(toOku(d.value))).attr("r", 4).attr("fill", "#ffb545").attr("stroke", "#06090f").attr("stroke-width", 2);
+    svg.selectAll(".philanthropy-label").data(totals).join("text").attr("class", "chart-value philanthropy-label").attr("x", (d) => x(d.year)).attr("y", (d) => y(toOku(d.value)) - 11).attr("text-anchor", "middle").text((d) => `${d3.format(",.0f")(toOku(d.value))}億`);
+    setText("#philanthropy-trend-years", `${years[0]}–${years.at(-1)}年度`);
+    setText("#philanthropy-trend-source", `出典: 国立大学法人等の財務諸表。${years.at(-1)}年度の寄付金収益は${d3.format(",.0f")(toOku(totals.at(-1).value))}億円。会計上の寄付金収益であり、大学等全体のフィランソロピー総額ではない。`);
+  }
+  if (rankMount && latestRows.length) {
+    const width = widthOf(rankMount), height = Math.max(360, width * 0.72);
+    const margin = { top: 12, right: 48, bottom: 28, left: MOBILE ? 112 : 138 };
+    const x = d3.scaleLinear().domain([0, d3.max(latestRows, (d) => toOku(d.value)) * 1.17]).range([margin.left, width - margin.right]);
+    const y = d3.scaleBand().domain(latestRows.map((d) => d.label)).range([margin.top, height - margin.bottom]).padding(0.28);
+    const svg = d3.select(rankMount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", `${years.at(-1)}年度の国立大学法人寄付金収益ランキング`);
+    baseAxis(svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(4).tickFormat((d) => `${d3.format(",.0f")(d)}億`)));
+    svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).tickSize(0)).select(".domain").remove();
+    svg.selectAll(".philanthropy-bar").data(latestRows).join("rect").attr("class", "philanthropy-bar").attr("x", margin.left).attr("y", (d) => y(d.label)).attr("width", (d) => x(toOku(d.value)) - margin.left).attr("height", y.bandwidth()).attr("rx", 2).attr("fill", (d, i) => i < 3 ? "#ffb545" : "#5ad8a1");
+    svg.selectAll(".philanthropy-rank-value").data(latestRows).join("text").attr("class", "chart-value philanthropy-rank-value").attr("x", (d) => x(toOku(d.value)) + 7).attr("y", (d) => y(d.label) + y.bandwidth() / 2 + 4).text((d) => `${d3.format(",.0f")(toOku(d.value))}億`);
+    setText("#philanthropy-rank-year", `${years.at(-1)}年度`);
+    setText("#philanthropy-rank-source", `出典: 国立大学法人等の財務諸表。寄付金収益の大きい上位${latestRows.length}法人。大型寄付の有無や法人統合の影響を含むため、単年度の順位は長期的な寄付力そのものではない。`);
+  }
+  const chairs = philanthropy?.donation_chairs;
+  if (chairs) {
+    const facts = $("#philanthropy-facts");
+    if (facts) facts.innerHTML = `<div class="philanthropy-fact"><span class="fact-label">寄附講座・寄附研究部門</span><strong>${fmtInt(chairs.count)}件</strong><span>${chairs.fiscal_year}年度 / 受入実績 ${fmtInt(Math.round(chairs.amount_yen / 1e8))}億円</span></div>`;
+    setText("#philanthropy-source", `出典: ${philanthropy.source?.title || ""}。${chairs.note}`);
+  }
+}
+
 /* ========================================================= 10 funding structure */
 
 function renderFundingDualStream(funders) {
@@ -2143,7 +2216,7 @@ function renderEconYardstick(economy) {
 
 /* ================================================================= ledger */
 
-function renderLedger(indicators, finance, publishing, funders, economy, startups) {
+function renderLedger(indicators, finance, publishing, funders, economy, startups, philanthropy) {
   const ledger = $("#ledger");
   if (!ledger) return;
   const entries = [];
@@ -2164,6 +2237,7 @@ function renderLedger(indicators, finance, publishing, funders, economy, startup
   push(funders?.dual_support); push(funders?.kakenhi_years); push(funders?.csti_programs);
   push(economy?.cpi); push(economy?.fx_usdjpy);
   push(startups);
+  push(philanthropy);
   const seen = new Set();
   ledger.insertAdjacentHTML("beforeend", entries.filter((e) => !seen.has(e.title) && seen.add(e.title)).map((e) => `
     <div class="ledger-row">
@@ -2183,14 +2257,18 @@ async function init() {
   let funders = null;
   let economy = null;
   let startups = null;
+  let philanthropy = null;
+  let sti = null;
   try {
-    const [indicatorsResult, financeResult, publishingResult, fundersResult, economyResult, startupsResult] = await Promise.allSettled([
+    const [indicatorsResult, financeResult, publishingResult, fundersResult, economyResult, startupsResult, philanthropyResult, stiResult] = await Promise.allSettled([
       fetch("data/indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/finance.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/publishing.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/funders.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/economy.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch("data/university_startups.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/philanthropy.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
+      fetch("data/science_technology_indicators.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
     ]);
     indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
     finance = financeResult.status === "fulfilled" ? financeResult.value : null;
@@ -2198,6 +2276,8 @@ async function init() {
     funders = fundersResult.status === "fulfilled" ? fundersResult.value : null;
     economy = economyResult.status === "fulfilled" ? economyResult.value : null;
     startups = startupsResult.status === "fulfilled" ? startupsResult.value : null;
+    philanthropy = philanthropyResult.status === "fulfilled" ? philanthropyResult.value : null;
+    sti = stiResult.status === "fulfilled" ? stiResult.value : null;
   } catch (error) {
     console.error(error);
   }
@@ -2217,6 +2297,7 @@ async function init() {
   safeCall("renderKakenhi", () => renderKakenhi(indicators, funders));
   safeCall("renderKakenhiTrend", () => renderKakenhiTrend(funders));
   safeCall("renderCorporateRd", () => renderCorporateRd(indicators));
+  safeCall("renderStiMoney", () => renderStiMoney(sti));
   renderSupportScatter(indicators);
   renderPlanBars(indicators);
   renderNatlScatter(finance);
@@ -2225,10 +2306,11 @@ async function init() {
   renderSectorLines(finance);
   initAnatomy(finance);
   renderPublishing(publishing);
+  safeCall("renderPhilanthropy", () => renderPhilanthropy(finance, philanthropy));
   safeCall("renderFundingDualStream", () => renderFundingDualStream(funders));
   safeCall("renderFundingCsti", () => renderFundingCsti(funders));
   safeCall("renderEconYardstick", () => renderEconYardstick(economy));
-  renderLedger(indicators, finance, publishing, funders, economy, startups);
+  renderLedger(indicators, finance, publishing, funders, economy, startups, philanthropy);
 }
 
 init().catch((error) => {

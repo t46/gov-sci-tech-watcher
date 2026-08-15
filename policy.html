@@ -41,6 +41,9 @@
       <a href="#ch-domains" data-rail="ch-domains"><i>06</i><span>重点技術17領域</span></a>
       <span class="rail-group">若手への投資</span>
       <a href="#ch-youth" data-rail="ch-youth"><i>07</i><span>若手への投資</span></a>
+      <span class="rail-group">資料室</span>
+      <a href="#ch-sti" data-rail="ch-sti"><i>STI</i><span>科学技術指標</span></a>
+      <a href="#ch-sti-catalog" data-rail="ch-sti-catalog"><i>160</i><span>指標カタログ</span></a>
     </nav>
 
     <main id="main">
@@ -180,6 +183,33 @@
         <div class="youth-rate-row" id="youth-rates"></div>
 
         <p class="method-note" id="youth-source">出典を確認中</p>
+      </section>
+
+      <!-- STI BASELINE / REFERENCE ROOM -->
+      <section class="chapter" id="ch-sti" aria-labelledby="sti-title">
+        <div class="ch-head">
+          <p class="ch-no">STI / SCIENCE &amp; TECHNOLOGY INDICATORS</p>
+          <h2 id="sti-title">科学技術を測る、もうひとつの基準線。</h2>
+          <p class="ch-lede" id="sti-lede">NISTEPの「科学技術指標」は、研究開発費、人材、論文・特許、イノベーションを約160指標で追う、日本の科学技術活動の基礎資料。ここでは指標体系の見取り図と、各ページへつながる長期系列の入口を示す。</p>
+        </div>
+        <div class="sti-intro-grid" id="sti-intro-grid"></div>
+        <p class="method-note" id="sti-source">出典を確認中</p>
+      </section>
+
+      <section class="chapter" id="ch-sti-catalog" aria-labelledby="sti-catalog-title">
+        <div class="ch-head">
+          <p class="ch-no">STI / INDICATOR CATALOG</p>
+          <h2 id="sti-catalog-title">160の指標を、地図として読む。</h2>
+          <p class="ch-lede" id="sti-catalog-lede">研究開発費からイノベーションまで。NISTEP「科学技術指標2026」の指標本体とコラムを、表番号・分野・キーワードで探せるようにした。</p>
+        </div>
+        <div class="sti-catalog-controls" role="search">
+          <label><span>検索</span><input id="sti-catalog-search" type="search" placeholder="例：博士、特許、大学、AI" /></label>
+          <label><span>章</span><select id="sti-catalog-chapter"><option value="all">すべての章</option></select></label>
+          <label><span>種類</span><select id="sti-catalog-kind"><option value="all">指標＋コラム</option><option value="indicator">指標本体のみ</option><option value="column">コラムのみ</option></select></label>
+        </div>
+        <div class="sti-catalog-summary" id="sti-catalog-summary"></div>
+        <div class="sti-catalog-grid" id="sti-catalog-grid" aria-live="polite"></div>
+        <p class="method-note" id="sti-catalog-source">出典を確認中</p>
       </section>
 
       <footer class="obs-footer">

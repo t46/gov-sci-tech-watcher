@@ -158,6 +158,97 @@ function initRace(indicators) {
 
 /* ================================================================ 02 TERRAIN */
 
+function renderStiPapers(sti) {
+  const mount = $("#sti-papers-chart"); const rows = sti?.series?.paper_shares?.years || [];
+  if (!mount) return;
+  if (!rows.length) { mount.innerHTML = '<p class="data-empty">NISTEPの論文系列を取得できませんでした。</p>'; return; }
+  const labels = { Japan: "日本の論文", China: "中国の論文", JapanTop10: "日本Top10%", JapanTop1: "日本Top1%" }; const colors = { Japan: "#ffb545", China: "#ef6d78", JapanTop10: "#f48fb1", JapanTop1: "#e05a8b" }; const keys = Object.keys(labels); mount.innerHTML = "";
+  const width = mount.clientWidth || 960, height = MOBILE ? 280 : 330, margin = { top: 42, right: 20, bottom: 42, left: 50 }; const x = d3.scaleLinear().domain(d3.extent(rows, d => d.year)).range([margin.left, width - margin.right]); const y = d3.scaleLinear().domain([0, 50]).range([height - margin.bottom, margin.top]); const svg = d3.select(mount).append("svg").attr("viewBox", `0 0 ${width} ${height}`).attr("role", "img").attr("aria-label", "日本と中国の論文シェア、日本のTop10％とTop1％補正論文シェアの推移");
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(v => `${v}%`).tickSize(-(width - margin.left - margin.right)))); svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).ticks(MOBILE ? 4 : 8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839"); const line = d3.line().defined(d => Number.isFinite(d.value)).x(d => x(d.year)).y(d => y(d.value));
+  keys.forEach(key => { const points = rows.map(row => ({ year: row.year, value: row[key] })); svg.append("path").datum(points).attr("fill", "none").attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.8 : 1.5).attr("stroke-dasharray", key.includes("Top") ? "4 3" : null).attr("opacity", key === "Japan" ? 1 : .82).attr("d", line); const last = points.filter(d => Number.isFinite(d.value)).at(-1); if (last && !MOBILE) svg.append("text").attr("class", "chart-value sti-end-label").attr("x", x(last.year) - 4).attr("y", y(last.value) - 7).attr("text-anchor", "end").attr("fill", colors[key]).text(`${labels[key]} ${last.value.toFixed(1)}%`); });
+  const legend = svg.append("g").attr("class", "sti-legend").attr("transform", `translate(${margin.left},14)`); keys.forEach((key, i) => { const lx = (i % 4) * 155, ly = Math.floor(i / 4) * 15; legend.append("line").attr("x1", lx).attr("x2", lx + 15).attr("y1", ly).attr("y2", ly).attr("stroke", colors[key]).attr("stroke-width", key === "Japan" ? 2.5 : 1.4).attr("stroke-dasharray", key.includes("Top") ? "4 3" : null); legend.append("text").attr("x", lx + 21).attr("y", ly + 3).text(labels[key]).attr("fill", colors[key]); });
+  setText("#sti-papers-years", `${rows[0].year}–${rows.at(-1).year}`); setText("#sti-papers-source", `出典: ${sti.source.title} 表${sti.series.paper_shares.table}。${sti.series.paper_shares.note}。${sti.method_note}`);
+}
+
+function renderStiImpactProfile(sti) {
+  const mount = $("#sti-impact-chart");
+  const rows = sti?.series?.paper_shares?.years || [];
+  if (!mount) return;
+  if (!rows.length) {
+    mount.innerHTML = '<p class="data-empty">NISTEPの論文系列を取得できませんでした。</p>';
+    setText("#sti-impact-source", "出典を取得できませんでした。");
+    return;
+  }
+
+  const values = rows
+    .filter((row) => Number.isFinite(row.Japan) && row.Japan > 0)
+    .map((row) => ({
+      year: row.year,
+      top10: (row.JapanTop10 / row.Japan),
+      top1: (row.JapanTop1 / row.Japan),
+    }))
+    .filter((row) => Number.isFinite(row.top10) && Number.isFinite(row.top1));
+  if (!values.length) {
+    mount.innerHTML = '<p class="data-empty">NISTEPの比率を計算できませんでした。</p>';
+    return;
+  }
+
+  const width = mount.clientWidth || 960;
+  const height = MOBILE ? 280 : 330;
+  const margin = { top: 48, right: MOBILE ? 24 : 126, bottom: 42, left: 50 };
+  const x = d3.scaleLinear().domain(d3.extent(values, (d) => d.year)).range([margin.left, width - margin.right]);
+  const y = d3.scaleLinear().domain([0.5, 1.14]).range([height - margin.bottom, margin.top]);
+  const svg = d3.select(mount).html("").append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("role", "img")
+    .attr("aria-label", "日本のTop10％・Top1％補正論文数シェアを論文数シェアで割った比率の推移");
+
+  baseAxis(svg.append("g").attr("class", "axis").attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickFormat((v) => `${v.toFixed(1)}×`).tickSize(-(width - margin.left - margin.right))));
+  svg.append("g").attr("class", "axis").attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(MOBILE ? 4 : 8).tickFormat(d3.format("d"))).select(".domain").attr("stroke", "#1c2839");
+  svg.append("line").attr("x1", margin.left).attr("x2", width - margin.right)
+    .attr("y1", y(1)).attr("y2", y(1)).attr("stroke", "#4fd8ff")
+    .attr("stroke-width", 1).attr("stroke-dasharray", "3 3").attr("opacity", 0.8);
+  svg.append("text").attr("x", margin.left + 5).attr("y", y(1) - 7)
+    .attr("fill", "#4fd8ff").attr("font-size", 10).attr("font-family", "var(--mono)")
+    .text("1.0× = 論文量と同じシェア");
+
+  const area = d3.area().x((d) => x(d.year)).y0((d) => y(d.top10)).y1((d) => y(d.top1)).curve(d3.curveMonotoneX);
+  svg.append("path").datum(values).attr("d", area).attr("fill", "rgba(224, 90, 139, .12)");
+  const series = [
+    { key: "top10", label: "Top10％", color: "#4fd8ff", dash: "4 3" },
+    { key: "top1", label: "Top1％", color: "#e05a8b", dash: null },
+  ];
+  const line = d3.line().x((d) => x(d.year)).y((d) => y(d.value)).curve(d3.curveMonotoneX);
+  series.forEach((seriesItem) => {
+    const points = values.map((row) => ({ year: row.year, value: row[seriesItem.key] }));
+    svg.append("path").datum(points).attr("d", line).attr("fill", "none")
+      .attr("stroke", seriesItem.color).attr("stroke-width", 2.2)
+      .attr("stroke-dasharray", seriesItem.dash);
+    const last = points.at(-1);
+    if (last && !MOBILE) {
+      svg.append("text").attr("class", "chart-value sti-end-label")
+        .attr("x", x(last.year) - 4).attr("y", y(last.value) - 8)
+        .attr("text-anchor", "end").attr("fill", seriesItem.color)
+        .text(`${seriesItem.label} ${last.value.toFixed(2)}×`);
+    }
+  });
+
+  const legend = svg.append("g").attr("class", "sti-legend").attr("transform", `translate(${margin.left},15)`);
+  series.forEach((seriesItem, index) => {
+    const lx = index * (MOBILE ? 105 : 132);
+    legend.append("line").attr("x1", lx).attr("x2", lx + 16).attr("y1", 0).attr("y2", 0)
+      .attr("stroke", seriesItem.color).attr("stroke-width", 2).attr("stroke-dasharray", seriesItem.dash);
+    legend.append("text").attr("x", lx + 22).attr("y", 3).attr("fill", seriesItem.color).text(seriesItem.label);
+  });
+
+  const first = values[0];
+  const last = values.at(-1);
+  setText("#sti-impact-years", `${first.year}–${last.year}`);
+  setText("#sti-impact-source", `出典: ${sti.source.title} 表${sti.series.paper_shares.table}。Top10％・Top1％補正論文数シェア ÷ 論文数シェア（整数カウント、3年移動平均）。1.0×は、注目論文のシェアが論文量に比例する水準。${sti.method_note}`);
+}
+
 function initTerrain(indicators) {
   const mount = $("#terrain");
   const tabs = $("#terrain-tabs");
@@ -1041,12 +1132,13 @@ function initSystem(scisci) {
 async function init() {
   bootFooter();
   initRail();
-  const [indicatorsResult, topicsResult, scisciResult] = await Promise.allSettled([
-    fetchJson("data/indicators.json"), fetchJson("data/topics.json"), fetchJson("data/scisci.json"),
+  const [indicatorsResult, topicsResult, scisciResult, stiResult] = await Promise.allSettled([
+    fetchJson("data/indicators.json"), fetchJson("data/topics.json"), fetchJson("data/scisci.json"), fetchJson("data/science_technology_indicators.json"),
   ]);
   const indicators = indicatorsResult.status === "fulfilled" ? indicatorsResult.value.indicators : null;
   const topics = topicsResult.status === "fulfilled" ? topicsResult.value : null;
   const scisci = scisciResult.status === "fulfilled" ? scisciResult.value : null;
+  const sti = stiResult.status === "fulfilled" ? stiResult.value : null;
   if (!indicators) {
     setText("#header-status", "研究データを取得できません");
     return;
@@ -1063,6 +1155,8 @@ async function init() {
   }
 
   initRace(indicators);
+  renderStiPapers(sti);
+  renderStiImpactProfile(sti);
   initTerrain(indicators);
   renderInstitutions(indicators);
   try {

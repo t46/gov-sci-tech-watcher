@@ -1,0 +1,1392 @@
+{
+  "status": "ok",
+  "edition": "科学技術指標2026",
+  "report_number": "NISTEP REPORT No.212",
+  "collected_at": "2026-08-12",
+  "source": {
+    "title": "NISTEP 科学技術指標2026 統計集（HTML版）",
+    "url": "https://www.nistep.go.jp/sti_indicator/2026/NR212_table.html",
+    "report_url": "https://doi.org/10.15108/nr212"
+  },
+  "indicator_count": 160,
+  "table_count": 192,
+  "chapters": [
+    {
+      "number": 1,
+      "title": "研究開発費",
+      "page": "money.html"
+    },
+    {
+      "number": 2,
+      "title": "研究開発人材",
+      "page": "people.html"
+    },
+    {
+      "number": 3,
+      "title": "高等教育と科学技術人材",
+      "page": "people.html"
+    },
+    {
+      "number": 4,
+      "title": "研究開発のアウトプット",
+      "page": "papers.html"
+    },
+    {
+      "number": 5,
+      "title": "科学技術とイノベーション",
+      "page": "money.html"
+    },
+    {
+      "number": 0,
+      "title": "コラム",
+      "page": "policy.html"
+    }
+  ],
+  "items": [
+    {
+      "number": "1-1-1",
+      "title": "主要国における研究開発費総額の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-01.xlsx"
+    },
+    {
+      "number": "1-1-2",
+      "title": "各国・地域の研究開発費総額の対GDP比率",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-02.xlsx"
+    },
+    {
+      "number": "1-1-3",
+      "title": "主要国の研究開発費総額の対GDP比率の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-03.xlsx"
+    },
+    {
+      "number": "1-1-4",
+      "title": "主要国における研究開発費の負担部門と使用部門の定義",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-04.xlsx"
+    },
+    {
+      "number": "1-1-5",
+      "title": "主要国の負担部門から使用部門への研究開発費の流れ",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-05.xlsx"
+    },
+    {
+      "number": "1-1-6",
+      "title": "主要国における部門別の研究開発費の使用額と割合",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-1-06.xlsx"
+    },
+    {
+      "number": "1-2-1",
+      "title": "主要国政府の科学技術予算の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-01.xlsx"
+    },
+    {
+      "number": "1-2-2",
+      "title": "主要国政府の科学技術予算の対GDP比率の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-02.xlsx"
+    },
+    {
+      "number": "1-2-3",
+      "title": "主要国の負担源としての政府",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-03.xlsx"
+    },
+    {
+      "number": "1-2-4",
+      "title": "主要国における政府の研究開発費負担割合の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-04.xlsx"
+    },
+    {
+      "number": "1-2-5",
+      "title": "主要国における政府負担研究開発費の支出先の内訳の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-05.xlsx"
+    },
+    {
+      "number": "1-2-6",
+      "title": "基本計画のもとでの科学技術関係予算の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-06.xlsx"
+    },
+    {
+      "number": "1-2-7",
+      "title": "科学技術関係予算の内訳（2025年度）（当初予算と補正予算）",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-07.xlsx"
+    },
+    {
+      "number": "1-2-8",
+      "title": "府省庁別の科学技術関係予算の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-08.xlsx"
+    },
+    {
+      "number": "1-2-9",
+      "title": "地域の科学技術関係予算の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-09.xlsx"
+    },
+    {
+      "number": "1-2-10",
+      "title": "地域の科学技術関係予算の内訳の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-10.xlsx"
+    },
+    {
+      "number": "1-2-11",
+      "title": "地域別予算項目別科学技術関係予算",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-2-11.xlsx"
+    },
+    {
+      "number": "1-3-1",
+      "title": "主要国における公的機関部門の研究開発費の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-01.xlsx"
+    },
+    {
+      "number": "1-3-2",
+      "title": "日本の公的機関の研究開発費の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-02.xlsx"
+    },
+    {
+      "number": "1-3-3",
+      "title": "主要国における企業部門の研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-03.xlsx"
+    },
+    {
+      "number": "1-3-4",
+      "title": "主要国における企業部門の研究開発費の対GDP比率の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-04.xlsx"
+    },
+    {
+      "number": "1-3-5",
+      "title": "主要国における企業部門の製造業と非製造業の研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-05.xlsx"
+    },
+    {
+      "number": "1-3-6",
+      "title": "主要国における企業部門の産業分類別研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-06.xlsx"
+    },
+    {
+      "number": "1-3-7",
+      "title": "日本の産業分類別売上高に占める研究開発費の割合",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-07.xlsx"
+    },
+    {
+      "number": "1-3-8",
+      "title": "主要国における企業の従業員規模別研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-08.xlsx"
+    },
+    {
+      "number": "1-3-9",
+      "title": "企業の従業員規模別売上高に占める研究開発費割合の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-09.xlsx"
+    },
+    {
+      "number": "1-3-10",
+      "title": "企業の研究開発のための政府による直接的支援、間接的支援",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-10.xlsx"
+    },
+    {
+      "number": "1-3-11",
+      "title": "主要国における政府から企業への直接的支援(企業の従業員規模別)",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-11.xlsx"
+    },
+    {
+      "number": "1-3-12",
+      "title": "日本企業における外部支出研究開発費の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-12.xlsx"
+    },
+    {
+      "number": "1-3-13",
+      "title": "主要国における大学部門の研究開発費の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-13.xlsx"
+    },
+    {
+      "number": "1-3-14",
+      "title": "主要国の大学における政府と企業による負担研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-14.xlsx"
+    },
+    {
+      "number": "1-3-15",
+      "title": "国公私立大学別の研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-15.xlsx"
+    },
+    {
+      "number": "1-3-16",
+      "title": "大学等における研究開発費の学問分野別の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-16.xlsx"
+    },
+    {
+      "number": "1-3-17",
+      "title": "大学等における内部使用研究費のうち企業から受け入れた金額の推移",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-17.xlsx"
+    },
+    {
+      "number": "1-3-18",
+      "title": "大学等における費目別研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-18.xlsx"
+    },
+    {
+      "number": "1-3-19",
+      "title": "大学等における負担源別研究開発費",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-3-19.xlsx"
+    },
+    {
+      "number": "1-4-1",
+      "title": "主要国の性格別研究開発費の内訳",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-4-01.xlsx"
+    },
+    {
+      "number": "1-4-2",
+      "title": "主要国の部門別の性格別研究開発費の内訳",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-4-02.xlsx"
+    },
+    {
+      "number": "1-4-3",
+      "title": "日本の企業における基礎研究費の推移（産業分類別）",
+      "chapter": "第1章 研究開発費",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_1-4-03.xlsx"
+    },
+    {
+      "number": "2-1-1",
+      "title": "各国の部門別研究者の定義及び測定方法",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-01.xlsx"
+    },
+    {
+      "number": "2-1-2",
+      "title": "本報告書における日本の研究者の測定方法",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-02.xlsx"
+    },
+    {
+      "number": "2-1-3",
+      "title": "主要国の研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-03.xlsx"
+    },
+    {
+      "number": "2-1-4",
+      "title": "主要国の人口1万人当たりの研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-04.xlsx"
+    },
+    {
+      "number": "2-1-5",
+      "title": "主要国の労働力人口1万人当たりの研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-05.xlsx"
+    },
+    {
+      "number": "2-1-6",
+      "title": "主要国における研究者数の部門別内訳",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-06.xlsx"
+    },
+    {
+      "number": "2-1-7",
+      "title": "主要国における部門別研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-07.xlsx"
+    },
+    {
+      "number": "2-1-8",
+      "title": "各部門における博士号を持つ研究者の状況(HC値)",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-08.xlsx"
+    },
+    {
+      "number": "2-1-9",
+      "title": "日本と米国における部門別博士号保持者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-09.xlsx"
+    },
+    {
+      "number": "2-1-10",
+      "title": "男女別研究者数と女性研究者数の割合(HC値比較)",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-10.xlsx"
+    },
+    {
+      "number": "2-1-11",
+      "title": "主要国の女性研究者数の部門ごとの割合",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-11.xlsx"
+    },
+    {
+      "number": "2-1-12",
+      "title": "日本の女性研究者数及び全研究者に占める割合の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-12.xlsx"
+    },
+    {
+      "number": "2-1-13",
+      "title": "日本の男女別研究者数と博士号保持者の状況（2025年）",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-13.xlsx"
+    },
+    {
+      "number": "2-1-14",
+      "title": "米国における出身国・地域別、職業分野別、博士号保持者の雇用状況",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-14.xlsx"
+    },
+    {
+      "number": "2-1-15",
+      "title": "研究者の新規採用・転入・転出者数",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-15.xlsx"
+    },
+    {
+      "number": "2-1-16",
+      "title": "部門間における転入研究者の流れ",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-16.xlsx"
+    },
+    {
+      "number": "2-1-17",
+      "title": "日本の新規採用研究者の動向",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-17.xlsx"
+    },
+    {
+      "number": "2-1-18",
+      "title": "企業の新規採用研究者における博士号保持者（産業分類別）",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-1-18.xlsx"
+    },
+    {
+      "number": "2-2-1",
+      "title": "主要国における公的機関部門の研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-01.xlsx"
+    },
+    {
+      "number": "2-2-2",
+      "title": "日本の公的機関の研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-02.xlsx"
+    },
+    {
+      "number": "2-2-3",
+      "title": "日本の公的機関における専門別研究者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-03.xlsx"
+    },
+    {
+      "number": "2-2-4",
+      "title": "主要国における企業部門の研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-04.xlsx"
+    },
+    {
+      "number": "2-2-5",
+      "title": "主要国における企業部門の製造業と非製造業の研究者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-05.xlsx"
+    },
+    {
+      "number": "2-2-6",
+      "title": "主要国における企業部門の産業分類別研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-06.xlsx"
+    },
+    {
+      "number": "2-2-7",
+      "title": "日本の産業分類別従業員に占める研究者の割合(2025年)",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-07.xlsx"
+    },
+    {
+      "number": "2-2-8",
+      "title": "日本の企業における研究者の専門分野(2025年）",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-08.xlsx"
+    },
+    {
+      "number": "2-2-9",
+      "title": "産業分類別の研究人材集約度と高度研究人材活用度の関係",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-09.xlsx"
+    },
+    {
+      "number": "2-2-10",
+      "title": "企業における産業分類別女性研究者の日独比較",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-10.xlsx"
+    },
+    {
+      "number": "2-2-11",
+      "title": "主要国における大学部門の研究者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-11.xlsx"
+    },
+    {
+      "number": "2-2-12",
+      "title": "国公私立大学別の研究者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-12.xlsx"
+    },
+    {
+      "number": "2-2-13",
+      "title": "国公私立大学別学問分野別の研究者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-13.xlsx"
+    },
+    {
+      "number": "2-2-14",
+      "title": "国公私立大学別業務区分別の研究者",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-14.xlsx"
+    },
+    {
+      "number": "2-2-15",
+      "title": "大学等における研究者の任期の状況（2025年）",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-15.xlsx"
+    },
+    {
+      "number": "2-2-16",
+      "title": "大学の本務教員の年齢階層構成",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-16.xlsx"
+    },
+    {
+      "number": "2-2-17",
+      "title": "大学の採用教員の年齢階層構成",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-2-17.xlsx"
+    },
+    {
+      "number": "2-3-1",
+      "title": "各国部門別の研究支援者の定義",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-3-01.xlsx"
+    },
+    {
+      "number": "2-3-2",
+      "title": "主要国の部門別研究者一人当たりの業務別研究支援者数",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-3-02.xlsx"
+    },
+    {
+      "number": "2-3-3",
+      "title": "日本の部門別男女別の研究支援者数の推移",
+      "chapter": "第2章 研究開発人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_2-3-03.xlsx"
+    },
+    {
+      "number": "3-1-1",
+      "title": "大学（学部）入学者数",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-01.xlsx"
+    },
+    {
+      "number": "3-1-2",
+      "title": "大学院（修士課程）入学者数",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-02.xlsx"
+    },
+    {
+      "number": "3-1-3",
+      "title": "大学院（博士課程）入学者数",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-03.xlsx"
+    },
+    {
+      "number": "3-1-4",
+      "title": "修士課程修了者の進学率",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-04.xlsx"
+    },
+    {
+      "number": "3-1-5",
+      "title": "大学学部の入学者数に占める女性の割合",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-05.xlsx"
+    },
+    {
+      "number": "3-1-6",
+      "title": "学部・修士課程・博士課程別入学者数（女性と男性）",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-06.xlsx"
+    },
+    {
+      "number": "3-1-7",
+      "title": "日本の社会人大学院生（在籍者）の状況",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-07.xlsx"
+    },
+    {
+      "number": "3-1-8",
+      "title": "理工系修士・博士課程における社会人大学院生数(在籍者)の推移",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-08.xlsx"
+    },
+    {
+      "number": "3-1-9",
+      "title": "社会人と社会人以外の専攻別博士課程在籍者数の推移",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-1-09.xlsx"
+    },
+    {
+      "number": "3-2-1",
+      "title": "理工系学部卒業者の進路",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-01.xlsx"
+    },
+    {
+      "number": "3-2-2",
+      "title": "理工系修士課程修了者の進路",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-02.xlsx"
+    },
+    {
+      "number": "3-2-3",
+      "title": "理工系博士課程修了者の進路",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-03.xlsx"
+    },
+    {
+      "number": "3-2-4",
+      "title": "理工系学部卒業者のうちの就職者（産業分類別の就職状況）",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-04.xlsx"
+    },
+    {
+      "number": "3-2-5",
+      "title": "理工系修士課程修了者のうちの就職者（産業分類別の就職状況）",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-05.xlsx"
+    },
+    {
+      "number": "3-2-6",
+      "title": "理工系博士課程修了者のうちの就職者（産業分類別の就職状況）",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-06.xlsx"
+    },
+    {
+      "number": "3-2-7",
+      "title": "理工系学部卒業者の職業別の就職状況",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-07.xlsx"
+    },
+    {
+      "number": "3-2-8",
+      "title": "理工系修士課程修了者の職業別の就職状況",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-08.xlsx"
+    },
+    {
+      "number": "3-2-9",
+      "title": "理工系博士課程修了者の職業別の就職状況",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-2-09.xlsx"
+    },
+    {
+      "number": "3-3-1",
+      "title": "人口100万人当たりの学士号取得者数の国際比較",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-01.xlsx"
+    },
+    {
+      "number": "3-3-2",
+      "title": "人口100万人当たりの修士号取得者数の国際比較",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-02.xlsx"
+    },
+    {
+      "number": "3-3-3",
+      "title": "人口100万人当たりの博士号取得者数の国際比較",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-03.xlsx"
+    },
+    {
+      "number": "3-3-4",
+      "title": "主要国の博士号取得者数の推移",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-04.xlsx"
+    },
+    {
+      "number": "3-3-5",
+      "title": "日本の博士号取得者数の推移(主要専攻別)",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-05.xlsx"
+    },
+    {
+      "number": "3-3-6",
+      "title": "日本の博士号取得者数の推移(課程博士／論文博士別)",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-06.xlsx"
+    },
+    {
+      "number": "3-3-7",
+      "title": "専攻別博士号取得者の内訳（国公私立大学別）",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-3-07.xlsx"
+    },
+    {
+      "number": "3-4-1",
+      "title": "日本と米国における外国人大学院生の状況",
+      "chapter": "第3章 高等教育と科学技術人材",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_3-4-01.xlsx"
+    },
+    {
+      "number": "4-1-1",
+      "title": "全世界の論文量の変化",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-01.xlsx"
+    },
+    {
+      "number": "4-1-2",
+      "title": "全世界の論文共著形態の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-02.xlsx"
+    },
+    {
+      "number": "4-1-3",
+      "title": "主要国の論文共著形態の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-03.xlsx"
+    },
+    {
+      "number": "4-1-4",
+      "title": "分野ごとの国際共著論文",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-04.xlsx"
+    },
+    {
+      "number": "4-1-5",
+      "title": "整数カウント法と分数カウント法",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-05.xlsx"
+    },
+    {
+      "number": "4-1-6",
+      "title": "国・地域別論文数、Top10％補正論文数、Top1％補正論文数： 上位25か国・地域",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-06.xlsx"
+    },
+    {
+      "number": "4-1-7",
+      "title": "主要国の論文数、Top10％補正論文数、Top1％補正論文数及びシェアの変化",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-07.xlsx"
+    },
+    {
+      "number": "4-1-8",
+      "title": "全世界の分野別論文数割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-08.xlsx"
+    },
+    {
+      "number": "4-1-9",
+      "title": "主要国の分野別論文数割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-09.xlsx"
+    },
+    {
+      "number": "4-1-10",
+      "title": "主要国の分野ごとの論文数シェアとTop10％補正論文数シェアの比較(％、2022-2024年(PY)、分数カウント法)",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-10.xlsx"
+    },
+    {
+      "number": "4-1-11",
+      "title": "オープンアクセス（OA）論文の種類",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-11.xlsx"
+    },
+    {
+      "number": "4-1-12",
+      "title": "全世界のオープンアクセス（OA）論文",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-12.xlsx"
+    },
+    {
+      "number": "4-1-13",
+      "title": "主要国のオープンアクセス（OA）論文",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-13.xlsx"
+    },
+    {
+      "number": "4-1-14",
+      "title": "分野ごとのOA化率の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-1-14.xlsx"
+    },
+    {
+      "number": "4-2-1",
+      "title": "世界の特許出願数の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-01.xlsx"
+    },
+    {
+      "number": "4-2-2",
+      "title": "主要国への特許出願状況と主要国からの特許出願状況",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-02.xlsx"
+    },
+    {
+      "number": "4-2-3",
+      "title": "パテントファミリー＋単国出願数とパテントファミリー数の変化",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-03.xlsx"
+    },
+    {
+      "number": "4-2-4",
+      "title": "主要国におけるパテントファミリー＋単国出願の出願国数と割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-04.xlsx"
+    },
+    {
+      "number": "4-2-5",
+      "title": "国・地域別パテントファミリー＋単国出願数、パテントファミリー数： 上位25か国・地域",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-05.xlsx"
+    },
+    {
+      "number": "4-2-6",
+      "title": "主要国のパテントファミリー＋単国出願数、パテントファミリー数シェアの変化（全技術分野、整数カウント法、3年移動平均）",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-06.xlsx"
+    },
+    {
+      "number": "4-2-7",
+      "title": "パテントファミリーにおける国際共同状況",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-07.xlsx"
+    },
+    {
+      "number": "4-2-8",
+      "title": "主要国のパテントファミリーにおける国際共同割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-08.xlsx"
+    },
+    {
+      "number": "4-2-9",
+      "title": "技術分野",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-09.xlsx"
+    },
+    {
+      "number": "4-2-10",
+      "title": "全世界の技術分野別パテントファミリー数割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-10.xlsx"
+    },
+    {
+      "number": "4-2-11",
+      "title": "主要国の技術分野別パテントファミリー数割合の推移",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-11.xlsx"
+    },
+    {
+      "number": "4-2-12",
+      "title": "主要国の技術分野ごとのパテントファミリー数シェアの比較(％、2009-2011年と2019-2021年、整数カウント法)",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-12.xlsx"
+    },
+    {
+      "number": "4-2-13",
+      "title": "主要国におけるパテントファミリーの出願先",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-2-13.xlsx"
+    },
+    {
+      "number": "4-3-2",
+      "title": "論文を引用しているパテントファミリー数：上位25か国・地域",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-02.xlsx"
+    },
+    {
+      "number": "4-3-3",
+      "title": "パテントファミリーに引用されている論文数：上位25か国・地域",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-03.xlsx"
+    },
+    {
+      "number": "4-3-4",
+      "title": "主要国間の科学と技術のつながり",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-04.xlsx"
+    },
+    {
+      "number": "4-3-5",
+      "title": "技術分野別論文を引用しているパテントファミリー数の割合",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-05.xlsx"
+    },
+    {
+      "number": "4-3-6",
+      "title": "世界における論文分野と技術分野のつながり",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-06.xlsx"
+    },
+    {
+      "number": "4-3-7",
+      "title": "日本の論文と主要国のパテントファミリーのつながり",
+      "chapter": "第4章 研究開発のアウトプット",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_4-3-07.xlsx"
+    },
+    {
+      "number": "5-1-1",
+      "title": "日本と米国の技術貿易額の推移（親子会社、関連会社間の技術貿易とそれ以外の技術貿易）",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-1-01.xlsx"
+    },
+    {
+      "number": "5-1-2",
+      "title": "日本の産業分類別の技術貿易",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-1-02.xlsx"
+    },
+    {
+      "number": "5-1-3",
+      "title": "日本と米国の相手先国・地域別技術貿易額",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-1-03.xlsx"
+    },
+    {
+      "number": "5-2-1",
+      "title": "主要国における貿易額の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-01.xlsx"
+    },
+    {
+      "number": "5-2-2",
+      "title": "主要国の産業に対応する製品群の貿易額",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-02.xlsx"
+    },
+    {
+      "number": "5-2-3",
+      "title": "主要国等におけるハイテクノロジー産業貿易額の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-03.xlsx"
+    },
+    {
+      "number": "5-2-4",
+      "title": "主要国におけるハイテクノロジー産業の貿易収支比の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-04.xlsx"
+    },
+    {
+      "number": "5-2-5",
+      "title": "主要国等におけるミディアムハイテクノロジー産業貿易額の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-05.xlsx"
+    },
+    {
+      "number": "5-2-6",
+      "title": "主要国におけるミディアムハイテクノロジー産業の貿易収支比の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-2-06.xlsx"
+    },
+    {
+      "number": "5-3-1",
+      "title": "世界の商標出願数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-3-01.xlsx"
+    },
+    {
+      "number": "5-3-2",
+      "title": "主要国への商標出願状況と主要国からの商標出願状況",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-3-02.xlsx"
+    },
+    {
+      "number": "5-3-3",
+      "title": "国境を越えた商標出願と特許出願(人口100万人当たり)",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-3-03.xlsx"
+    },
+    {
+      "number": "5-3-4",
+      "title": "主要国から米国への商標出願におけるニース国際分類クラスによる産業分類の構成",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-3-04.xlsx"
+    },
+    {
+      "number": "5-4-2",
+      "title": "研究開発活動別主要国のプロダクト・イノベーション実現企業割合",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-02.xlsx"
+    },
+    {
+      "number": "5-4-3",
+      "title": "主要国のプロダクト・イノベーション実現企業割合（企業規模別、産業別）",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-03.xlsx"
+    },
+    {
+      "number": "5-4-4",
+      "title": "主要国のプロダクト・イノベーション実現企業のうち市場にとって新しいプロダクト・イノベーション実現企業の割合",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-04.xlsx"
+    },
+    {
+      "number": "5-4-5",
+      "title": "日本の大学等の民間企業等との共同研究等にかかる受入額(内訳)と実施件数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-05.xlsx"
+    },
+    {
+      "number": "5-4-6",
+      "title": "大学等における特許出願数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-06.xlsx"
+    },
+    {
+      "number": "5-4-7",
+      "title": "知的財産権収入の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-07.xlsx"
+    },
+    {
+      "number": "5-4-8",
+      "title": "大学発ベンチャー数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-08.xlsx"
+    },
+    {
+      "number": "5-4-9",
+      "title": "業種別大学発ベンチャー企業数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-09.xlsx"
+    },
+    {
+      "number": "5-4-10",
+      "title": "大学発ベンチャー企業の従業員数に占める博士号保持者数の割合（2025年度）",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-10.xlsx"
+    },
+    {
+      "number": "5-4-11",
+      "title": "新たなユニコーン企業数の推移",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-11.xlsx"
+    },
+    {
+      "number": "5-4-12",
+      "title": "分類別・国・地域別ユニコーン企業数（2007～2025の合計）",
+      "chapter": "第5章 科学技術とイノベーション",
+      "kind": "indicator",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_5-4-12.xlsx"
+    },
+    {
+      "number": "1-1",
+      "title": "単価の時系列変化(2010年基準)",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_1-01.xlsx"
+    },
+    {
+      "number": "1-2",
+      "title": "燃料特別付加運賃の変化",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_1-02.xlsx"
+    },
+    {
+      "number": "2-1",
+      "title": "大学の本務教員の学問分野別年齢構成",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_2-01.xlsx"
+    },
+    {
+      "number": "2-2",
+      "title": "大学本務教員の採用前の状況",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_2-02.xlsx"
+    },
+    {
+      "number": "2-3",
+      "title": "大学本務教員の新規学卒者の割合",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_2-03.xlsx"
+    },
+    {
+      "number": "3-1",
+      "title": "大学院入学者における留学生",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_3-01.xlsx"
+    },
+    {
+      "number": "3-2",
+      "title": "修士課程在籍者における専攻分野別外国人学生",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_3-02.xlsx"
+    },
+    {
+      "number": "3-3",
+      "title": "博士課程在籍者における専攻分野別外国人学生",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_3-03.xlsx"
+    },
+    {
+      "number": "4-1",
+      "title": "高被引用研究者数の世界順位変動",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_4-01.xlsx"
+    },
+    {
+      "number": "4-2",
+      "title": "主要国の分野別高被引用研究者数シェア",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_4-02.xlsx"
+    },
+    {
+      "number": "5-1",
+      "title": "研究トピック4類型ごとの引用トピック一覧",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-01.xlsx"
+    },
+    {
+      "number": "5-2",
+      "title": "研究トピック4類型ごとの全世界のTop10％補正論文数",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-02.xlsx"
+    },
+    {
+      "number": "5-3",
+      "title": "研究トピック4類型ごとの全世界のTop10％補正論文数（22分野別の内訳、2022-2024年平均）",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-03.xlsx"
+    },
+    {
+      "number": "5-4",
+      "title": "主要国のTop10％補正論文数における研究トピック4類型の構成(2022-2024年平均)",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-04.xlsx"
+    },
+    {
+      "number": "5-5",
+      "title": "大規模・新規トピック及び大規模・継続トピックへの特化度",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-05.xlsx"
+    },
+    {
+      "number": "5-6",
+      "title": "大規模・新規トピックへの特化度とTop10％補正論文数の伸び率",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-06.xlsx"
+    },
+    {
+      "number": "5-7",
+      "title": "研究トピック4類型ごとのTop10％補正論文数(分数カウント法)の国・地域別順位",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_5-07.xlsx"
+    },
+    {
+      "number": "6-1",
+      "title": "論文を引用しているパテントファミリー数シェアの推移",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-01.xlsx"
+    },
+    {
+      "number": "6-2",
+      "title": "パテントファミリーに引用されている論文数シェアの推移",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-02.xlsx"
+    },
+    {
+      "number": "6-3",
+      "title": "シェアの増減ポイント(2001から2021年変化)が大きい上位5か国・地域",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-03.xlsx"
+    },
+    {
+      "number": "6-4",
+      "title": "主要国における論文国とパテントファミリー国のつながり(時系列)",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-04.xlsx"
+    },
+    {
+      "number": "6-5",
+      "title": "日本、米国、中国の論文と世界のパテントファミリーとのつながり(2017-2021年)",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-05.xlsx"
+    },
+    {
+      "number": "6-6",
+      "title": "日本、米国、中国の技術分野における主要国の論文とのつながり(2017-2021年)",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_6-06.xlsx"
+    },
+    {
+      "number": "7-1",
+      "title": "科学技術への関心層分類の基準及び別の回答者割合",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_7-01.xlsx"
+    },
+    {
+      "number": "7-2",
+      "title": "関心層別の性別分布",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_7-02.xlsx"
+    },
+    {
+      "number": "7-3",
+      "title": "関心層別の年齢別分布",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_7-03.xlsx"
+    },
+    {
+      "number": "7-4",
+      "title": "関心層別の専攻分野分布",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_7-04.xlsx"
+    },
+    {
+      "number": "7-5",
+      "title": "関心層別の科学者への信頼度合",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_7-05.xlsx"
+    },
+    {
+      "number": "8-1",
+      "title": "関心層別の偽情報認識度合",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_8-01.xlsx"
+    },
+    {
+      "number": "8-2",
+      "title": "関心層別の偽情報・誤情報への接触度合",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_8-02.xlsx"
+    },
+    {
+      "number": "8-3",
+      "title": "関心層別の偽情報・誤情報の判断材料",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_8-03.xlsx"
+    },
+    {
+      "number": "8-4",
+      "title": "関心層別の偽情報・誤情報への対処",
+      "chapter": "コラム",
+      "kind": "column",
+      "excel_url": "https://www.nistep.go.jp/sti_indicator/2026/hyoudata/STI2026_column_8-04.xlsx"
+    }
+  ],
+  "note": "指標本体とコラムを含むNISTEP統計集の表カタログ。タイトル・表番号・原典Excelへのリンクを掲載。本文中の約160指標はindicator_countに対応し、コラムは別種別として収録。"
+}
