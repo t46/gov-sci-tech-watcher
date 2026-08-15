@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-11T00:44:24.439719Z",
+  "generated_at": "2026-08-14T22:43:23.714038Z",
   "policy": {
-    "item_count": 30,
+    "item_count": 31,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-11"
+      "to": "2026-08-19"
     },
     "category_counts": [
       {
@@ -17,19 +17,19 @@
         "count": 7
       },
       {
-        "label": "AI・デジタル",
+        "label": "生命・健康",
         "count": 3
       },
       {
-        "label": "生命・健康",
+        "label": "AI・デジタル",
+        "count": 2
+      },
+      {
+        "label": "研究基盤・人材",
         "count": 2
       },
       {
         "label": "量子・半導体",
-        "count": 1
-      },
-      {
-        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -60,7 +60,7 @@
       },
       {
         "label": "評価・検証",
-        "count": 1
+        "count": 2
       },
       {
         "label": "政策・戦略",
@@ -70,7 +70,7 @@
     "source_counts": [
       {
         "label": "内閣府 科学技術・イノベーション",
-        "count": 15
+        "count": 16
       },
       {
         "label": "文部科学省",
@@ -91,19 +91,19 @@
         "count": 7
       },
       {
-        "label": "AI・デジタル",
+        "label": "生命・健康",
         "count": 3
       },
       {
-        "label": "生命・健康",
+        "label": "AI・デジタル",
+        "count": 2
+      },
+      {
+        "label": "研究基盤・人材",
         "count": 2
       },
       {
         "label": "量子・半導体",
-        "count": 1
-      },
-      {
-        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -133,8 +133,12 @@
         "count": 2
       },
       {
+        "month": "2026-05",
+        "count": 1
+      },
+      {
         "month": "2026-06",
-        "count": 4
+        "count": 3
       },
       {
         "month": "2026-07",
@@ -142,7 +146,7 @@
       },
       {
         "month": "2026-08",
-        "count": 8
+        "count": 9
       }
     ],
     "activity_grid": [
@@ -289,12 +293,12 @@
       {
         "year": "2026",
         "month": "05",
-        "count": 0
+        "count": 1
       },
       {
         "year": "2026",
         "month": "06",
-        "count": 4
+        "count": 3
       },
       {
         "year": "2026",
@@ -304,7 +308,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 8
+        "count": 9
       },
       {
         "year": "2026",
@@ -329,19 +333,14 @@
     ],
     "category_document_matrix": [
       {
+        "category": "生命・健康",
+        "document_type": "発表・報告",
+        "count": 2
+      },
+      {
         "category": "科学技術政策",
         "document_type": "会議・審議",
         "count": 6
-      },
-      {
-        "category": "科学技術政策",
-        "document_type": "発表・報告",
-        "count": 4
-      },
-      {
-        "category": "生命・健康",
-        "document_type": "発表・報告",
-        "count": 1
       },
       {
         "category": "AI・デジタル",
@@ -366,12 +365,12 @@
       {
         "category": "AI・デジタル",
         "document_type": "会議・審議",
-        "count": 2
+        "count": 1
       },
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 1
+        "count": 2
       },
       {
         "category": "科学技術政策",
@@ -379,23 +378,33 @@
         "count": 1
       },
       {
-        "category": "量子・半導体",
+        "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 1
+        "count": 3
       },
       {
-        "category": "生命・健康",
-        "document_type": "会議・審議",
+        "category": "量子・半導体",
+        "document_type": "発表・報告",
         "count": 1
       },
       {
         "category": "研究基盤・人材",
         "document_type": "政策・戦略",
         "count": 1
+      },
+      {
+        "category": "研究基盤・人材",
+        "document_type": "会議・審議",
+        "count": 1
+      },
+      {
+        "category": "生命・健康",
+        "document_type": "会議・審議",
+        "count": 1
       }
     ],
     "insights": [
-      "掲載中の公式更新は30件。文書の役割では「会議・審議」が最多です。",
+      "掲載中の公式更新は31件。文書の役割では「会議・審議」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
