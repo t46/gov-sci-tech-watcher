@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-16T22:41:37.995787Z",
+  "generated_at": "2026-08-17T22:43:40.176454Z",
   "policy": {
     "item_count": 31,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-19"
+      "to": "2026-08-17"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 16
+        "count": 17
       },
       {
         "label": "予算・投資",
@@ -18,7 +18,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 2
       },
       {
         "label": "AI・デジタル",
@@ -44,14 +44,14 @@
       },
       {
         "label": "発表・報告",
-        "count": 6
-      },
-      {
-        "label": "基本計画",
-        "count": 2
+        "count": 5
       },
       {
         "label": "公募・支援",
+        "count": 3
+      },
+      {
+        "label": "基本計画",
         "count": 2
       },
       {
@@ -92,7 +92,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 2
       },
       {
         "label": "AI・デジタル",
@@ -146,7 +146,7 @@
       },
       {
         "month": "2026-08",
-        "count": 9
+        "count": 8
       }
     ],
     "activity_grid": [
@@ -308,7 +308,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 9
+        "count": 8
       },
       {
         "year": "2026",
@@ -340,7 +340,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 6
+        "count": 7
       },
       {
         "category": "AI・デジタル",
@@ -350,7 +350,7 @@
       {
         "category": "科学技術政策",
         "document_type": "公募・支援",
-        "count": 2
+        "count": 3
       },
       {
         "category": "予算・投資",
@@ -380,7 +380,7 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 3
+        "count": 2
       },
       {
         "category": "量子・半導体",
@@ -394,11 +394,6 @@
       },
       {
         "category": "研究基盤・人材",
-        "document_type": "会議・審議",
-        "count": 1
-      },
-      {
-        "category": "生命・健康",
         "document_type": "会議・審議",
         "count": 1
       }
