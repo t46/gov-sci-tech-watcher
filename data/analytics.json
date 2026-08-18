@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-17T22:43:40.176454Z",
+  "generated_at": "2026-08-18T22:43:24.071794Z",
   "policy": {
     "item_count": 31,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-17"
+      "to": "2026-08-18"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 17
+        "count": 18
       },
       {
         "label": "予算・投資",
@@ -25,11 +25,11 @@
         "count": 2
       },
       {
-        "label": "研究基盤・人材",
-        "count": 2
+        "label": "量子・半導体",
+        "count": 1
       },
       {
-        "label": "量子・半導体",
+        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -51,20 +51,16 @@
         "count": 3
       },
       {
+        "label": "評価・検証",
+        "count": 3
+      },
+      {
         "label": "基本計画",
         "count": 2
       },
       {
         "label": "統計・白書",
         "count": 2
-      },
-      {
-        "label": "評価・検証",
-        "count": 2
-      },
-      {
-        "label": "政策・戦略",
-        "count": 1
       }
     ],
     "source_counts": [
@@ -99,11 +95,11 @@
         "count": 2
       },
       {
-        "label": "研究基盤・人材",
-        "count": 2
+        "label": "量子・半導体",
+        "count": 1
       },
       {
-        "label": "量子・半導体",
+        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -370,7 +366,7 @@
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 2
+        "count": 3
       },
       {
         "category": "科学技術政策",
@@ -385,11 +381,6 @@
       {
         "category": "量子・半導体",
         "document_type": "発表・報告",
-        "count": 1
-      },
-      {
-        "category": "研究基盤・人材",
-        "document_type": "政策・戦略",
         "count": 1
       },
       {
