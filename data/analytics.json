@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-18T22:43:24.071794Z",
+  "generated_at": "2026-08-19T11:04:10.645034Z",
   "policy": {
     "item_count": 31,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-18"
+      "to": "2026-08-19"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 18
+        "count": 17
       },
       {
         "label": "予算・投資",
@@ -18,7 +18,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 2
+        "count": 3
       },
       {
         "label": "AI・デジタル",
@@ -44,23 +44,23 @@
       },
       {
         "label": "発表・報告",
-        "count": 5
-      },
-      {
-        "label": "公募・支援",
-        "count": 3
+        "count": 6
       },
       {
         "label": "評価・検証",
-        "count": 3
+        "count": 4
       },
       {
         "label": "基本計画",
         "count": 2
       },
       {
-        "label": "統計・白書",
+        "label": "公募・支援",
         "count": 2
+      },
+      {
+        "label": "統計・白書",
+        "count": 1
       }
     ],
     "source_counts": [
@@ -88,7 +88,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 2
+        "count": 3
       },
       {
         "label": "AI・デジタル",
@@ -129,10 +129,6 @@
         "count": 2
       },
       {
-        "month": "2026-05",
-        "count": 1
-      },
-      {
         "month": "2026-06",
         "count": 3
       },
@@ -142,7 +138,7 @@
       },
       {
         "month": "2026-08",
-        "count": 8
+        "count": 9
       }
     ],
     "activity_grid": [
@@ -289,7 +285,7 @@
       {
         "year": "2026",
         "month": "05",
-        "count": 1
+        "count": 0
       },
       {
         "year": "2026",
@@ -304,7 +300,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 8
+        "count": 9
       },
       {
         "year": "2026",
@@ -331,7 +327,7 @@
       {
         "category": "生命・健康",
         "document_type": "発表・報告",
-        "count": 2
+        "count": 3
       },
       {
         "category": "科学技術政策",
@@ -346,7 +342,7 @@
       {
         "category": "科学技術政策",
         "document_type": "公募・支援",
-        "count": 3
+        "count": 2
       },
       {
         "category": "予算・投資",
@@ -356,7 +352,7 @@
       {
         "category": "科学技術政策",
         "document_type": "統計・白書",
-        "count": 2
+        "count": 1
       },
       {
         "category": "AI・デジタル",
@@ -366,7 +362,7 @@
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 3
+        "count": 4
       },
       {
         "category": "科学技術政策",
