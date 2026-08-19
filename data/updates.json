@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T11:02:10.049297Z",
+  "generated_at": "2026-08-19T22:42:31.578976Z",
   "item_count": 31,
   "sources": [
     {
@@ -9,7 +9,7 @@
       "page": "https://www8.cao.go.jp/cstp/stmain.html",
       "status": "ok",
       "items": 1,
-      "checked_at": "2026-08-19T11:01:36.675329Z"
+      "checked_at": "2026-08-19T22:42:12.047887Z"
     },
     {
       "id": "mext-science",
@@ -19,7 +19,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 8,
-      "checked_at": "2026-08-19T11:01:38.046447Z"
+      "checked_at": "2026-08-19T22:42:12.562648Z"
     },
     {
       "id": "cstp",
@@ -29,7 +29,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 16,
-      "checked_at": "2026-08-19T11:01:39.268377Z"
+      "checked_at": "2026-08-19T22:42:13.193719Z"
     },
     {
       "id": "cstp-budget",
@@ -39,7 +39,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 6,
-      "checked_at": "2026-08-19T11:01:40.380715Z"
+      "checked_at": "2026-08-19T22:42:13.637388Z"
     }
   ],
   "items": [
@@ -293,7 +293,23 @@
         "募集期間 令和８年６月19日（金）～令和８年６月23日（火）23時59分 （郵送の場合は６月22日"
       ],
       "content_status": "extracted",
-      "content_note": "公式ページ/PDFから本文を自動整理"
+      "content_note": "公式ページ/PDFから本文を自動整理",
+      "ai_summary": "人工知能基本計画（素案）に関する意見を募集し、人工知能関連技術の研究開発及び活用の適正性確保に向けた指針の策定に役立てる。",
+      "ai_points": [
+        "意見書（別紙様式）に記載の上、郵送で提出。",
+        "募集期間は令和８年６月19日～６月23日。",
+        "提出意見は人工知能関連技術の研究開発及び活用の適正性確保に向けた指針の策定に活用。"
+      ],
+      "ai_why_it_matters": "人工知能関連技術の研究開発及び活用の適正性確保に向けた指針の策定に向けた審議の参考にするため。",
+      "ai_signals": [
+        "令和８年６月19日",
+        "令和８年６月23日",
+        "583KB",
+        "400文字以内",
+        "理由を含め400文字以内"
+      ],
+      "ai_status": "generated",
+      "ai_model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
     },
     {
       "id": "cstp:https://www8.cao.go.jp/cstp/stmain/20260609oi_prize.html",
@@ -1213,9 +1229,9 @@
     }
   ],
   "ai_summary": {
-    "status": "cached",
-    "generated": 0,
-    "cached": 5,
+    "status": "generated",
+    "generated": 1,
+    "cached": 6,
     "model": "mmnga/llm-jp-3.1-1.8b-instruct4-gguf:Q4_K_M"
   }
 }
