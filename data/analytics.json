@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-24T22:45:19.088553Z",
+  "generated_at": "2026-08-25T22:46:03.336706Z",
   "policy": {
     "item_count": 30,
     "period": {
@@ -44,11 +44,11 @@
       },
       {
         "label": "発表・報告",
-        "count": 5
+        "count": 6
       },
       {
         "label": "評価・検証",
-        "count": 5
+        "count": 4
       },
       {
         "label": "基本計画",
@@ -321,6 +321,11 @@
     ],
     "category_document_matrix": [
       {
+        "category": "科学技術政策",
+        "document_type": "発表・報告",
+        "count": 3
+      },
+      {
         "category": "生命・健康",
         "document_type": "発表・報告",
         "count": 2
@@ -358,17 +363,12 @@
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 5
+        "count": 4
       },
       {
         "category": "科学技術政策",
         "document_type": "基本計画",
         "count": 1
-      },
-      {
-        "category": "科学技術政策",
-        "document_type": "発表・報告",
-        "count": 2
       },
       {
         "category": "量子・半導体",
