@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-28T06:08:26.135443Z",
+  "generated_at": "2026-08-29T03:43:27.756851Z",
   "policy": {
     "item_count": 30,
     "period": {
@@ -44,18 +44,18 @@
       },
       {
         "label": "会議・審議",
-        "count": 8
+        "count": 7
       },
       {
         "label": "予算資料",
         "count": 7
       },
       {
-        "label": "基本計画",
-        "count": 2
+        "label": "公募・支援",
+        "count": 3
       },
       {
-        "label": "公募・支援",
+        "label": "基本計画",
         "count": 2
       },
       {
@@ -142,7 +142,7 @@
       },
       {
         "month": "2026-08",
-        "count": 9
+        "count": 10
       }
     ],
     "activity_grid": [
@@ -304,7 +304,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 9
+        "count": 10
       },
       {
         "year": "2026",
@@ -341,7 +341,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 5
+        "count": 4
       },
       {
         "category": "AI・デジタル",
@@ -351,7 +351,7 @@
       {
         "category": "科学技術政策",
         "document_type": "公募・支援",
-        "count": 2
+        "count": 3
       },
       {
         "category": "予算・投資",
