@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-31T00:38:53.861535Z",
+  "generated_at": "2026-09-01T01:20:21.775001Z",
   "policy": {
     "item_count": 30,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-08-28"
+      "to": "2026-08-31"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 13
+        "count": 17
       },
       {
         "label": "予算・投資",
@@ -18,37 +18,33 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
       },
       {
-        "label": "宇宙・安全保障",
-        "count": 2
-      },
-      {
         "label": "量子・半導体",
-        "count": 1
-      },
-      {
-        "label": "研究基盤・人材",
         "count": 1
       }
     ],
     "document_type_counts": [
       {
         "label": "発表・報告",
-        "count": 8
-      },
-      {
-        "label": "会議・審議",
-        "count": 7
+        "count": 9
       },
       {
         "label": "予算資料",
         "count": 7
+      },
+      {
+        "label": "会議・審議",
+        "count": 5
+      },
+      {
+        "label": "評価・検証",
+        "count": 3
       },
       {
         "label": "公募・支援",
@@ -56,10 +52,6 @@
       },
       {
         "label": "基本計画",
-        "count": 2
-      },
-      {
-        "label": "評価・検証",
         "count": 2
       },
       {
@@ -88,22 +80,14 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
       },
       {
-        "label": "宇宙・安全保障",
-        "count": 2
-      },
-      {
         "label": "量子・半導体",
-        "count": 1
-      },
-      {
-        "label": "研究基盤・人材",
         "count": 1
       }
     ],
@@ -142,7 +126,7 @@
       },
       {
         "month": "2026-08",
-        "count": 9
+        "count": 8
       }
     ],
     "activity_grid": [
@@ -304,7 +288,7 @@
       {
         "year": "2026",
         "month": "08",
-        "count": 9
+        "count": 8
       },
       {
         "year": "2026",
@@ -331,7 +315,7 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 3
+        "count": 5
       },
       {
         "category": "生命・健康",
@@ -342,6 +326,11 @@
         "category": "科学技術政策",
         "document_type": "会議・審議",
         "count": 4
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "評価・検証",
+        "count": 3
       },
       {
         "category": "AI・デジタル",
@@ -370,36 +359,11 @@
       },
       {
         "category": "科学技術政策",
-        "document_type": "評価・検証",
-        "count": 1
-      },
-      {
-        "category": "科学技術政策",
         "document_type": "基本計画",
         "count": 1
       },
       {
         "category": "量子・半導体",
-        "document_type": "発表・報告",
-        "count": 1
-      },
-      {
-        "category": "研究基盤・人材",
-        "document_type": "評価・検証",
-        "count": 1
-      },
-      {
-        "category": "宇宙・安全保障",
-        "document_type": "会議・審議",
-        "count": 1
-      },
-      {
-        "category": "生命・健康",
-        "document_type": "会議・審議",
-        "count": 1
-      },
-      {
-        "category": "宇宙・安全保障",
         "document_type": "発表・報告",
         "count": 1
       }
