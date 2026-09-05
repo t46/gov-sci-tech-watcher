@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-04T00:07:24.774514Z",
+  "generated_at": "2026-09-05T00:07:27.203815Z",
   "policy": {
-    "item_count": 30,
+    "item_count": 31,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-01"
+      "to": "2026-09-04"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 18
+        "count": 16
       },
       {
         "label": "予算・投資",
@@ -18,21 +18,21 @@
       },
       {
         "label": "生命・健康",
-        "count": 2
+        "count": 3
+      },
+      {
+        "label": "量子・半導体",
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
-      },
-      {
-        "label": "量子・半導体",
-        "count": 1
       }
     ],
     "document_type_counts": [
       {
         "label": "会議・審議",
-        "count": 8
+        "count": 9
       },
       {
         "label": "発表・報告",
@@ -62,7 +62,7 @@
     "source_counts": [
       {
         "label": "内閣府 科学技術・イノベーション",
-        "count": 16
+        "count": 17
       },
       {
         "label": "文部科学省",
@@ -80,15 +80,15 @@
       },
       {
         "label": "生命・健康",
-        "count": 2
+        "count": 3
+      },
+      {
+        "label": "量子・半導体",
+        "count": 3
       },
       {
         "label": "AI・デジタル",
         "count": 2
-      },
-      {
-        "label": "量子・半導体",
-        "count": 1
       }
     ],
     "monthly_activity": [
@@ -122,15 +122,15 @@
       },
       {
         "month": "2026-07",
-        "count": 3
+        "count": 6
       },
       {
         "month": "2026-08",
-        "count": 5
+        "count": 3
       },
       {
         "month": "2026-09",
-        "count": 2
+        "count": 3
       }
     ],
     "activity_grid": [
@@ -287,17 +287,17 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 3
+        "count": 6
       },
       {
         "year": "2026",
         "month": "08",
-        "count": 5
+        "count": 3
       },
       {
         "year": "2026",
         "month": "09",
-        "count": 2
+        "count": 3
       },
       {
         "year": "2026",
@@ -319,17 +319,17 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 4
-      },
-      {
-        "category": "生命・健康",
-        "document_type": "発表・報告",
-        "count": 2
+        "count": 3
       },
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 7
+        "count": 6
+      },
+      {
+        "category": "生命・健康",
+        "document_type": "発表・報告",
+        "count": 3
       },
       {
         "category": "科学技術政策",
@@ -370,10 +370,15 @@
         "category": "量子・半導体",
         "document_type": "発表・報告",
         "count": 1
+      },
+      {
+        "category": "量子・半導体",
+        "document_type": "会議・審議",
+        "count": 2
       }
     ],
     "insights": [
-      "掲載中の公式更新は30件。文書の役割では「会議・審議」が最多です。",
+      "掲載中の公式更新は31件。文書の役割では「会議・審議」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
