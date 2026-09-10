@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-09T00:16:09.695302Z",
+  "generated_at": "2026-09-10T00:16:05.615029Z",
   "policy": {
     "item_count": 32,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-07"
+      "to": "2026-09-10"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 16
+        "count": 17
       },
       {
         "label": "予算・投資",
@@ -21,21 +21,21 @@
         "count": 4
       },
       {
-        "label": "量子・半導体",
-        "count": 3
+        "label": "AI・デジタル",
+        "count": 2
       },
       {
-        "label": "AI・デジタル",
+        "label": "量子・半導体",
         "count": 2
       }
     ],
     "document_type_counts": [
       {
-        "label": "会議・審議",
-        "count": 9
+        "label": "発表・報告",
+        "count": 8
       },
       {
-        "label": "発表・報告",
+        "label": "会議・審議",
         "count": 8
       },
       {
@@ -56,6 +56,10 @@
       },
       {
         "label": "統計・白書",
+        "count": 1
+      },
+      {
+        "label": "政策・戦略",
         "count": 1
       }
     ],
@@ -83,11 +87,11 @@
         "count": 4
       },
       {
-        "label": "量子・半導体",
-        "count": 3
+        "label": "AI・デジタル",
+        "count": 2
       },
       {
-        "label": "AI・デジタル",
+        "label": "量子・半導体",
         "count": 2
       }
     ],
@@ -130,7 +134,7 @@
       },
       {
         "month": "2026-09",
-        "count": 4
+        "count": 5
       }
     ],
     "activity_grid": [
@@ -297,7 +301,7 @@
       {
         "year": "2026",
         "month": "09",
-        "count": 4
+        "count": 5
       },
       {
         "year": "2026",
@@ -372,40 +376,229 @@
         "count": 1
       },
       {
+        "category": "科学技術政策",
+        "document_type": "政策・戦略",
+        "count": 1
+      },
+      {
         "category": "量子・半導体",
         "document_type": "会議・審議",
-        "count": 2
+        "count": 1
       }
     ],
     "insights": [
-      "掲載中の公式更新は32件。文書の役割では「会議・審議」が最多です。",
+      "掲載中の公式更新は32件。文書の役割では「発表・報告」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
   "reality": {
     "survey_year": 2025,
     "money": {
-      "status": "unavailable",
+      "status": "ok",
       "unit": "百万円",
-      "error": "HTTP Error 404: Not Found"
+      "rows": [
+        {
+          "name": "企業",
+          "organizations": 16916,
+          "internal_research_expenditure_million_yen": 17430337,
+          "incoming_research_funds_million_yen": 1107732,
+          "external_research_expenditure_million_yen": 3208037
+        },
+        {
+          "name": "非営利団体",
+          "organizations": 404,
+          "internal_research_expenditure_million_yen": 264134,
+          "incoming_research_funds_million_yen": 194004,
+          "external_research_expenditure_million_yen": 27702
+        },
+        {
+          "name": "公的機関",
+          "organizations": 511,
+          "internal_research_expenditure_million_yen": 2048496,
+          "incoming_research_funds_million_yen": 4098549,
+          "external_research_expenditure_million_yen": 2145678
+        },
+        {
+          "name": "大学等",
+          "organizations": 4022,
+          "internal_research_expenditure_million_yen": 4049554,
+          "incoming_research_funds_million_yen": 943372,
+          "external_research_expenditure_million_yen": 31897
+        }
+      ]
     },
     "people": {
-      "status": "unavailable",
+      "status": "ok",
       "unit": "人",
-      "error": "HTTP Error 404: Not Found"
+      "rows": [
+        {
+          "name": "企業",
+          "recruitment_and_transfer": 47237,
+          "incoming_researchers": 19207,
+          "outgoing_researchers": 26877,
+          "incoming_by_source": {
+            "企業": 18293,
+            "非営利団体": 54,
+            "公的機関": 120,
+            "大学等": 229,
+            "その他": 511
+          }
+        },
+        {
+          "name": "非営利団体",
+          "recruitment_and_transfer": 1027,
+          "incoming_researchers": 738,
+          "outgoing_researchers": 758,
+          "incoming_by_source": {
+            "企業": 454,
+            "非営利団体": 23,
+            "公的機関": 116,
+            "大学等": 111,
+            "その他": 34
+          }
+        },
+        {
+          "name": "公的機関",
+          "recruitment_and_transfer": 4013,
+          "incoming_researchers": 3038,
+          "outgoing_researchers": 3614,
+          "incoming_by_source": {
+            "企業": 181,
+            "非営利団体": 74,
+            "公的機関": 1977,
+            "大学等": 412,
+            "その他": 394
+          }
+        },
+        {
+          "name": "大学等",
+          "recruitment_and_transfer": 28551,
+          "incoming_researchers": 21941,
+          "outgoing_researchers": 28021,
+          "incoming_by_source": {
+            "企業": 1284,
+            "非営利団体": 3900,
+            "公的機関": 5782,
+            "大学等": 8900,
+            "その他": 2075
+          }
+        }
+      ],
+      "links": [
+        {
+          "source": "企業",
+          "target": "企業",
+          "value": 18293
+        },
+        {
+          "source": "非営利団体",
+          "target": "企業",
+          "value": 54
+        },
+        {
+          "source": "公的機関",
+          "target": "企業",
+          "value": 120
+        },
+        {
+          "source": "大学等",
+          "target": "企業",
+          "value": 229
+        },
+        {
+          "source": "その他",
+          "target": "企業",
+          "value": 511
+        },
+        {
+          "source": "企業",
+          "target": "非営利団体",
+          "value": 454
+        },
+        {
+          "source": "非営利団体",
+          "target": "非営利団体",
+          "value": 23
+        },
+        {
+          "source": "公的機関",
+          "target": "非営利団体",
+          "value": 116
+        },
+        {
+          "source": "大学等",
+          "target": "非営利団体",
+          "value": 111
+        },
+        {
+          "source": "その他",
+          "target": "非営利団体",
+          "value": 34
+        },
+        {
+          "source": "企業",
+          "target": "公的機関",
+          "value": 181
+        },
+        {
+          "source": "非営利団体",
+          "target": "公的機関",
+          "value": 74
+        },
+        {
+          "source": "公的機関",
+          "target": "公的機関",
+          "value": 1977
+        },
+        {
+          "source": "大学等",
+          "target": "公的機関",
+          "value": 412
+        },
+        {
+          "source": "その他",
+          "target": "公的機関",
+          "value": 394
+        },
+        {
+          "source": "企業",
+          "target": "大学等",
+          "value": 1284
+        },
+        {
+          "source": "非営利団体",
+          "target": "大学等",
+          "value": 3900
+        },
+        {
+          "source": "公的機関",
+          "target": "大学等",
+          "value": 5782
+        },
+        {
+          "source": "大学等",
+          "target": "大学等",
+          "value": 8900
+        },
+        {
+          "source": "その他",
+          "target": "大学等",
+          "value": 2075
+        }
+      ]
     },
     "sources": [
       {
         "id": "research-money",
         "title": "科学技術研究調査 総括表第2表",
         "url": "https://www.e-stat.go.jp/stat-search/files?kikan=00200&layout=dataset&stat_infid=000040377600&toukei=00200543",
-        "status": "unavailable"
+        "status": "ok"
       },
       {
         "id": "research-people",
         "title": "科学技術研究調査 総括表第5表",
         "url": "https://www.e-stat.go.jp/stat-search/files?cycle=0&layout=datalist&lid=000001471830&month=0&page=1&stat_infid=000040377603&tclass1=000001234102&tclass2val=0&toukei=00200543&tstat=000001032090&year=20250",
-        "status": "unavailable"
+        "status": "ok"
       }
     ]
   }
