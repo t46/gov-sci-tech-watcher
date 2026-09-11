@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-10T00:16:05.615029Z",
+  "generated_at": "2026-09-11T00:11:37.996959Z",
   "policy": {
     "item_count": 32,
     "period": {
@@ -26,7 +26,11 @@
       },
       {
         "label": "量子・半導体",
-        "count": 2
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
+        "count": 1
       }
     ],
     "document_type_counts": [
@@ -92,7 +96,11 @@
       },
       {
         "label": "量子・半導体",
-        "count": 2
+        "count": 1
+      },
+      {
+        "label": "研究基盤・人材",
+        "count": 1
       }
     ],
     "monthly_activity": [
@@ -126,7 +134,7 @@
       },
       {
         "month": "2026-07",
-        "count": 6
+        "count": 5
       },
       {
         "month": "2026-08",
@@ -134,7 +142,7 @@
       },
       {
         "month": "2026-09",
-        "count": 5
+        "count": 6
       }
     ],
     "activity_grid": [
@@ -291,7 +299,7 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 6
+        "count": 5
       },
       {
         "year": "2026",
@@ -301,7 +309,7 @@
       {
         "year": "2026",
         "month": "09",
-        "count": 5
+        "count": 6
       },
       {
         "year": "2026",
@@ -376,13 +384,13 @@
         "count": 1
       },
       {
-        "category": "科学技術政策",
-        "document_type": "政策・戦略",
+        "category": "研究基盤・人材",
+        "document_type": "会議・審議",
         "count": 1
       },
       {
-        "category": "量子・半導体",
-        "document_type": "会議・審議",
+        "category": "科学技術政策",
+        "document_type": "政策・戦略",
         "count": 1
       }
     ],
