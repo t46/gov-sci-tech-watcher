@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-11T00:11:37.996959Z",
+  "generated_at": "2026-09-12T00:19:09.336614Z",
   "policy": {
     "item_count": 32,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-10"
+      "to": "2026-09-11"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 17
+        "count": 18
       },
       {
         "label": "予算・投資",
@@ -18,7 +18,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
@@ -36,7 +36,7 @@
     "document_type_counts": [
       {
         "label": "発表・報告",
-        "count": 8
+        "count": 9
       },
       {
         "label": "会議・審議",
@@ -47,15 +47,15 @@
         "count": 7
       },
       {
-        "label": "評価・検証",
-        "count": 3
-      },
-      {
         "label": "基本計画",
         "count": 2
       },
       {
         "label": "公募・支援",
+        "count": 2
+      },
+      {
+        "label": "評価・検証",
         "count": 2
       },
       {
@@ -88,7 +88,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 4
+        "count": 3
       },
       {
         "label": "AI・デジタル",
@@ -134,15 +134,15 @@
       },
       {
         "month": "2026-07",
-        "count": 5
+        "count": 4
       },
       {
         "month": "2026-08",
-        "count": 3
+        "count": 2
       },
       {
         "month": "2026-09",
-        "count": 6
+        "count": 8
       }
     ],
     "activity_grid": [
@@ -299,17 +299,17 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 5
+        "count": 4
       },
       {
         "year": "2026",
         "month": "08",
-        "count": 3
+        "count": 2
       },
       {
         "year": "2026",
         "month": "09",
-        "count": 6
+        "count": 8
       },
       {
         "year": "2026",
@@ -329,12 +329,12 @@
     ],
     "category_document_matrix": [
       {
-        "category": "生命・健康",
+        "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 4
+        "count": 5
       },
       {
-        "category": "科学技術政策",
+        "category": "生命・健康",
         "document_type": "発表・報告",
         "count": 3
       },
@@ -342,11 +342,6 @@
         "category": "科学技術政策",
         "document_type": "会議・審議",
         "count": 6
-      },
-      {
-        "category": "科学技術政策",
-        "document_type": "評価・検証",
-        "count": 3
       },
       {
         "category": "AI・デジタル",
@@ -372,6 +367,11 @@
         "category": "AI・デジタル",
         "document_type": "会議・審議",
         "count": 1
+      },
+      {
+        "category": "科学技術政策",
+        "document_type": "評価・検証",
+        "count": 2
       },
       {
         "category": "科学技術政策",
