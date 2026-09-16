@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-15T00:39:13.025916Z",
+  "generated_at": "2026-09-16T00:21:43.793552Z",
   "policy": {
     "item_count": 32,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-11"
+      "to": "2026-09-15"
     },
     "category_counts": [
       {
