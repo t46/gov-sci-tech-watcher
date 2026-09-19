@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-18T00:20:44.738432Z",
+  "generated_at": "2026-09-19T00:21:59.054503Z",
   "policy": {
     "item_count": 32,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-17"
+      "to": "2026-09-18"
     },
     "category_counts": [
       {
@@ -40,7 +40,7 @@
       },
       {
         "label": "発表・報告",
-        "count": 8
+        "count": 9
       },
       {
         "label": "予算資料",
@@ -55,11 +55,11 @@
         "count": 2
       },
       {
-        "label": "評価・検証",
-        "count": 2
+        "label": "統計・白書",
+        "count": 1
       },
       {
-        "label": "統計・白書",
+        "label": "評価・検証",
         "count": 1
       }
     ],
@@ -327,7 +327,7 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 4
+        "count": 5
       },
       {
         "category": "生命・健康",
@@ -367,7 +367,7 @@
       {
         "category": "科学技術政策",
         "document_type": "評価・検証",
-        "count": 2
+        "count": 1
       },
       {
         "category": "科学技術政策",
