@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T00:09:49.643600Z",
+  "generated_at": "2026-09-21T00:17:23.922913Z",
   "item_count": 32,
   "sources": [
     {
@@ -9,7 +9,7 @@
       "page": "https://www8.cao.go.jp/cstp/stmain.html",
       "status": "ok",
       "items": 0,
-      "checked_at": "2026-09-20T00:09:18.206239Z"
+      "checked_at": "2026-09-21T00:16:52.777197Z"
     },
     {
       "id": "mext-science",
@@ -19,7 +19,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 8,
-      "checked_at": "2026-09-20T00:09:19.447054Z"
+      "checked_at": "2026-09-21T00:16:54.362188Z"
     },
     {
       "id": "cstp",
@@ -29,7 +29,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 18,
-      "checked_at": "2026-09-20T00:09:20.566468Z"
+      "checked_at": "2026-09-21T00:16:55.508118Z"
     },
     {
       "id": "cstp-budget",
@@ -39,7 +39,7 @@
       "kind": "公式ページ",
       "status": "ok",
       "items": 6,
-      "checked_at": "2026-09-20T00:09:21.646336Z"
+      "checked_at": "2026-09-21T00:16:56.392002Z"
     }
   ],
   "items": [
