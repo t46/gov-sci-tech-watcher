@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-28T00:47:57.239215Z",
+  "generated_at": "2026-09-29T01:58:26.439509Z",
   "policy": {
     "item_count": 34,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-25"
+      "to": "2026-09-29"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 19
+        "count": 21
       },
       {
         "label": "予算・投資",
@@ -22,10 +22,6 @@
       },
       {
         "label": "AI・デジタル",
-        "count": 2
-      },
-      {
-        "label": "研究基盤・人材",
         "count": 2
       },
       {
@@ -95,10 +91,6 @@
         "count": 2
       },
       {
-        "label": "研究基盤・人材",
-        "count": 2
-      },
-      {
         "label": "量子・半導体",
         "count": 1
       }
@@ -138,7 +130,7 @@
       },
       {
         "month": "2026-07",
-        "count": 4
+        "count": 3
       },
       {
         "month": "2026-08",
@@ -146,7 +138,7 @@
       },
       {
         "month": "2026-09",
-        "count": 9
+        "count": 10
       }
     ],
     "activity_grid": [
@@ -303,7 +295,7 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 4
+        "count": 3
       },
       {
         "year": "2026",
@@ -313,7 +305,7 @@
       {
         "year": "2026",
         "month": "09",
-        "count": 9
+        "count": 10
       },
       {
         "year": "2026",
@@ -340,7 +332,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 9
+        "count": 11
       },
       {
         "category": "生命・健康",
@@ -386,11 +378,6 @@
         "category": "量子・半導体",
         "document_type": "発表・報告",
         "count": 1
-      },
-      {
-        "category": "研究基盤・人材",
-        "document_type": "会議・審議",
-        "count": 2
       }
     ],
     "insights": [
