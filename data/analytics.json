@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-29T01:58:26.439509Z",
+  "generated_at": "2026-09-30T01:18:44.393028Z",
   "policy": {
     "item_count": 34,
     "period": {
@@ -10,7 +10,7 @@
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 21
+        "count": 19
       },
       {
         "label": "予算・投資",
@@ -22,11 +22,11 @@
       },
       {
         "label": "AI・デジタル",
-        "count": 2
+        "count": 3
       },
       {
         "label": "量子・半導体",
-        "count": 1
+        "count": 2
       }
     ],
     "document_type_counts": [
@@ -88,11 +88,11 @@
       },
       {
         "label": "AI・デジタル",
-        "count": 2
+        "count": 3
       },
       {
         "label": "量子・半導体",
-        "count": 1
+        "count": 2
       }
     ],
     "monthly_activity": [
@@ -121,24 +121,20 @@
         "count": 2
       },
       {
-        "month": "2026-05",
-        "count": 1
-      },
-      {
         "month": "2026-06",
         "count": 2
       },
       {
         "month": "2026-07",
-        "count": 3
-      },
-      {
-        "month": "2026-08",
         "count": 2
       },
       {
+        "month": "2026-08",
+        "count": 3
+      },
+      {
         "month": "2026-09",
-        "count": 10
+        "count": 11
       }
     ],
     "activity_grid": [
@@ -285,7 +281,7 @@
       {
         "year": "2026",
         "month": "05",
-        "count": 1
+        "count": 0
       },
       {
         "year": "2026",
@@ -295,17 +291,17 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 3
-      },
-      {
-        "year": "2026",
-        "month": "08",
         "count": 2
       },
       {
         "year": "2026",
+        "month": "08",
+        "count": 3
+      },
+      {
+        "year": "2026",
         "month": "09",
-        "count": 10
+        "count": 11
       },
       {
         "year": "2026",
@@ -332,7 +328,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 11
+        "count": 9
       },
       {
         "category": "生命・健康",
@@ -362,7 +358,7 @@
       {
         "category": "AI・デジタル",
         "document_type": "会議・審議",
-        "count": 1
+        "count": 2
       },
       {
         "category": "科学技術政策",
@@ -377,6 +373,11 @@
       {
         "category": "量子・半導体",
         "document_type": "発表・報告",
+        "count": 1
+      },
+      {
+        "category": "量子・半導体",
+        "document_type": "会議・審議",
         "count": 1
       }
     ],
