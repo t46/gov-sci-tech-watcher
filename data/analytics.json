@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-30T01:18:44.393028Z",
+  "generated_at": "2026-10-01T01:18:20.201389Z",
   "policy": {
     "item_count": 34,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-09-29"
+      "to": "2026-09-30"
     },
     "category_counts": [
       {
@@ -18,7 +18,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 4
       },
       {
         "label": "AI・デジタル",
@@ -26,7 +26,7 @@
       },
       {
         "label": "量子・半導体",
-        "count": 2
+        "count": 1
       }
     ],
     "document_type_counts": [
@@ -84,7 +84,7 @@
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 4
       },
       {
         "label": "AI・デジタル",
@@ -92,7 +92,7 @@
       },
       {
         "label": "量子・半導体",
-        "count": 2
+        "count": 1
       }
     ],
     "monthly_activity": [
@@ -376,7 +376,7 @@
         "count": 1
       },
       {
-        "category": "量子・半導体",
+        "category": "生命・健康",
         "document_type": "会議・審議",
         "count": 1
       }
