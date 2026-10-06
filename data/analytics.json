@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-05T00:56:25.721333Z",
+  "generated_at": "2026-10-06T02:18:40.741056Z",
   "policy": {
     "item_count": 34,
     "period": {
       "from": "2020-07-17",
-      "to": "2026-10-02"
+      "to": "2026-10-05"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 18
+        "count": 19
       },
       {
         "label": "予算・投資",
@@ -23,10 +23,6 @@
       {
         "label": "AI・デジタル",
         "count": 3
-      },
-      {
-        "label": "量子・半導体",
-        "count": 1
       }
     ],
     "document_type_counts": [
@@ -95,10 +91,6 @@
         "count": 3
       },
       {
-        "label": "量子・半導体",
-        "count": 1
-      },
-      {
         "label": "宇宙・安全保障",
         "count": 1
       }
@@ -122,7 +114,7 @@
       },
       {
         "month": "2026-01",
-        "count": 3
+        "count": 2
       },
       {
         "month": "2026-02",
@@ -146,11 +138,11 @@
       },
       {
         "month": "2026-09",
-        "count": 7
+        "count": 6
       },
       {
         "month": "2026-10",
-        "count": 3
+        "count": 5
       }
     ],
     "activity_grid": [
@@ -337,7 +329,7 @@
       {
         "year": "2026",
         "month": "01",
-        "count": 3
+        "count": 2
       },
       {
         "year": "2026",
@@ -377,12 +369,12 @@
       {
         "year": "2026",
         "month": "09",
-        "count": 7
+        "count": 6
       },
       {
         "year": "2026",
         "month": "10",
-        "count": 3
+        "count": 5
       },
       {
         "year": "2026",
@@ -397,14 +389,14 @@
     ],
     "category_document_matrix": [
       {
+        "category": "科学技術政策",
+        "document_type": "発表・報告",
+        "count": 5
+      },
+      {
         "category": "AI・デジタル",
         "document_type": "政策・戦略",
         "count": 1
-      },
-      {
-        "category": "科学技術政策",
-        "document_type": "発表・報告",
-        "count": 4
       },
       {
         "category": "科学技術政策",
@@ -450,11 +442,6 @@
         "category": "科学技術政策",
         "document_type": "基本計画",
         "count": 2
-      },
-      {
-        "category": "量子・半導体",
-        "document_type": "発表・報告",
-        "count": 1
       },
       {
         "category": "生命・健康",
