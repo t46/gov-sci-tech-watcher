@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T01:57:02.639542Z",
+  "generated_at": "2026-10-09T02:12:04.322185Z",
   "policy": {
     "item_count": 35,
     "period": {
@@ -10,7 +10,7 @@
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 20
+        "count": 21
       },
       {
         "label": "予算・投資",
@@ -23,10 +23,6 @@
       {
         "label": "生命・健康",
         "count": 3
-      },
-      {
-        "label": "宇宙・安全保障",
-        "count": 1
       }
     ],
     "document_type_counts": [
@@ -36,11 +32,15 @@
       },
       {
         "label": "会議・審議",
-        "count": 10
+        "count": 9
       },
       {
         "label": "予算資料",
         "count": 8
+      },
+      {
+        "label": "政策・戦略",
+        "count": 2
       },
       {
         "label": "基本計画",
@@ -49,10 +49,6 @@
       {
         "label": "公募・支援",
         "count": 2
-      },
-      {
-        "label": "政策・戦略",
-        "count": 1
       },
       {
         "label": "統計・白書",
@@ -96,7 +92,7 @@
       },
       {
         "label": "宇宙・安全保障",
-        "count": 2
+        "count": 1
       }
     ],
     "monthly_activity": [
@@ -130,7 +126,7 @@
       },
       {
         "month": "2026-07",
-        "count": 3
+        "count": 2
       },
       {
         "month": "2026-08",
@@ -142,7 +138,7 @@
       },
       {
         "month": "2026-10",
-        "count": 8
+        "count": 9
       }
     ],
     "activity_grid": [
@@ -299,7 +295,7 @@
       {
         "year": "2026",
         "month": "07",
-        "count": 3
+        "count": 2
       },
       {
         "year": "2026",
@@ -314,7 +310,7 @@
       {
         "year": "2026",
         "month": "10",
-        "count": 8
+        "count": 9
       },
       {
         "year": "2026",
@@ -384,8 +380,8 @@
         "count": 1
       },
       {
-        "category": "宇宙・安全保障",
-        "document_type": "会議・審議",
+        "category": "科学技術政策",
+        "document_type": "政策・戦略",
         "count": 1
       }
     ],
