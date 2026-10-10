@@ -1,28 +1,28 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T02:12:04.322185Z",
+  "generated_at": "2026-10-10T01:45:47.961766Z",
   "policy": {
     "item_count": 35,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-10-08"
+      "to": "2026-10-09"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 21
+        "count": 22
       },
       {
         "label": "予算・投資",
         "count": 8
       },
       {
-        "label": "AI・デジタル",
+        "label": "生命・健康",
         "count": 3
       },
       {
-        "label": "生命・健康",
-        "count": 3
+        "label": "AI・デジタル",
+        "count": 2
       }
     ],
     "document_type_counts": [
@@ -32,15 +32,11 @@
       },
       {
         "label": "会議・審議",
-        "count": 9
+        "count": 10
       },
       {
         "label": "予算資料",
         "count": 8
-      },
-      {
-        "label": "政策・戦略",
-        "count": 2
       },
       {
         "label": "基本計画",
@@ -57,12 +53,16 @@
       {
         "label": "評価・検証",
         "count": 1
+      },
+      {
+        "label": "政策・戦略",
+        "count": 1
       }
     ],
     "source_counts": [
       {
         "label": "内閣府 科学技術・イノベーション",
-        "count": 20
+        "count": 21
       },
       {
         "label": "文部科学省",
@@ -71,10 +71,6 @@
       {
         "label": "内閣府 科学技術関係予算",
         "count": 6
-      },
-      {
-        "label": "内閣府",
-        "count": 1
       }
     ],
     "theme_counts": [
@@ -83,12 +79,12 @@
         "count": 8
       },
       {
-        "label": "AI・デジタル",
+        "label": "生命・健康",
         "count": 3
       },
       {
-        "label": "生命・健康",
-        "count": 3
+        "label": "AI・デジタル",
+        "count": 2
       },
       {
         "label": "宇宙・安全保障",
@@ -330,14 +326,9 @@
         "count": 7
       },
       {
-        "category": "AI・デジタル",
-        "document_type": "政策・戦略",
-        "count": 1
-      },
-      {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 8
+        "count": 9
       },
       {
         "category": "生命・健康",
