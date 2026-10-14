@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-13T03:03:48.187501Z",
+  "generated_at": "2026-10-14T01:14:08.280312Z",
   "policy": {
     "item_count": 35,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-10-09"
+      "to": "2026-10-13"
     },
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 22
+        "count": 21
       },
       {
         "label": "予算・投資",
@@ -23,16 +23,20 @@
       {
         "label": "AI・デジタル",
         "count": 2
+      },
+      {
+        "label": "宇宙・安全保障",
+        "count": 1
       }
     ],
     "document_type_counts": [
       {
-        "label": "発表・報告",
-        "count": 10
+        "label": "会議・審議",
+        "count": 11
       },
       {
-        "label": "会議・審議",
-        "count": 10
+        "label": "発表・報告",
+        "count": 9
       },
       {
         "label": "予算資料",
@@ -88,7 +92,7 @@
       },
       {
         "label": "宇宙・安全保障",
-        "count": 1
+        "count": 2
       }
     ],
     "monthly_activity": [
@@ -118,7 +122,7 @@
       },
       {
         "month": "2026-06",
-        "count": 2
+        "count": 4
       },
       {
         "month": "2026-07",
@@ -286,7 +290,7 @@
       {
         "year": "2026",
         "month": "06",
-        "count": 2
+        "count": 4
       },
       {
         "year": "2026",
@@ -323,7 +327,7 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 7
+        "count": 6
       },
       {
         "category": "科学技術政策",
@@ -371,13 +375,18 @@
         "count": 1
       },
       {
+        "category": "宇宙・安全保障",
+        "document_type": "会議・審議",
+        "count": 1
+      },
+      {
         "category": "科学技術政策",
         "document_type": "政策・戦略",
         "count": 1
       }
     ],
     "insights": [
-      "掲載中の公式更新は35件。文書の役割では「発表・報告」が最多です。",
+      "掲載中の公式更新は35件。文書の役割では「会議・審議」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
