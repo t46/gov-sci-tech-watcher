@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-14T01:14:08.280312Z",
+  "generated_at": "2026-10-15T00:32:37.172525Z",
   "policy": {
     "item_count": 35,
     "period": {
       "from": "2021-03-01",
-      "to": "2026-10-13"
+      "to": "2026-10-23"
     },
     "category_counts": [
       {
@@ -122,7 +122,7 @@
       },
       {
         "month": "2026-06",
-        "count": 4
+        "count": 3
       },
       {
         "month": "2026-07",
@@ -138,7 +138,7 @@
       },
       {
         "month": "2026-10",
-        "count": 9
+        "count": 10
       }
     ],
     "activity_grid": [
@@ -290,7 +290,7 @@
       {
         "year": "2026",
         "month": "06",
-        "count": 4
+        "count": 3
       },
       {
         "year": "2026",
@@ -310,7 +310,7 @@
       {
         "year": "2026",
         "month": "10",
-        "count": 9
+        "count": 10
       },
       {
         "year": "2026",
