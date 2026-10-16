@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-15T00:32:37.172525Z",
+  "generated_at": "2026-10-16T00:25:42.408431Z",
   "policy": {
     "item_count": 35,
     "period": {
@@ -32,7 +32,7 @@
     "document_type_counts": [
       {
         "label": "会議・審議",
-        "count": 11
+        "count": 12
       },
       {
         "label": "発表・報告",
@@ -56,10 +56,6 @@
       },
       {
         "label": "評価・検証",
-        "count": 1
-      },
-      {
-        "label": "政策・戦略",
         "count": 1
       }
     ],
@@ -332,7 +328,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 9
+        "count": 10
       },
       {
         "category": "生命・健康",
@@ -377,11 +373,6 @@
       {
         "category": "宇宙・安全保障",
         "document_type": "会議・審議",
-        "count": 1
-      },
-      {
-        "category": "科学技術政策",
-        "document_type": "政策・戦略",
         "count": 1
       }
     ],
