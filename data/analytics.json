@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-16T00:25:42.408431Z",
+  "generated_at": "2026-10-17T00:30:00.791477Z",
   "policy": {
-    "item_count": 35,
+    "item_count": 37,
     "period": {
       "from": "2021-03-01",
       "to": "2026-10-23"
@@ -10,15 +10,15 @@
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 21
+        "count": 22
       },
       {
         "label": "予算・投資",
-        "count": 8
+        "count": 7
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 4
       },
       {
         "label": "AI・デジタル",
@@ -26,21 +26,21 @@
       },
       {
         "label": "宇宙・安全保障",
-        "count": 1
+        "count": 2
       }
     ],
     "document_type_counts": [
+      {
+        "label": "発表・報告",
+        "count": 12
+      },
       {
         "label": "会議・審議",
         "count": 12
       },
       {
-        "label": "発表・報告",
-        "count": 9
-      },
-      {
         "label": "予算資料",
-        "count": 8
+        "count": 7
       },
       {
         "label": "基本計画",
@@ -62,7 +62,7 @@
     "source_counts": [
       {
         "label": "内閣府 科学技術・イノベーション",
-        "count": 21
+        "count": 23
       },
       {
         "label": "文部科学省",
@@ -76,11 +76,11 @@
     "theme_counts": [
       {
         "label": "予算・資金",
-        "count": 8
+        "count": 7
       },
       {
         "label": "生命・健康",
-        "count": 3
+        "count": 4
       },
       {
         "label": "AI・デジタル",
@@ -118,7 +118,7 @@
       },
       {
         "month": "2026-06",
-        "count": 3
+        "count": 2
       },
       {
         "month": "2026-07",
@@ -134,7 +134,7 @@
       },
       {
         "month": "2026-10",
-        "count": 10
+        "count": 13
       }
     ],
     "activity_grid": [
@@ -286,7 +286,7 @@
       {
         "year": "2026",
         "month": "06",
-        "count": 3
+        "count": 2
       },
       {
         "year": "2026",
@@ -306,7 +306,7 @@
       {
         "year": "2026",
         "month": "10",
-        "count": 10
+        "count": 13
       },
       {
         "year": "2026",
@@ -323,7 +323,7 @@
       {
         "category": "科学技術政策",
         "document_type": "発表・報告",
-        "count": 6
+        "count": 7
       },
       {
         "category": "科学技術政策",
@@ -333,7 +333,7 @@
       {
         "category": "生命・健康",
         "document_type": "発表・報告",
-        "count": 3
+        "count": 4
       },
       {
         "category": "AI・デジタル",
@@ -348,7 +348,7 @@
       {
         "category": "予算・投資",
         "document_type": "予算資料",
-        "count": 8
+        "count": 7
       },
       {
         "category": "科学技術政策",
@@ -372,12 +372,17 @@
       },
       {
         "category": "宇宙・安全保障",
+        "document_type": "発表・報告",
+        "count": 1
+      },
+      {
+        "category": "宇宙・安全保障",
         "document_type": "会議・審議",
         "count": 1
       }
     ],
     "insights": [
-      "掲載中の公式更新は35件。文書の役割では「会議・審議」が最多です。",
+      "掲載中の公式更新は37件。文書の役割では「発表・報告」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
