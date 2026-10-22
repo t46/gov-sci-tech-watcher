@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-22T00:42:22.089515Z",
+  "generated_at": "2026-10-22T02:07:31.070974Z",
   "policy": {
     "item_count": 37,
     "period": {
@@ -10,7 +10,7 @@
     "category_counts": [
       {
         "label": "科学技術政策",
-        "count": 22
+        "count": 23
       },
       {
         "label": "予算・投資",
@@ -23,20 +23,16 @@
       {
         "label": "AI・デジタル",
         "count": 2
-      },
-      {
-        "label": "宇宙・安全保障",
-        "count": 1
       }
     ],
     "document_type_counts": [
       {
-        "label": "発表・報告",
-        "count": 12
+        "label": "会議・審議",
+        "count": 13
       },
       {
-        "label": "会議・審議",
-        "count": 12
+        "label": "発表・報告",
+        "count": 11
       },
       {
         "label": "予算資料",
@@ -85,10 +81,6 @@
       {
         "label": "AI・デジタル",
         "count": 2
-      },
-      {
-        "label": "宇宙・安全保障",
-        "count": 1
       }
     ],
     "monthly_activity": [
@@ -110,7 +102,7 @@
       },
       {
         "month": "2026-02",
-        "count": 4
+        "count": 5
       },
       {
         "month": "2026-03",
@@ -134,7 +126,7 @@
       },
       {
         "month": "2026-10",
-        "count": 13
+        "count": 12
       }
     ],
     "activity_grid": [
@@ -266,7 +258,7 @@
       {
         "year": "2026",
         "month": "02",
-        "count": 4
+        "count": 5
       },
       {
         "year": "2026",
@@ -306,7 +298,7 @@
       {
         "year": "2026",
         "month": "10",
-        "count": 13
+        "count": 12
       },
       {
         "year": "2026",
@@ -328,7 +320,7 @@
       {
         "category": "科学技術政策",
         "document_type": "会議・審議",
-        "count": 10
+        "count": 11
       },
       {
         "category": "生命・健康",
@@ -374,15 +366,10 @@
         "category": "生命・健康",
         "document_type": "会議・審議",
         "count": 1
-      },
-      {
-        "category": "宇宙・安全保障",
-        "document_type": "発表・報告",
-        "count": 1
       }
     ],
     "insights": [
-      "掲載中の公式更新は37件。文書の役割では「発表・報告」が最多です。",
+      "掲載中の公式更新は37件。文書の役割では「会議・審議」が最多です。",
       "テーマ集計はタイトル・概要・分類語に基づく重複カウントで、影響度や因果関係を示すものではありません。"
     ]
   },
