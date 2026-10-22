@@ -15,6 +15,8 @@ permissions:
 
 jobs:
   refresh-indicators:
+    # Use the same suspension switch as the publishing workflow.
+    if: vars.SCIENCE_SIGNAL_PUBLICATION_PAUSED != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
